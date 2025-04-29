@@ -8,7 +8,7 @@ function useJob(id, initialData) {
   useEffect(() => {
     let stale = false;
     async function loadJob() {
-      const res = await fetch(`https://api.chunkycloud.lemaik.de/jobs/${id}`);
+      const res = await fetch(`http://localhost:3213/api/jobs/${id}`);
       if (res.status === 200) {
         const json = await res.json();
         if (!stale) {
@@ -35,7 +35,7 @@ function useJob(id, initialData) {
 
 export async function getServerSideProps(context) {
   const res = await fetch(
-    `https://api.chunkycloud.lemaik.de/jobs/${context.params.id}`
+    `http://localhost:3213/api/jobs/${context.params.id}`
   );
   const data = await res.json();
 
@@ -60,12 +60,12 @@ export default function JobDetails({ initialData }) {
       <Header title={id} breadcrumbs={[{ title: "Jobs" }]} />
       {job.spp > 0 && (
         <a
-          href={`https://api.chunkycloud.lemaik.de/jobs/${id}/latest.png?${job.spp}`}
+          href={`http://localhost:3213/api/jobs/${id}/latest.png?${job.spp}`}
           target="_blank"
           rel="noreferrer"
         >
           <img
-            src={`https://api.chunkycloud.lemaik.de/jobs/${id}/latest.png?${job.spp}`}
+            src={`http://localhost:3213/api/jobs/${id}/latest.png?${job.spp}`}
             alt="Not available yet"
             width="500"
           />
@@ -95,7 +95,7 @@ export default function JobDetails({ initialData }) {
                   <>
                     {" "}
                     <a
-                      href={`https://api.chunkycloud.lemaik.de/jobs/${id}/latest.dump`}
+                      href={`http://localhost:3213/api/jobs/${id}/latest.dump`}
                       target="_blank"
                       rel="noreferrer"
                       download

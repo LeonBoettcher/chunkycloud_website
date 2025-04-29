@@ -11,7 +11,7 @@ function useStats(initialStats) {
   useEffect(() => {
     let stale = false;
     async function loadStats() {
-      const res = await fetch(`https://api.chunkycloud.lemaik.de/stats`, {
+      const res = await fetch(`http://localhost:3213/api/stats`, {
         mode: "no-cors",
       });
       if (res.status === 200) {
@@ -34,7 +34,7 @@ function useStats(initialStats) {
 }
 
 export async function getServerSideProps(context) {
-  const res = await fetch(`https://api.chunkycloud.lemaik.de/stats`);
+  const res = await fetch(`http://localhost:3213/api/stats`);
   const data = await res.json();
 
   return {

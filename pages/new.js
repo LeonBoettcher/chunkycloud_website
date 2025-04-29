@@ -5,7 +5,7 @@ import Header from "../components/Header";
 import styles from "../styles/New.module.css";
 
 export async function getServerSideProps(context) {
-  const res = await fetch(`https://api.chunkycloud.lemaik.de/resourcepacks`);
+  const res = await fetch(`http://localhost:3213/api/resourcepacks`);
   const data = await res.json();
 
   return {
@@ -99,7 +99,7 @@ export default function CreateJob({ resourcePacks }) {
       if (skymapRequired && skymap) {
         body.append("skymap", skymap);
       }
-      const res = await fetch("https://api.chunkycloud.lemaik.de/jobs", {
+      const res = await fetch("http://localhost:3213/api/jobs", {
         method: "POST",
         headers: {
           "X-Api-Key": apiKey,
