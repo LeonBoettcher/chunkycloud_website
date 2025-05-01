@@ -1,14 +1,38 @@
-import React from 'react'
+import Link from "next/link";
+import React from "react";
 
 const MainPage = () => {
   return (
     <div>
-      <h1 className='flex-1/2'>Welcome to ChonkyCloud</h1>
-      <p>ChonkyCloud is a cloud storage solution that allows you to store and share files securely.</p>
-      <p>To get started, please sign up or log in.</p>
-      <p>If you have any questions, feel free to contact us.</p>
-    </div>
-  )
-}
+      <main>
+        <h1>Welcome to ChunkyCloud!</h1>
 
-export default MainPage
+        <p>
+          A distributed rendering service for{" "}
+          <a href="https://chunky.lemaik.de/">Chunky</a>.
+        </p>
+
+        <div>
+          <a href="/new">
+            <h3>Create a new job &rarr;</h3>
+            <p>Upload your scene and render it on a distributed server farm.</p>
+          </a>
+
+          <a href="/stats">
+            <h3>Statistics &rarr;</h3>
+            <p>See how ChunkyCloud is doing and some numbers.</p>
+          </a>
+
+          <a href="/join">
+            <h3>Join the render farm &rarr;</h3>
+            <p>
+              Get the render node software and add contribute computing power.
+            </p>
+          </a>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default MainPage;
