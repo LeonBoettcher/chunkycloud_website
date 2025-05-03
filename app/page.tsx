@@ -1,5 +1,6 @@
 import Link from "next/link";
 import React from "react";
+import HeroCards from "../components/Index/HeroCards";
 
 const MainPage = () => {
   return (
@@ -12,47 +13,36 @@ const MainPage = () => {
       >
         <div className="hero-overlay"></div>
         <div className="hero-content text-neutral-content text-center">
-          <div className="max-w-md">
-            <h1 className="mb-5 text-5xl font-bold">Hello there</h1>
-            <p className="mb-5">
-              Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda
-              excepturi exercitationem quasi. In deleniti eaque aut repudiandae
-              et a id nisi.
-            </p>
-            <button className="btn btn-primary">Get Started</button>
+          <div>
+            <div>
+              <h1 className="mb-5 text-7xl font-bold">Welcome to</h1>
+              <h1 className="mb-5 text-7xl font-bold">ChunkyCloud!</h1>
+              <p className="mb-5 text-2xl">
+                A distributed rendering service for{" "}
+                <Link className="underline" href="https://chunky.lemaik.de/">
+                  Chunky
+                </Link>
+              </p>
+              <div className="pt-25 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <HeroCards
+                  Title="Create a new job"
+                  Description="Upload your scene and render it on a distributed server farm."
+                  Link="/new"
+                />
+                <HeroCards
+                  Title="Join the render farm"
+                  Description="Get the render node software and add contribute computing power."
+                  Link="/join"
+                />
+                <HeroCards
+                  Title="Statistics"
+                  Description="See how ChunkyCloud is doing and some numbers."
+                  Link="/stats"
+                />
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <div>
-        <main>
-          <h1 className="bg-amber-200 text-9xl">Welcome to ChunkyCloud!</h1>
-
-          <p>
-            A distributed rendering service for{" "}
-            <a href="https://chunky.lemaik.de/">Chunky</a>.
-          </p>
-
-          <div>
-            <a href="/new">
-              <h3>Create a new job &rarr;</h3>
-              <p>
-                Upload your scene and render it on a distributed server farm.
-              </p>
-            </a>
-
-            <a href="/stats">
-              <h3>Statistics &rarr;</h3>
-              <p>See how ChunkyCloud is doing and some numbers.</p>
-            </a>
-
-            <a href="/join">
-              <h3>Join the render farm &rarr;</h3>
-              <p>
-                Get the render node software and add contribute computing power.
-              </p>
-            </a>
-          </div>
-        </main>
       </div>
     </>
   );
