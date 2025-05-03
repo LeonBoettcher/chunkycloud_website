@@ -3,7 +3,19 @@ const path = require("path");
 const app = express();
 const port = 3213;
 
-// Sample data (this would usually come from a database or other source)
+app.use(express.json());
+
+
+
+// Mock route for /api/resourcepacks
+app.get("/api/resourcepacks", (req, res) => {
+  res.json([
+    { name: "default", displayName: "Vanilla 1.16.4" },
+    { name: "realistico", displayName: "Realistico HD" },
+    { name: "faithful", displayName: "Faithful 32x" }
+  ]);
+});
+
 const stats = {
   tasks: {
     preparePending: 120,
@@ -28,6 +40,7 @@ const stats = {
   ],
 };
 
+// In-memory job storage
 const jobs = {
   "123": {
     id: "123",
@@ -51,22 +64,17 @@ const jobs = {
   },
 };
 
-// Middleware to handle JSON requests
-app.use(express.json());
-
-// Serve static files (optional)
+// Serve static files (for image/dump mockups)
 app.use(express.static(path.join(__dirname, "public")));
 
-// API endpoint to get stats
+// GET job stats
 app.get("/api/stats", (req, res) => {
   res.json(stats);
 });
 
-// API endpoint to get details of a specific job by ID
+// GET job details
 app.get("/api/jobs/:id", (req, res) => {
-  const jobId = req.params.id;
-  const job = jobs[jobId];
-
+  const job = jobs[req.params.id];
   if (job) {
     res.json(job);
   } else {
@@ -74,11 +82,9 @@ app.get("/api/jobs/:id", (req, res) => {
   }
 });
 
-// API endpoint to fetch a job's latest image (mockup example)
+// GET image mock
 app.get("/api/jobs/:id/latest.png", (req, res) => {
-  const jobId = req.params.id;
-  const job = jobs[jobId];
-
+  const job = jobs[req.params.id];
   if (job) {
     res.sendFile(path.join(__dirname, "public", "placeholder.png"));
   } else {
@@ -86,11 +92,9 @@ app.get("/api/jobs/:id/latest.png", (req, res) => {
   }
 });
 
-// API endpoint to download the job dump (mockup example)
+// GET dump mock
 app.get("/api/jobs/:id/latest.dump", (req, res) => {
-  const jobId = req.params.id;
-  const job = jobs[jobId];
-
+  const job = jobs[req.params.id];
   if (job) {
     res.download(path.join(__dirname, "public", "placeholder.dump"));
   } else {
@@ -98,7 +102,6 @@ app.get("/api/jobs/:id/latest.dump", (req, res) => {
   }
 });
 
-// Start the server
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Mockup API running at http://localhost:${port}`);
 });

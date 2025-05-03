@@ -8,6 +8,7 @@
 # testing
 /coverage
 #/test-api
+/deleteme
 
 # next.js
 /.next/
