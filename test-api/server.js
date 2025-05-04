@@ -16,6 +16,9 @@ app.get("/api/resourcepacks", (req, res) => {
   ]);
 });
 
+// Example: Hardcoded valid token for demo purposes
+const validTokens = ["testtoken1", "testtoken2"];
+
 const stats = {
   tasks: {
     preparePending: 120,
@@ -99,6 +102,38 @@ app.get("/api/jobs/:id/latest.dump", (req, res) => {
     res.download(path.join(__dirname, "public", "placeholder.dump"));
   } else {
     res.status(404).json({ error: "Job not found" });
+  }
+});
+
+app.post("/api/auth", (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ success: false, error: "Token missing" });
+  }
+
+  if (validTokens.includes(token)) {
+    // Token is valid – simulate login
+    return res.status(200).json({ success: true, user: { id: 1, coins : 11  } });
+  } else {
+    // Invalid token
+    return res.status(401).json({ success: false, error: "Invalid token" });
+  }
+});
+
+app.post("/api/coins", (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ success: false, error: "Token missing" });
+  }
+
+  if (validTokens.includes(token)) {
+    // Token is valid – simulate login
+    return res.status(200).json({ success: true, coins : 10 });
+  } else {
+    // Invalid token
+    return res.status(401).json({ success: false, error: "Invalid token" });
   }
 });
 

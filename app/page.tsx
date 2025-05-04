@@ -11,6 +11,8 @@ const MainPage = () => {
           backgroundImage: "url(/images/Bluelix-swamp_and_mountain.png)",
         }}
       >
+        {/* TODO Add Hero image cycler + add the Creator Tag */}
+
         <div className="hero-overlay"></div>
         <div className="hero-content text-neutral-content text-center">
           <div>
@@ -42,6 +44,11 @@ const MainPage = () => {
               </div>
             </div>
           </div>
+        </div>
+        <div className="absolute bottom-4 right-4 z-10">
+          <Link href="https://chunky-dev.github.io/gallery/">
+            "swamp and mountain" by Bluelix
+          </Link>
         </div>
       </div>
     </>

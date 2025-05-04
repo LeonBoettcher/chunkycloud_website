@@ -1,4 +1,6 @@
+import Link from "next/link";
 import React from "react";
+import LoginButton from "./LoginButton";
 
 const NavBar = () => {
   return (
@@ -24,36 +26,44 @@ const NavBar = () => {
           </div>
           <ul
             tabIndex={0}
-            className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
+            className="menu menu-lg dropdown-content bg-base-100 rounded-box z-1 mt-3 w-150 p-2 shadow"
           >
             <li>
-              <a>Item 1</a>
+              <Link href="/">Home</Link>
             </li>
             <li>
-              <a>Item 2</a>
+              <Link href="/new">New</Link>
             </li>
             <li>
-              <a>Item 3</a>
+              <Link href="/join">Join</Link>
+            </li>
+            <li>
+              <Link href="/stats">Stats</Link>
             </li>
           </ul>
         </div>
-        <a className="btn btn-ghost text-xl">daisyUI</a>
+        <Link href="/" className="btn btn-ghost text-xl">
+          ChunkyCloud
+        </Link>
       </div>
       <div className="navbar-center hidden lg:flex">
-        <ul className="menu menu-horizontal px-1">
-          <li>
-            <a>Item 1</a>
+        <ul className="menu menu-horizontal px-1 ">
+          <li className="mr-4">
+            <Link href="/">Home</Link>
           </li>
-          <li>
-            <a>Item 2</a>
+          <li className="mr-4">
+            <Link href="/new">New</Link>
           </li>
-          <li>
-            <a>Item 3</a>
+          <li className="mr-4">
+            <Link href="/join">Join</Link>
+          </li>
+          <li className="mr-4">
+            <Link href="/stats">Stats</Link>
           </li>
         </ul>
       </div>
       <div className="navbar-end">
-        <a className="btn">Button</a>
+        <LoginButton />
       </div>
     </div>
   );
