@@ -1,5 +1,4 @@
 "use client"; // <- Wichtig, damit Hooks verwendet werden dürfen
-
 import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation"; // neuer Import!
 import Head from "next/head";
@@ -206,18 +205,13 @@ export default function CreateJob({ resourcePacks }) {
 
   return (
     <>
-      <Head>
-        <title>New render job – ChunkyCloud</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <Header title="New render job" />
       <div
         className={`${dragging}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <h1>Create new render job</h1>
+        <h1 className="text-5xl">Create new render job</h1>
         <p>
           To create a new render job, please select your scene files below and
           fill out the required fields.
