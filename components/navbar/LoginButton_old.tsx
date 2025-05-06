@@ -2,7 +2,7 @@
 
 import React, { FormEvent, useEffect, useRef, useState } from "react";
 
-const LoginButton = () => {
+const LoginButton_old = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [coins, setCoins] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -114,4 +114,4 @@ const LoginButton = () => {
   );
 };
 
-export default LoginButton;
+export default LoginButton_old;

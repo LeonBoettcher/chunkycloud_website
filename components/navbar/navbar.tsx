@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
 import LoginButton from "./LoginButton";
+import { SessionProvider } from "next-auth/react";
 
 const NavBar = () => {
   return (
@@ -63,7 +66,9 @@ const NavBar = () => {
         </ul>
       </div>
       <div className="navbar-end">
-        <LoginButton />
+        <SessionProvider>
+          <LoginButton />
+        </SessionProvider>
       </div>
     </div>
   );
