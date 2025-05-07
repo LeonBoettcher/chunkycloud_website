@@ -13,7 +13,7 @@ const LoginButton = () => {
   }
   return (
     <>
-      <button className="btn" onClick={() => signIn()}>
+      <button className="btn" onClick={() => signIn("discord")}>
         Sign in
       </button>
     </>

@@ -1,5 +1,5 @@
 import NextAuth from "next-auth"
-import GithubProvider from "next-auth/providers/discord"
+import DiscordProvider from "next-auth/providers/discord"
 
 export const authOptions = {
   providers: [
