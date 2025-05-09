@@ -55,7 +55,7 @@ const LoginButton = () => {
           <div className="w-10 rounded-full">
             <img
               alt="Avatar"
-              src="https://cdn.discordapp.com/avatars/435459451739308033/9eea00c960472a1e95855008d29701a8.png"
+              src={session?.user?.image || "https://placehold.co/10x10/png"}
             />
           </div>
         </div>
@@ -63,6 +63,8 @@ const LoginButton = () => {
           <div className="modal modal-open">
             <div className="modal-box text-center" ref={modalRef}>
               <p className="py-4">{session?.user?.name || "Unknown"}</p>
+              <p className="py-4">{session?.user?.email || "Unknown"}</p>
+              <p className="py-4">{session?.user?.image || "Unknown"}</p>
               <div className="modal-action">
                 <button
                   className="btn"
