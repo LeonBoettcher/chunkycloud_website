@@ -63,8 +63,8 @@ const LoginButton = () => {
           <div className="modal modal-open">
             <div className="modal-box text-center" ref={modalRef}>
               <p className="py-4">{session?.user?.name || "Unknown"}</p>
-              <p className="py-4">{session?.user?.email || "Unknown"}</p>
-              <p className="py-4">{session?.user?.image || "Unknown"}</p>
+              <p className="py-4">Your API Token</p>
+              <code>Your Token will bee here</code>
               <div className="modal-action">
                 <button
                   className="btn"

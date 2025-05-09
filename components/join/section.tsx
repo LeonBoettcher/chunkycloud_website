@@ -4,6 +4,7 @@ interface Variables {
   Title: string;
   Content: React.ReactNode;
 }
+
 const AccordionSection = ({ Title, Content }: Variables) => {
   return (
     <div className="collapse collapse-arrow bg-base-100 border border-base-300">
