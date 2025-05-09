@@ -16,6 +16,11 @@ app.get("/api/resourcepacks", (req, res) => {
   ]);
 });
 
+const users = [
+  { email: "leonmonkeygamer@gmail.com", apiToken: "abc123" },
+  { email: "test@demo.com", apiToken: "abc123" },
+];
+
 // Example: Hardcoded valid token for demo purposes
 const validTokens = ["testtoken1", "testtoken2"];
 
@@ -66,7 +71,7 @@ const jobs = {
     renderTime: 1800,
   },
 };
-
+ 
 // Serve static files (for image/dump mockups)
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -105,21 +110,7 @@ app.get("/api/jobs/:id/latest.dump", (req, res) => {
   }
 });
 
-app.post("/api/auth", (req, res) => {
-  const { token } = req.body;
 
-  if (!token) {
-    return res.status(400).json({ success: false, error: "Token missing" });
-  }
-
-  if (validTokens.includes(token)) {
-    // Token is valid – simulate login
-    return res.status(200).json({ success: true, user: { id: 1, coins : 11  } });
-  } else {
-    // Invalid token
-    return res.status(401).json({ success: false, error: "Invalid token" });
-  }
-});
 
 app.post("/api/coins", (req, res) => {
   const { token } = req.body;
@@ -136,6 +127,21 @@ app.post("/api/coins", (req, res) => {
     return res.status(401).json({ success: false, error: "Invalid token" });
   }
 });
+
+app.get("/api/apitoken", (req, res) => {
+  const email = req.query.email;
+  if (!email || typeof email !== "string") {
+    return res.status(400).json({ error: "Missing or invalid email" });
+  }
+
+  const user = users.find(u => u.email === email);
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  return res.json({ email: user.email, apiToken: user.apiToken });
+});
+
 
 app.listen(port, () => {
   console.log(`Mockup API running at http://localhost:${port}`);

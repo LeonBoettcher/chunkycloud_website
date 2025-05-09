@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import GetApiToken from "../GetAPIToken";
 
 const LoginButton = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -64,7 +65,9 @@ const LoginButton = () => {
             <div className="modal-box text-center" ref={modalRef}>
               <p className="py-4">{session?.user?.name || "Unknown"}</p>
               <p className="py-4">Your API Token</p>
-              <code>Your Token will bee here</code>
+              {session?.user?.email && (
+                <GetApiToken email={session?.user?.email} />
+              )}
               <div className="modal-action">
                 <button
                   className="btn"
