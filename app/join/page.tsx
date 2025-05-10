@@ -1,7 +1,11 @@
 import React from "react";
 import AccordionSection from "../../components/join/section";
+import GetApiToken from "../../components/GetAPIToken";
+import { useSession } from "next-auth/react";
 
 const DocsPage = () => {
+  const { data: session, status } = useSession();
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 prose prose-neutral dark:prose-invert">
       <h2>Join the render farm</h2>
@@ -61,7 +65,9 @@ const DocsPage = () => {
       </p>
       <pre className="bg-base-200 p-4 rounded-md overflow-x-auto text-sm">
         <code>
-          java -Xmx8g -jar cc-rendernode-1.0.0.jar --api-key YOUR-API-KEY-HERE
+          {session && session.user
+            ? `java -Xmx8g -jar cc-rendernode-1.0.0.jar --api-key ${session.user.email}`
+            : `java -Xmx8g -jar cc-rendernode-1.0.0.jar --api-key YOUR-API-KEY`}
         </code>
       </pre>
       <p>

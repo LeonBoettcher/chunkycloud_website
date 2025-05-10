@@ -3,8 +3,9 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import GetApiToken from "../GetAPIToken";
 
 const LoginButton = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { data: session, status } = useSession();
 
+  const [isOpen, setIsOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,7 +37,6 @@ const LoginButton = () => {
     };
   }, [isOpen]);
 
-  const { data: session } = useSession();
   if (session) {
     return (
       <>
@@ -66,6 +66,7 @@ const LoginButton = () => {
               <p className="py-4">{session?.user?.name || "Unknown"}</p>
               <p className="py-4">Your API Token</p>
               <code className="bg-amber-300 text-black p-2 rounded-lg">
+                {session?.user?.email || ""}
                 <GetApiToken email={session?.user?.email || ""} />
               </code>
               <div className="modal-action">
