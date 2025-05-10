@@ -67,7 +67,7 @@ const LoginButton = () => {
               <p className="py-4">Your API Token</p>
               <code className="bg-amber-300 text-black p-2 rounded-lg">
                 {session?.user?.email || ""}
-                <GetApiToken email={session?.user?.email || ""} />
+                <GetApiToken />
               </code>
               <div className="modal-action">
                 <button
