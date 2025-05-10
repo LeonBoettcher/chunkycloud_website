@@ -14,7 +14,7 @@ export default function GetApiToken({ email }: ApiTokenProps) {
     async function fetchToken() {
       try {
         const res = await fetch(
-          `http://localhost:3213/api/apitoken?email=${encodeURIComponent(
+          `${process.env.BACKEND_URL}/api/apitoken?email=${encodeURIComponent(
             email
           )}`
         );

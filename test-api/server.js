@@ -143,6 +143,6 @@ app.get("/api/apitoken", (req, res) => {
 });
 
 
-app.listen(port, () => {
-  console.log(`Mockup API running at http://localhost:${port}`);
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Mockup API running at http://0.0.0.0:${port}`);
 });
