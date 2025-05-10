@@ -11,7 +11,9 @@ export default function Stats({ initialStats }) {
 
     async function loadStats() {
       try {
-        const res = await fetch(`${process.env.BACKEND_URL}/api/stats`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/stats`
+        );
         if (res.ok) {
           const json = await res.json();
           if (!stale) setStats(json);
