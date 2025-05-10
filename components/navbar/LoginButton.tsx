@@ -65,9 +65,9 @@ const LoginButton = () => {
             <div className="modal-box text-center" ref={modalRef}>
               <p className="py-4">{session?.user?.name || "Unknown"}</p>
               <p className="py-4">Your API Token</p>
-              {session?.user?.email && (
-                <GetApiToken email={session?.user?.email} />
-              )}
+              <code className="bg-amber-300 text-black p-2 rounded-lg">
+                <GetApiToken email={session?.user?.email || ""} />
+              </code>
               <div className="modal-action">
                 <button
                   className="btn"
