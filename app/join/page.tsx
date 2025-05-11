@@ -1,6 +1,6 @@
 import React from "react";
 import AccordionSection from "../../components/join/section";
-import GetApiToken from "../../components/GetAPIToken";
+import { getAPIKey } from "../../actions/APIKey";
 
 const DocsPage = () => {
   return (
@@ -62,7 +62,7 @@ const DocsPage = () => {
       </p>
       <pre className="bg-base-200 p-4 rounded-md overflow-x-auto text-sm">
         <code>
-          java -Xmx8g -jar cc-rendernode-1.0.0.jar --api-key YOUR-API-KEY
+          java -Xmx8g -jar cc-rendernode-1.0.0.jar --api-key {getAPIKey()}
         </code>
       </pre>
       <p>
@@ -113,7 +113,7 @@ const DocsPage = () => {
               <pre data-prefix="$">
                 <code>
                   docker run --name cc-node lemaik/chunkycloud-renderer:latest
-                  --api-key YOUR-API-KEY-HERE
+                  --api-key {getAPIKey()}
                 </code>
               </pre>
             </div>
