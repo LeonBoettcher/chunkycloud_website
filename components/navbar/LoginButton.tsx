@@ -1,14 +1,44 @@
+"use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { getAPIKey } from "../../actions/APIKey";
 
 const LoginButton = () => {
   const { data: session, status } = useSession();
+  const [token, setToken] = useState("");
 
   const [isOpen, setIsOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
+  async function getToken(email) {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/apitoken`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      }
+    );
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || "Failed to fetch token");
+    }
+
+    const data = await res.json();
+    return data.apiToken;
+  }
+
   useEffect(() => {
+    async function fetchKey() {
+      const res = await getToken(session?.user?.email);
+      setToken(res);
+    }
+
+    fetchKey();
+
     function handleClickOutside(event: MouseEvent) {
       // If modal is open and click is outside the modal box, close it
       if (
@@ -63,10 +93,13 @@ const LoginButton = () => {
         {isOpen && (
           <div className="modal modal-open">
             <div className="modal-box text-center" ref={modalRef}>
-              <p className="py-4">{session?.user?.name || "Unknown"}</p>
+              <p className="py-4">
+                {session?.user?.name || "Unknown"}{" "}
+                {session?.user?.email || "Unknown"}
+              </p>
               <p className="py-4">Your API Token</p>
               <code className="bg-amber-300 text-black p-2 rounded-lg">
-                {getAPIKey()}
+                {token}
               </code>
               <div className="modal-action">
                 <button

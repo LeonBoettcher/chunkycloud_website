@@ -1,6 +1,5 @@
 import React from "react";
 import AccordionSection from "../../components/join/section";
-import { getAPIKey } from "../../actions/APIKey";
 
 const DocsPage = () => {
   return (
@@ -61,9 +60,7 @@ const DocsPage = () => {
         (change the filename accordingly):
       </p>
       <pre className="bg-base-200 p-4 rounded-md overflow-x-auto text-sm">
-        <code>
-          java -Xmx8g -jar cc-rendernode-1.0.0.jar --api-key {getAPIKey()}
-        </code>
+        <code>java -Xmx8g -jar cc-rendernode-1.0.0.jar --api-key</code>
       </pre>
       <p>
         Adjust <code>-Xmx</code> to the amount of memory you want to dedicate.
@@ -113,7 +110,7 @@ const DocsPage = () => {
               <pre data-prefix="$">
                 <code>
                   docker run --name cc-node lemaik/chunkycloud-renderer:latest
-                  --api-key {getAPIKey()}
+                  --api-key
                 </code>
               </pre>
             </div>

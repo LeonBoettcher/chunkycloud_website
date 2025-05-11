@@ -17,7 +17,7 @@ app.get("/api/resourcepacks", (req, res) => {
 });
 
 const users = [
-  { email: "leonmonkeygamer@gmail.com", apiToken: "abc123" },
+  { email: "leonmonkeygamer@gmail.com", apiToken: "TEstAPIOKEY" },
   { email: "test@demo.com", apiToken: "abc123" },
 ];
 
@@ -128,8 +128,8 @@ app.post("/api/coins", (req, res) => {
   }
 });
 
-app.get("/api/apitoken", (req, res) => {
-  const email = req.query.email;
+app.post("/api/apitoken", (req, res) => {
+  const email = req.body.email;
   if (!email || typeof email !== "string") {
     return res.status(400).json({ error: "Missing or invalid email" });
   }
