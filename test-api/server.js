@@ -57,6 +57,7 @@ const jobs = {
     sceneDescription: { width: 1920, height: 1080, rayDepth: 5 },
     created: "2025-04-20T10:00:00Z",
     finishedAt: "2025-04-21T14:30:00Z",
+    status: "rendering",
     cancelled: false,
     renderTime: 3600,
   },
@@ -67,9 +68,187 @@ const jobs = {
     sceneDescription: { width: 2560, height: 1440, rayDepth: 7 },
     created: "2025-04-22T09:15:00Z",
     finishedAt: null,
+    status: "Generating Octree",
     cancelled: false,
     renderTime: 1800,
   },
+  "125": {
+    id: "125",
+    spp: 300,
+    targetSpp: 1500,
+    sceneDescription: { width: 3840, height: 2160, rayDepth: 10 },
+    created: "2025-04-23T11:45:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 7200,
+  },
+  "126": {
+    id: "126",
+    spp: 400,
+    targetSpp: 2500,
+    sceneDescription: { width: 1280, height: 720, rayDepth: 3 },
+    created: "2025-04-24T08:30:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 2400,
+  },
+  "127": {
+    id: "127",
+    spp: 500,
+    targetSpp: 3000,
+    sceneDescription: { width: 1600, height: 900, rayDepth: 4 },
+    created: "2025-04-25T13:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 5400,
+  },
+  "128": {
+    id: "128",
+    spp: 600,
+    targetSpp: 3500,
+    sceneDescription: { width: 2560, height: 1440, rayDepth: 6 },
+    created: "2025-04-26T15:30:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 3000,
+  },
+  "129": {
+    id: "129",
+    spp: 700,
+    targetSpp: 4000,
+    sceneDescription: { width: 1920, height: 1080, rayDepth: 5 },
+    created: "2025-04-27T10:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 3600,
+  },
+  "130": {
+    id: "130",
+    spp: 800,
+    targetSpp: 4500,
+    sceneDescription: { width: 3840, height: 2160, rayDepth: 8 },
+    created: "2025-04-28T12:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 7200,
+  },
+  "131": {
+    id: "131",
+    spp: 900,
+    targetSpp: 5000,
+    sceneDescription: { width: 1280, height: 720, rayDepth: 2 },
+    created: "2025-04-29T14:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 2400,
+  },
+  "132": {
+    id: "132",
+    spp: 1000,
+    targetSpp: 5500,
+    sceneDescription: { width: 1600, height: 900, rayDepth: 3 },
+    created: "2025-04-30T16:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 5400,
+  },
+  "133": {
+    id: "133",
+    spp: 1100,
+    targetSpp: 6000,
+    sceneDescription: { width: 2560, height: 1440, rayDepth: 4 },
+    created: "2025-05-01T18:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 3000,
+  },
+  "134": {
+    id: "134",
+    spp: 1200,
+    targetSpp: 6500,
+    sceneDescription: { width: 1920, height: 1080, rayDepth: 5 },
+    created: "2025-05-02T20:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 3600,
+  },
+  "135": {
+    id: "135",
+    spp: 1300,
+    targetSpp: 7000,
+    sceneDescription: { width: 3840, height: 2160, rayDepth: 6 },
+    created: "2025-05-03T22:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 7200,
+  },
+  "136": {
+    id: "136",
+    spp: 1400,
+    targetSpp: 7500,
+    sceneDescription: { width: 1280, height: 720, rayDepth: 7 },
+    created: "2025-05-04T09:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 2400,
+  },
+  "137": {
+    id: "137",
+    spp: 1500,
+    targetSpp: 8000,
+    sceneDescription: { width: 1600, height: 900, rayDepth: 8 },
+    created: "2025-05-05T11:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 5400,
+  },
+  "138": {
+    id: "138",
+    spp: 1600,
+    targetSpp: 8500,
+    sceneDescription: { width: 2560, height: 1440, rayDepth: 9 },
+    created: "2025-05-06T13:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 3000,
+  },
+  "139": {
+    id: "139",
+    spp: 1700,
+    targetSpp: 9000,
+    sceneDescription: { width: 1920, height: 1080, rayDepth: 10 },
+    created: "2025-05-07T15:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 3600,
+  },
+  "140": {
+    id: "140",
+    spp: 1800,
+    targetSpp: 9500,
+    sceneDescription: { width: 3840, height: 2160, rayDepth: 11 },
+    created: "2025-05-08T17:00:00Z",
+    finishedAt: null,
+    status: "rendering",
+    cancelled: false,
+    renderTime: 7200,
+  },
+  
 };
  
 // Serve static files (for image/dump mockups)
@@ -81,7 +260,12 @@ app.get("/api/stats", (req, res) => {
 });
 
 // GET job details
-app.get("/api/jobs/:id", (req, res) => {
+app.get("/api/jobs", (req, res) => {
+  res.json(jobs);
+});
+
+// GET job details
+app.get("/api/job/:id", (req, res) => {
   const job = jobs[req.params.id];
   if (job) {
     res.json(job);
@@ -91,7 +275,7 @@ app.get("/api/jobs/:id", (req, res) => {
 });
 
 // GET image mock
-app.get("/api/jobs/:id/latest.png", (req, res) => {
+app.get("/api/job/:id/latest.png", (req, res) => {
   const job = jobs[req.params.id];
   if (job) {
     res.sendFile(path.join(__dirname, "public", "placeholder.png"));
@@ -101,7 +285,7 @@ app.get("/api/jobs/:id/latest.png", (req, res) => {
 });
 
 // GET dump mock
-app.get("/api/jobs/:id/latest.dump", (req, res) => {
+app.get("/api/job/:id/latest.dump", (req, res) => {
   const job = jobs[req.params.id];
   if (job) {
     res.download(path.join(__dirname, "public", "placeholder.dump"));

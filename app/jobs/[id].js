@@ -8,7 +8,7 @@ function useJob(id, initialData) {
   useEffect(() => {
     let stale = false;
     async function loadJob() {
-      const res = await fetch(`http://localhost:3213/api/jobs/${id}`);
+      const res = await fetch(`http://localhost:3001/api/jobs/${id}`);
       if (res.status === 200) {
         const json = await res.json();
         if (!stale) {

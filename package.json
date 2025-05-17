@@ -8,6 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.3",
+    "@heroicons/react": "^2.2.0",
     "@mdi/js": "^5.8.55",
     "@mdi/react": "^1.4.0",
     "express": "^5.1.0",

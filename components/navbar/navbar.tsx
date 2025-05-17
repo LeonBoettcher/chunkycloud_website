@@ -38,6 +38,9 @@ const NavBar = () => {
               <Link href="/new">New</Link>
             </li>
             <li>
+              <Link href="/jobs">Jobs</Link>
+            </li>
+            <li>
               <Link href="/join">Join</Link>
             </li>
             <li>
@@ -56,6 +59,9 @@ const NavBar = () => {
           </li>
           <li className="mr-4">
             <Link href="/new">New</Link>
+          </li>
+          <li className="mr-4">
+            <Link href="/jobs">Jobs</Link>
           </li>
           <li className="mr-4">
             <Link href="/join">Join</Link>
