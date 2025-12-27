@@ -1,6 +1,6 @@
-"use client"; // <- Wichtig, damit Hooks verwendet werden dürfen
+"use client";
 import { useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation"; // neuer Import!
+import { useRouter } from "next/navigation";
 import Head from "next/head";
 import Header from "../../components/Header";
 
@@ -16,7 +16,7 @@ const folderDropSupported =
   !!DataTransferItem.prototype.webkitGetAsEntry &&
   typeof DataTransfer === "function";
 
-export default function CreateJob({ resourcePacks }) {
+export default function CreateJob() {
   const router = useRouter();
 
   const [sceneDescription, setSceneDescription] = useState<File>();
