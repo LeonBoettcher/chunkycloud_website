@@ -3,7 +3,7 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <footer className="footer sm:footer-horizontal bg-base-200 text-base-content p-10">
+    <footer className="footer sm:footer-horizontal bg-base-200 text-base-content p-10 relative">
       <aside>
         <img src="/favicon.ico" alt="logo" className="w-16 h-16" />
         <p className="font-bold">ChunkyCloud</p>
@@ -51,6 +51,9 @@ const Footer = () => {
           Cookie policy
         </Link>
       </nav>
+      <div className="absolute bottom-4 right-10">
+        <p className="text-xs text-gray-500">v1.0.0</p>
+      </div>
     </footer>
   );
 };

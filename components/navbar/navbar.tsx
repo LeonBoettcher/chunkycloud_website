@@ -4,6 +4,7 @@ import Link from "next/link";
 import React from "react";
 import LoginButton from "./LoginButton";
 import { SessionProvider } from "next-auth/react";
+import styles from "./navbar.module.css";
 
 const NavBar = () => {
   return (
@@ -48,28 +49,27 @@ const NavBar = () => {
             </li>
           </ul>
         </div>
-        <Link href="/" className="btn btn-ghost text-xl">
+        <Link href="/" className="ml-4 text-xl">
           ChunkyCloud
         </Link>
       </div>
       <div className="navbar-center hidden lg:flex">
-        <ul className="menu menu-horizontal px-1 ">
-          <li className="mr-4">
-            <Link href="/">Home</Link>
-          </li>
-          <li className="mr-4">
-            <Link href="/new">New</Link>
-          </li>
-          <li className="mr-4">
-            <Link href="/jobs">Jobs</Link>
-          </li>
-          <li className="mr-4">
-            <Link href="/join">Join</Link>
-          </li>
-          <li className="mr-4">
-            <Link href="/stats">Stats</Link>
-          </li>
-        </ul>
+        <div className="hidden sm:ml-6 sm:block">
+          <ul className="flex space-x-4">
+            <li className="nav-option px-3 hover:text-gray-400">
+              <Link href="/new">New</Link>
+            </li>
+            <li className="nav_option px-3 hover:text-gray-400">
+              <Link href="/jobs">Jobs</Link>
+            </li>
+            <li className="nav_option px-3 hover:text-gray-400">
+              <Link href="/join">Join</Link>
+            </li>
+            <li className="nav_option px-3 hover:text-gray-400">
+              <Link href="/stats">Stats</Link>
+            </li>
+          </ul>
+        </div>
       </div>
       <div className="navbar-end">
         <SessionProvider>
