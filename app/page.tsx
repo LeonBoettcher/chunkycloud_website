@@ -14,7 +14,11 @@ const MainPage = () => {
           backgroundImage: "url(/images/Bluelix-swamp_and_mountain.png)",
         }}
       >
-        {/* TODO Add Hero image cycler + add the Creator Tag */}
+        {/* TODO Add Hero image cycler + add the Creator Tag 
+        TODO: CHange the Buttons to New, Jobs, Stats, Join 
+        TODO: Add STats + klickable and redirect to Stats Page
+        TODO: add small animation for overall explaination
+        */}
 
         <div className="hero-overlay"></div>
         <div className="hero-content text-neutral-content text-center">
