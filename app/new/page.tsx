@@ -215,7 +215,7 @@ export default function CreateJob() {
       <div
         className="hero min-h-screen relative"
         style={{
-          backgroundImage: "url(/images/boscawinks-Basalt_deltas_be_like.png)",
+          backgroundImage: "url(/images/boscawinks-Basalt_Deltas_be_like.png)",
         }}
       >
         <div className="px-6 py-8 max-w-4xl mx-auto">
