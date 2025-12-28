@@ -52,7 +52,7 @@ const Footer = () => {
         </Link>
       </nav>
       <div className="absolute bottom-4 right-10">
-        <p className="text-xs text-gray-500">v1.0.0</p>
+        <p className="text-xs text-gray-500">v{process.env.PAGE_VERSION}</p>
       </div>
     </footer>
   );

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Head from "next/head";
 import Header from "../../components/Header";
@@ -10,12 +10,6 @@ function createFileList(...files: File[]): FileList {
   files.forEach((file) => dataTransfer.items.add(file));
   return dataTransfer.files;
 }
-
-const folderDropSupported =
-  typeof window !== "undefined" &&
-  typeof DataTransferItem !== "undefined" &&
-  !!DataTransferItem.prototype.webkitGetAsEntry &&
-  typeof DataTransfer === "function";
 
 export default function CreateJob() {
   const router = useRouter();
@@ -29,6 +23,16 @@ export default function CreateJob() {
   const [skymap, setSkymap] = useState<File>();
   const [skymapRequired, setSkymapRequired] = useState(false);
   const [apiKey, setApiKey] = useState("");
+  const [folderDropSupported, setFolderDropSupported] = useState(false);
+
+  useEffect(() => {
+    setFolderDropSupported(
+      typeof window !== "undefined" &&
+        typeof DataTransferItem !== "undefined" &&
+        !!DataTransferItem.prototype.webkitGetAsEntry &&
+        typeof DataTransfer === "function"
+    );
+  }, []);
 
   const sceneDescriptionRef = useRef<HTMLInputElement>(null);
   const octreeRef = useRef<HTMLInputElement>(null);
@@ -73,13 +77,15 @@ export default function CreateJob() {
   );
 
   const [submitting, setSubmitting] = useState(false);
+  const [showValidation, setShowValidation] = useState(false);
 
   const handleSubmit = useCallback(async () => {
     if (!sceneDescription || !octree || !apiKey) {
-      alert("Missing required fields.");
+      setShowValidation(true);
       return;
     }
 
+    setShowValidation(false);
     setSubmitting(true);
     try {
       const body = new FormData();
@@ -91,7 +97,7 @@ export default function CreateJob() {
       if (texturepack) body.append("texturepack", texturepack);
       if (skymapRequired && skymap) body.append("skymap", skymap);
 
-      const res = await fetch("http://localhost:3213/api/jobs", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/jobs`, {
         method: "POST",
         headers: {
           "X-Api-Key": apiKey,
@@ -206,159 +212,214 @@ export default function CreateJob() {
 
   return (
     <>
-      <div className="px-6 py-8 max-w-4xl mx-auto">
-        <fieldset className="fieldset bg-base-200 border-base-300 rounded-box border p-8 shadow">
-          <legend className="fieldset-legend text-3xl font-bold">
-            Create a new Render Job
-          </legend>
-          <div
-            className={`mt-4 p-4 rounded-lg border-2 ${
-              dragging
-                ? "border-primary bg-base-100"
-                : "border-dashed border-base-300"
-            }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
-            <p className="text-base leading-relaxed mb-6">
-              To create a new render job, please select your scene files below
-              and fill out the required fields.
-              <br />
-              You can also drag and drop the files
-              {folderDropSupported && " (or the scene folder)"} anywhere on this
-              page.
-            </p>
-
-            <div className="form-control w-full mb-4">
-              <label className="label" htmlFor="apiKey">
-                <span className="label-text">API Key*</span>
-              </label>
-              <input
-                type="text"
-                id="apiKey"
-                className="input input-bordered input-lg w-full"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-              />
-            </div>
-
-            <div className="form-control w-full mb-4">
-              <label className="label" htmlFor="sceneDescription">
-                <span className="label-text">Scene description* (.json)</span>
-              </label>
-              <input
-                type="file"
-                className="file-input file-input-bordered w-full"
-                id="sceneDescription"
-                accept=".json"
-                onChange={handleSceneDescriptionChange}
-                ref={sceneDescriptionRef}
-              />
-            </div>
-
-            <div className="form-control w-full mb-4">
-              <label className="label" htmlFor="octree">
-                <span className="label-text">Octree* (.octree2)</span>
-              </label>
-              <input
-                type="file"
-                className="file-input file-input-bordered w-full"
-                id="octree"
-                accept=".octree2"
-                onChange={(e) => setOctree(e.target.files?.[0])}
-                ref={octreeRef}
-              />
-            </div>
-
-            <div className="form-control w-full mb-4">
-              <label className="label" htmlFor="emitterGrid">
-                <span className="label-text">Emitter grid (.emittergrid)</span>
-              </label>
-              <input
-                type="file"
-                className="file-input file-input-bordered w-full"
-                id="emitterGrid"
-                accept=".emittergrid"
-                onChange={(e) => setEmitterGrid(e.target.files?.[0])}
-                ref={emitterGridRef}
-              />
-            </div>
-
-            <div className="form-control w-full mb-6">
-              <label className="label" htmlFor="skymap">
-                <span className="label-text">Skymap (.hdr, .exr)</span>
-              </label>
-              <input
-                type="file"
-                className="file-input file-input-bordered w-full"
-                id="skymap"
-                accept=".hdr, .exr"
-                onChange={(e) => setSkymap(e.target.files?.[0])}
-                ref={skymapRef}
-              />
-            </div>
-
-            <div className="form-control w-full mb-6">
-              <label className="label" htmlFor="targetSpp">
-                <span className="label-text">Target SPP</span>
-              </label>
-              <input
-                type="number"
-                placeholder="Target SPP"
-                className="input input-bordered input-md w-40 mb-3"
-                value={targetSpp}
-                step={100}
-                onChange={(e) => setTargetSpp(Number(e.target.value))}
-              />
-              <input
-                type="range"
-                min={500}
-                max="10000"
-                id="targetSpp"
-                value={targetSpp}
-                onChange={(e) => setTargetSpp(Number(e.target.value))}
-                className="range range-primary w-full"
-                step="100"
-              />
-              <div className="flex justify-between px-2.5 mt-2 text-xs">
-                <span>|</span>
-                <span>|</span>
-                <span>|</span>
-                <span>|</span>
-                <span>|</span>
-              </div>
-              <div className="flex justify-between px-2.5 mt-2 text-xs">
-                <span>500</span>
-                <span>2500</span>
-                <span>5000</span>
-                <span>7500</span>
-                <span>10000</span>
-              </div>
-            </div>
-
-            <div className="form-control w-full mb-6">
-              <label className="label" htmlFor="texturepack">
-                <span className="label-text">Texture pack</span>
-              </label>
-              <input
-                type="text"
-                id="texturepack"
-                className="input input-bordered input-md w-full"
-                value={texturepack}
-                onChange={(e) => setTexturepack(e.target.value)}
-              />
-            </div>
-
-            <button
-              className="btn btn-primary w-full"
-              onClick={handleSubmit}
-              disabled={submitting || !apiKey || !sceneDescription || !octree}
+      <div
+        className="hero min-h-screen relative"
+        style={{
+          backgroundImage: "url(/images/boscawinks-Basalt_deltas_be_like.png)",
+        }}
+      >
+        <div className="px-6 py-8 max-w-4xl mx-auto">
+          <fieldset className="fieldset bg-base-200/95 border-base-300 rounded-box border p-8 shadow">
+            <legend className="fieldset-legend text-3xl font-bold">
+              Create a new Render Job
+            </legend>
+            <div
+              className={`mt-4 p-4 rounded-lg border-2 ${
+                dragging
+                  ? "border-primary bg-base-100"
+                  : "border-dashed border-base-300"
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
             >
-              {submitting ? "Submitting..." : "Submit"}
-            </button>
-          </div>
-        </fieldset>
+              <p className="text-base leading-relaxed mb-6">
+                To create a new render job, please select your scene files below
+                and fill out the required fields.
+                <br />
+                You can also drag and drop the files
+                {folderDropSupported && " (or the scene folder)"} anywhere on
+                this page.
+              </p>
+
+              <div className="form-control w-full mb-4 menu-vertical">
+                <label className="label" htmlFor="apiKey">
+                  <span className="label-text text-base font-bold ">
+                    API Key*
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  id="apiKey"
+                  className={`input input-bordered w-full input-lg ${
+                    showValidation && !apiKey ? "input-error" : ""
+                  }`}
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                />
+              </div>
+
+              <div className="form-control w-full mb-4">
+                <label className="label" htmlFor="sceneDescription">
+                  <span className="label-text text-base font-bold">
+                    Scene description* (.json)
+                  </span>
+                </label>
+                <input
+                  type="file"
+                  className={`file-input file-input-bordered w-full ${
+                    showValidation && !sceneDescription
+                      ? "file-input-error"
+                      : ""
+                  }`}
+                  id="sceneDescription"
+                  accept=".json"
+                  onChange={handleSceneDescriptionChange}
+                  ref={sceneDescriptionRef}
+                />
+              </div>
+
+              <div className="form-control w-full mb-4">
+                <label className="label" htmlFor="octree">
+                  <span className="label-text text-base font-bold">
+                    Octree* (.octree2)
+                  </span>
+                </label>
+                <input
+                  type="file"
+                  className={`file-input file-input-bordered w-full ${
+                    showValidation && !octree ? "file-input-error" : ""
+                  }`}
+                  id="octree"
+                  accept=".octree2"
+                  onChange={(e) => setOctree(e.target.files?.[0])}
+                  ref={octreeRef}
+                />
+              </div>
+
+              <div className="form-control w-full mb-4">
+                <label className="label" htmlFor="emitterGrid">
+                  <span className="label-text text-base font-bold">
+                    Emitter grid (.emittergrid)
+                  </span>
+                </label>
+                <input
+                  type="file"
+                  className="file-input file-input-bordered w-full"
+                  id="emitterGrid"
+                  accept=".emittergrid"
+                  onChange={(e) => setEmitterGrid(e.target.files?.[0])}
+                  ref={emitterGridRef}
+                />
+              </div>
+
+              <div className="form-control w-full mb-6">
+                <label className="label" htmlFor="skymap">
+                  <span className="label-text text-base font-bold">
+                    Skymap (.hdr, .exr)
+                  </span>
+                </label>
+                <input
+                  type="file"
+                  className="file-input file-input-bordered w-full"
+                  id="skymap"
+                  accept=".hdr, .exr"
+                  onChange={(e) => setSkymap(e.target.files?.[0])}
+                  ref={skymapRef}
+                />
+              </div>
+
+              <div className="form-control w-full mb-6 menu-vertical">
+                <label className="label" htmlFor="targetSpp">
+                  <span className="label-text text-base font-bold">
+                    Target SPP
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  placeholder="Target SPP"
+                  className="input input-bordered input-md w-40 mb-3"
+                  value={targetSpp}
+                  step={100}
+                  onChange={(e) => setTargetSpp(Number(e.target.value))}
+                />
+                <input
+                  type="range"
+                  min={500}
+                  max="10000"
+                  id="targetSpp"
+                  value={targetSpp}
+                  onChange={(e) => setTargetSpp(Number(e.target.value))}
+                  className="range range-primary w-full"
+                  step="100"
+                />
+                <div className="flex justify-between px-2.5 mt-2 text-xs">
+                  <span>|</span>
+                  <span>|</span>
+                  <span>|</span>
+                  <span>|</span>
+                  <span>|</span>
+                </div>
+                <div className="flex justify-between px-2.5 mt-2 text-xs">
+                  <span>500</span>
+                  <span>2500</span>
+                  <span>5000</span>
+                  <span>7500</span>
+                  <span>10000</span>
+                </div>
+              </div>
+
+              <div className="form-control w-full mb-6">
+                <label className="label" htmlFor="texturepack">
+                  <span className="label-text text-base font-bold">
+                    Texture pack
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  id="texturepack"
+                  className="input input-bordered input-md w-full"
+                  value={texturepack}
+                  onChange={(e) => setTexturepack(e.target.value)}
+                />
+              </div>
+
+              {/* Submit Button with Hover text of what is missing to being enabled */}
+
+              <div
+                className="peer tooltip w-full"
+                data-tip={
+                  submitting
+                    ? "Submitting your render job..."
+                    : !apiKey || !sceneDescription || !octree
+                    ? `Missing required fields: ${[
+                        !apiKey && "API Key",
+                        !sceneDescription && "Scene description",
+                        !octree && "Octree",
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}`
+                    : "Click to submit your render job"
+                }
+              >
+                <button
+                  className={`btn btn-primary w-full ${
+                    showValidation && (!apiKey || !sceneDescription || !octree)
+                      ? "btn-error"
+                      : ""
+                  }`}
+                  onClick={handleSubmit}
+                >
+                  {submitting ? (
+                    <span className="loading loading-spinner loading-md"></span>
+                  ) : (
+                    "Submit"
+                  )}
+                </button>
+              </div>
+            </div>
+          </fieldset>
+        </div>
       </div>
     </>
   );
