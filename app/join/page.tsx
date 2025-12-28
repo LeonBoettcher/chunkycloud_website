@@ -1,6 +1,6 @@
 import React from "react";
 import AccordionSection from "../../components/join/section";
-import { toFormData } from "axios";
+//import { toFormData } from "axios";
 
 const DocsPage = () => {
   return (
