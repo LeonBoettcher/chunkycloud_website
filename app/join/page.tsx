@@ -8,14 +8,14 @@ const DocsPage = () => {
     * TODO: Add Images or animations for explaination
     * TODO Make each text segment a seperated section
     */
-          <div
-            className="hero min-h-screen relative"
-            style={{
-              backgroundImage: "url(/images/boscawinks-Give_that_back.png)",
-            }}
-          >
-                      <fieldset className="fieldset bg-base-200/95 border-base-300 rounded-box border p-8 shadow">
-            <legend className="fieldset-legend text-3xl font-bold">
+    <div
+    className="hero min-h-screen relative"
+    style={{
+    backgroundImage: "url(/images/boscawinks-Give_that_back.png)",
+    }}
+    >
+    <fieldset className="fieldset bg-base-200/95 border-base-300 rounded-box border p-8 shadow">
+    <legend className="fieldset-legend text-3xl font-bold">
               How to start Rendering
             </legend>
                         <div

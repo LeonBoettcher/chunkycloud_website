@@ -11,10 +11,9 @@ function useStats(initialStats) {
   useEffect(() => {
     let stale = false;
     async function loadStats() {
-      const res = await fetch(`http://localhost:3213/api/stats`, {
-        mode: "no-cors",
-      });
-      if (res.status === 200) {
+      // Use a normal fetch (no 'no-cors') so we get a proper JSON response.
+      const res = await fetch(`http://localhost:3213/api/stats`);
+      if (res.ok) {
         const json = await res.json();
         if (!stale) {
           setStats(json);

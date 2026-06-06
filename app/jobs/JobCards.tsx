@@ -23,6 +23,7 @@ const JobCards = async () => {
         >
           <div className="card-body">
             <h2 className="card-title">{id}</h2>
+            <img src="/images/blueprint.png" alt="Job Thumbnail" width={1200} height={800} />
             <p>
               SPP: {job.targetSpp} / {job.spp}
             </p>

@@ -1,8 +1,11 @@
 const express = require("express");
 const path = require("path");
+// Enable CORS for browser clients
+const cors = require("cors");
 const app = express();
 const port = 3213;
 
+app.use(cors());
 app.use(express.json());
 
 

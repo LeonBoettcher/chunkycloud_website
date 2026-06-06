@@ -53,24 +53,47 @@ const NavBar = () => {
           ChunkyCloud
         </Link>
       </div>
-      <div className="navbar-center hidden lg:flex">
-        <div className="hidden sm:ml-6 sm:block">
-          <ul className="flex space-x-4">
-            <li className="nav-option px-3 hover:text-gray-400">
-              <Link href="/new">New</Link>
-            </li>
-            <li className="nav_option px-3 hover:text-gray-400">
-              <Link href="/jobs">Jobs</Link>
-            </li>
-            <li className="nav_option px-3 hover:text-gray-400">
-              <Link href="/join">Join</Link>
-            </li>
-            <li className="nav_option px-3 hover:text-gray-400">
-              <Link href="/stats">Stats</Link>
-            </li>
-          </ul>
-        </div>
-      </div>
+<div className="navbar-center hidden lg:flex">
+  <div className="hidden sm:ml-6 sm:block">
+    <ul className="flex space-x-4">
+      <li className="px-3">
+        <Link
+          href="/new"
+          className="relative inline-blockafter:content-[''] after:absolute after:bottom-0 after:left-1/2 after:h-px after:w-0 after:bg-current after:transition-all after:duration-300 hover:after:w-full hover:after:left-0"
+        >
+          New
+        </Link>
+      </li>
+
+      <li className="px-3">
+        <Link
+          href="/jobs"
+          className="relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:h-px after:w-0 after:bg-current after:transition-all after:duration-300 hover:after:w-full hover:after:left-0"
+        >
+          Jobs
+        </Link>
+      </li>
+
+      <li className="px-3">
+        <Link
+          href="/join"
+          className="relative inline-block  after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:h-px after:w-0 after:bg-current after:transition-all after:duration-300 hover:after:w-full hover:after:left-0"
+        >
+          Join
+        </Link>
+      </li>
+
+      <li className="px-3">
+        <Link
+          href="/stats"
+          className="relative inline-block after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:h-px after:w-0 after:bg-current after:transition-all after:duration-300 hover:after:w-full hover:after:left-0"
+        >
+          Stats
+        </Link>
+      </li>
+    </ul>
+  </div>
+</div>
       <div className="navbar-end">
         <SessionProvider>
           <LoginButton />
