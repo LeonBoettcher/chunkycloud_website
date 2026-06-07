@@ -112,7 +112,7 @@ export default function CreateJob() {
       if (texturepack) body.append("texturepack", texturepack);
       if (skymapRequired && skymap) body.append("skymap", skymap);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/jobs`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/jobs`, {
         method: "POST",
         headers: {
           "X-Api-Key": apiKey,

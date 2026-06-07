@@ -8,7 +8,34 @@ const port = 3213;
 app.use(cors());
 app.use(express.json());
 
+// Mock route for creating a new job
+app.post("/api/jobs", (req, res) => {
+  const newId = String(
+    Math.max(...Object.keys(jobs).map(Number)) + 1
+  );
 
+  const newJob = {
+    id: newId,
+    spp: 0,
+    targetSpp: 500,
+    sceneDescription: {
+      width: 1920,
+      height: 1080,
+      rayDepth: 5,
+    },
+    created: new Date().toISOString(),
+    finishedAt: null,
+    status: "queued",
+    cancelled: false,
+    renderTime: 0,
+  };
+
+  jobs[newId] = newJob;
+
+  res.status(201).json({
+    _id: newId,
+  });
+});
 
 // Mock route for /api/resourcepacks
 app.get("/api/resourcepacks", (req, res) => {
@@ -251,9 +278,9 @@ const jobs = {
     cancelled: false,
     renderTime: 7200,
   },
-  
+
 };
- 
+
 // Serve static files (for image/dump mockups)
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -308,7 +335,7 @@ app.post("/api/coins", (req, res) => {
 
   if (validTokens.includes(token)) {
     // Token is valid – simulate login
-    return res.status(200).json({ success: true, coins : 10 });
+    return res.status(200).json({ success: true, coins: 10 });
   } else {
     // Invalid token
     return res.status(401).json({ success: false, error: "Invalid token" });
