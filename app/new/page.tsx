@@ -25,7 +25,22 @@ export default function CreateJob() {
   const [apiKey, setApiKey] = useState("");
   const [folderDropSupported, setFolderDropSupported] = useState(false);
 
+  const [resourcePacks, setResourcePacks] = useState<{ name: string; displayName: string }[]>([]);
+
   useEffect(() => {
+    // fetch available resource packs for the texturepack select
+    (async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/resourcepacks`);
+        if (res.ok) {
+          const data = await res.json();
+          setResourcePacks(data || []);
+        }
+      } catch (e) {
+        console.error('Could not load resource packs', e);
+      }
+    })();
+
     setFolderDropSupported(
       typeof window !== "undefined" &&
         typeof DataTransferItem !== "undefined" &&
@@ -375,19 +390,26 @@ export default function CreateJob() {
                 </div>
               </div>
 
-              <div className="form-control w-full mb-6">
-                <label className="label" htmlFor="texturepack">
-                  <span className="label-text text-base font-bold">
-                    Texture pack
-                  </span>
-                </label>
-                <input
-                  type="text"
+
+              <label className="label" htmlFor="texturepack">
+                <span className="label-text text-base font-bold">
+                Texture pack
+                </span>
+              </label>
+              <div className="select w-full mb-6">
+                <select
                   id="texturepack"
-                  className="input input-bordered input-md w-full"
+                  className="select select-bordered w-full"
                   value={texturepack}
                   onChange={(e) => setTexturepack(e.target.value)}
-                />
+                >
+                  {/* we get these resourcepacks from /api/resourcepacks */}
+                {resourcePacks.map(({ name, displayName }) => (
+                  <option key={name} value={name}>
+                    {displayName}
+                  </option>
+                ))}
+                </select>
               </div>
 
               {/* Submit Button with Hover text of what is missing to being enabled */}

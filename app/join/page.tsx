@@ -14,14 +14,14 @@ const DocsPage = () => {
     backgroundImage: "url(/images/boscawinks-Give_that_back.png)",
     }}
     >
-    <fieldset className="fieldset bg-base-200/95 border-base-300 rounded-box border p-8 shadow">
+    <fieldset className="fieldset bg-base-200/95 border-base-300 rounded-box border p-8 shadow mb-8">
     <legend className="fieldset-legend text-3xl font-bold">
               How to start Rendering
             </legend>
                         <div
               className={`mt-4 p-4 rounded-lg border-2`}
             >
-    <div className="max-w-3xl mx-auto px-4 py-10 prose prose-neutral dark:prose-invert">
+    <div className="max-w-3xl mb-8 mx-auto px-4 py-10 prose prose-neutral dark:prose-invert">
       <h2>Join the render farm</h2>
       <p>
         ChunkyCloud is made possible by all the people that contribute their
