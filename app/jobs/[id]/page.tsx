@@ -2,6 +2,9 @@
 
 import React from "react";
 
+// TODO [IDEA] Audo Refresh
+// TODO
+
 const JobPage = () => {
   // mock data for layout preview only
   const job = {

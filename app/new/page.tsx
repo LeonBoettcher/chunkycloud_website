@@ -5,6 +5,10 @@ import Head from "next/head";
 import Header from "../../components/Header";
 import { Fieldset } from "@headlessui/react";
 
+//TODO: Add a check for Scene Description description octree to test if the file structure is correct before sending to api
+
+
+
 function createFileList(...files: File[]): FileList {
   const dataTransfer = new DataTransfer();
   files.forEach((file) => dataTransfer.items.add(file));

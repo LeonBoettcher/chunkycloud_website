@@ -8,34 +8,7 @@ const port = 3213;
 app.use(cors());
 app.use(express.json());
 
-// Mock route for creating a new job
-app.post("/api/jobs", (req, res) => {
-  const newId = String(
-    Math.max(...Object.keys(jobs).map(Number)) + 1
-  );
 
-  const newJob = {
-    id: newId,
-    spp: 0,
-    targetSpp: 500,
-    sceneDescription: {
-      width: 1920,
-      height: 1080,
-      rayDepth: 5,
-    },
-    created: new Date().toISOString(),
-    finishedAt: null,
-    status: "queued",
-    cancelled: false,
-    renderTime: 0,
-  };
-
-  jobs[newId] = newJob;
-
-  res.status(201).json({
-    _id: newId,
-  });
-});
 
 // Mock route for /api/resourcepacks
 app.get("/api/resourcepacks", (req, res) => {
@@ -278,6 +251,62 @@ const jobs = {
     cancelled: false,
     renderTime: 7200,
   },
+  "141": {
+    id: "141",
+    spp: 0,
+    targetSpp: 10000,
+    sceneDescription: { width: 1280, height: 720, rayDepth: 12 },
+    created: "2025-05-09T19:00:00Z",
+    finishedAt: null,
+    status: "cancelled",
+    cancelled: true,
+    renderTime: 2400,
+  },
+  "142": {
+    id: "142",
+    spp: 0,
+    targetSpp: 11000,
+    sceneDescription: { width: 1600, height: 900, rayDepth: 13 },
+    created: "2025-05-10T21:00:00Z",
+    finishedAt: null,
+    status: "error",
+    cancelled: false,
+    renderTime: 5400,
+  },
+  "143": {
+    id: "143",
+    spp: 0,
+    targetSpp: 12000,
+    sceneDescription: { width: 2560, height: 1440, rayDepth: 14 },
+    created: "2025-05-11T23:00:00Z",
+    finishedAt: null,
+    status: "queued",
+    cancelled: false,
+    renderTime: 3000,
+  },
+  "144": {
+    id: "144",
+    spp: 0,
+    targetSpp: 13000,
+    sceneDescription: { width: 1920, height: 1080, rayDepth: 15 },
+    created: "2025-05-12T08:00:00Z",
+    finishedAt: null,
+    status: "unknown",
+    cancelled: false,
+    renderTime: 3600,
+  },
+  "145": {
+    id: "145",
+    spp: 0,
+    targetSpp: 14000,
+    sceneDescription: { width: 3840, height: 2160, rayDepth: 16 },
+    created: "2025-05-13T10:00:00Z",
+    finishedAt: null,
+    status: null,
+    cancelled: false,
+    renderTime: 7200,
+  },
+
 
 };
 
