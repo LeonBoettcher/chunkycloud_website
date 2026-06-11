@@ -1,7 +1,8 @@
 import Link from "next/link";
 import React from "react";
 
-const commit = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "dev";
+const commit =
+  process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7) ?? "dev";
 
 const Footer = () => {
   return (
