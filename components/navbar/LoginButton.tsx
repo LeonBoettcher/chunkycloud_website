@@ -1,44 +1,28 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useEffect, useRef, useState } from "react";
+import { useSession } from "../../app/auth/components/SessionProvider";
 
 const LoginButton = () => {
-  const { data: session, status } = useSession();
-  const [token, setToken] = useState("");
+  const { isLoggedIn, logout, apiClient } = useSession();
+  const [session, setSession] = useState<{ displayName: string }>();
+
+  useEffect(() => {
+    const ac = new AbortController();
+    if (isLoggedIn) {
+      apiClient
+        .getCurrentUser({ signal: ac.signal })
+        .then((user) => setSession(user))
+        .catch((e) => {
+          console.error("Failed to get user", e);
+        });
+    }
+  }, [isLoggedIn]);
 
   const [isOpen, setIsOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  async function getToken(email) {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/apitoken`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      }
-    );
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || "Failed to fetch token");
-    }
-
-    const data = await res.json();
-    return data.apiToken;
-  }
-
   useEffect(() => {
-    async function fetchKey() {
-      const res = await getToken(session?.user?.email);
-      setToken(res);
-    }
-
-    fetchKey();
-
     function handleClickOutside(event: MouseEvent) {
       // If modal is open and click is outside the modal box, close it
       if (
@@ -67,7 +51,7 @@ const LoginButton = () => {
     };
   }, [isOpen]);
 
-  if (session) {
+  if (isLoggedIn) {
     return (
       <>
         <div className="badge badge-neutral mr-5">
@@ -84,29 +68,25 @@ const LoginButton = () => {
           onClick={() => setIsOpen(true)}
         >
           <div className="w-10 rounded-full">
-            <img
-              alt="Avatar"
-              src={session?.user?.image || "https://placehold.co/10x10/png"}
-            />
+            <img alt="Avatar" src={"https://placehold.co/10x10/png"} />
           </div>
         </div>
         {isOpen && (
           <div className="modal modal-open">
             <div className="modal-box text-center" ref={modalRef}>
-              <p className="py-4">
-                {session?.user?.name || "Unknown"}{" "}
-                {session?.user?.email || "Unknown"}
-              </p>
+              <p className="py-4">{session?.displayName}</p>
               <p className="py-4">Your API Token</p>
               <code className="bg-amber-300 text-black p-2 rounded-lg">
-                {token}
+                TODO show api token
               </code>
               <div className="modal-action">
                 <button
                   className="btn"
                   onClick={() => {
                     setIsOpen(false);
-                    signOut();
+                    logout().catch((e) => {
+                      console.error("Logout failed", e);
+                    });
                   }}
                 >
                   Logout
@@ -122,9 +102,9 @@ const LoginButton = () => {
     );
   }
   return (
-    <button className="btn" onClick={() => signIn("discord")}>
+    <a className="btn" href="/auth/init">
       Login
-    </button>
+    </a>
   );
 };
 
