@@ -7,8 +7,6 @@ import { Fieldset } from "@headlessui/react";
 
 //TODO: Add a check for Scene Description description octree to test if the file structure is correct before sending to api
 
-
-
 function createFileList(...files: File[]): FileList {
   const dataTransfer = new DataTransfer();
   files.forEach((file) => dataTransfer.items.add(file));
@@ -29,19 +27,23 @@ export default function CreateJob() {
   const [apiKey, setApiKey] = useState("");
   const [folderDropSupported, setFolderDropSupported] = useState(false);
 
-  const [resourcePacks, setResourcePacks] = useState<{ name: string; displayName: string }[]>([]);
+  const [resourcePacks, setResourcePacks] = useState<
+    { name: string; displayName: string }[]
+  >([]);
 
   useEffect(() => {
     // fetch available resource packs for the texturepack select
     (async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/resourcepacks`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/resourcepacks`,
+        );
         if (res.ok) {
           const data = await res.json();
           setResourcePacks(data || []);
         }
       } catch (e) {
-        console.error('Could not load resource packs', e);
+        console.error("Could not load resource packs", e);
       }
     })();
 
@@ -49,7 +51,7 @@ export default function CreateJob() {
       typeof window !== "undefined" &&
         typeof DataTransferItem !== "undefined" &&
         !!DataTransferItem.prototype.webkitGetAsEntry &&
-        typeof DataTransfer === "function"
+        typeof DataTransfer === "function",
     );
   }, []);
 
@@ -85,14 +87,14 @@ export default function CreateJob() {
         if (skymapRef.current) skymapRef.current.value = "";
       }
     },
-    []
+    [],
   );
 
   const handleSceneDescriptionChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       handleSceneDescriptionFileChange(e.target.files?.[0]);
     },
-    [handleSceneDescriptionFileChange]
+    [handleSceneDescriptionFileChange],
   );
 
   const [submitting, setSubmitting] = useState(false);
@@ -116,13 +118,16 @@ export default function CreateJob() {
       if (texturepack) body.append("texturepack", texturepack);
       if (skymapRequired && skymap) body.append("skymap", skymap);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/jobs`, {
-        method: "POST",
-        headers: {
-          "X-Api-Key": apiKey,
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/jobs`,
+        {
+          method: "POST",
+          headers: {
+            "X-Api-Key": apiKey,
+          },
+          body,
         },
-        body,
-      });
+      );
 
       if (res.status === 201) {
         const { _id } = await res.json();
@@ -165,7 +170,7 @@ export default function CreateJob() {
         }
 
         const emitterGridFile = files.find(
-          (f) => f.name === `${sceneName}.emittergrid`
+          (f) => f.name === `${sceneName}.emittergrid`,
         );
         if (emitterGridFile && emitterGridRef.current) {
           emitterGridRef.current.files = createFileList(emitterGridFile);
@@ -173,7 +178,7 @@ export default function CreateJob() {
         }
       }
     },
-    [handleSceneDescriptionFileChange]
+    [handleSceneDescriptionFileChange],
   );
 
   const [dragging, setDragging] = useState(false);
@@ -196,7 +201,7 @@ export default function CreateJob() {
         const folderEntry = Array.prototype.find
           .call(
             e.dataTransfer.items,
-            (item: DataTransferItem) => item.webkitGetAsEntry()?.isDirectory
+            (item: DataTransferItem) => item.webkitGetAsEntry()?.isDirectory,
           )
           ?.webkitGetAsEntry();
 
@@ -211,9 +216,9 @@ export default function CreateJob() {
                     .map(
                       (entry) =>
                         new Promise<File>((resolve, reject) =>
-                          (entry as FileSystemFileEntry).file(resolve, reject)
-                        )
-                    )
+                          (entry as FileSystemFileEntry).file(resolve, reject),
+                        ),
+                    ),
                 );
                 handleFiles(files);
               } catch (e) {
@@ -226,17 +231,16 @@ export default function CreateJob() {
 
       handleFiles(Array.from(e.dataTransfer.files));
     },
-    [handleFiles]
+    [handleFiles],
   );
 
   /*
-  * TODO: Add Explanation Questionmark Circles
-  *
-  */
+   * TODO: Add Explanation Questionmark Circles
+   *
+   */
 
   return (
     <>
-
       <div
         className="hero min-h-screen relative"
         style={{
@@ -394,10 +398,9 @@ export default function CreateJob() {
                 </div>
               </div>
 
-
               <label className="label" htmlFor="texturepack">
                 <span className="label-text text-base font-bold">
-                Texture pack
+                  Texture pack
                 </span>
               </label>
               <div className="select w-full mb-6">
@@ -408,11 +411,11 @@ export default function CreateJob() {
                   onChange={(e) => setTexturepack(e.target.value)}
                 >
                   {/* we get these resourcepacks from /api/resourcepacks */}
-                {resourcePacks.map(({ name, displayName }) => (
-                  <option key={name} value={name}>
-                    {displayName}
-                  </option>
-                ))}
+                  {resourcePacks.map(({ name, displayName }) => (
+                    <option key={name} value={name}>
+                      {displayName}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -424,14 +427,14 @@ export default function CreateJob() {
                   submitting
                     ? "Submitting your render job..."
                     : !apiKey || !sceneDescription || !octree
-                    ? `Missing required fields: ${[
-                        !apiKey && "API Key",
-                        !sceneDescription && "Scene description",
-                        !octree && "Octree",
-                      ]
-                        .filter(Boolean)
-                        .join(", ")}`
-                    : "Click to submit your render job"
+                      ? `Missing required fields: ${[
+                          !apiKey && "API Key",
+                          !sceneDescription && "Scene description",
+                          !octree && "Octree",
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}`
+                      : "Click to submit your render job"
                 }
               >
                 <button

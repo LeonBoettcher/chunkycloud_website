@@ -1,8 +1,7 @@
 import Link from "next/link";
 import React from "react";
 
-const commit =
-  process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7) ?? "dev";
+const commit = process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7) ?? "dev";
 
 const Footer = () => {
   return (
@@ -55,7 +54,10 @@ const Footer = () => {
         </Link>
       </nav>
       <div className="absolute bottom-4 right-10">
-        <p className="text-xs text-gray-500">  v{process.env.NEXT_PUBLIC_APP_VERSION} • {commit}</p>
+        <p className="text-xs text-gray-500">
+          {" "}
+          v{process.env.NEXT_PUBLIC_APP_VERSION} • {commit}
+        </p>
       </div>
     </footer>
   );

@@ -8,14 +8,12 @@ const port = 3213;
 app.use(cors());
 app.use(express.json());
 
-
-
 // Mock route for /api/resourcepacks
 app.get("/api/resourcepacks", (req, res) => {
   res.json([
     { name: "default", displayName: "Vanilla 1.16.4" },
     { name: "realistico", displayName: "Realistico HD" },
-    { name: "faithful", displayName: "Faithful 32x" }
+    { name: "faithful", displayName: "Faithful 32x" },
   ]);
 });
 
@@ -53,7 +51,7 @@ const stats = {
 
 // In-memory job storage
 const jobs = {
-  "123": {
+  123: {
     id: "123",
     spp: 150,
     targetSpp: 1000,
@@ -64,7 +62,7 @@ const jobs = {
     cancelled: false,
     renderTime: 3600,
   },
-  "124": {
+  124: {
     id: "124",
     spp: 200,
     targetSpp: 2000,
@@ -75,7 +73,7 @@ const jobs = {
     cancelled: false,
     renderTime: 1800,
   },
-  "125": {
+  125: {
     id: "125",
     spp: 300,
     targetSpp: 1500,
@@ -86,7 +84,7 @@ const jobs = {
     cancelled: false,
     renderTime: 7200,
   },
-  "126": {
+  126: {
     id: "126",
     spp: 400,
     targetSpp: 2500,
@@ -97,7 +95,7 @@ const jobs = {
     cancelled: false,
     renderTime: 2400,
   },
-  "127": {
+  127: {
     id: "127",
     spp: 500,
     targetSpp: 3000,
@@ -108,7 +106,7 @@ const jobs = {
     cancelled: false,
     renderTime: 5400,
   },
-  "128": {
+  128: {
     id: "128",
     spp: 600,
     targetSpp: 3500,
@@ -119,7 +117,7 @@ const jobs = {
     cancelled: false,
     renderTime: 3000,
   },
-  "129": {
+  129: {
     id: "129",
     spp: 700,
     targetSpp: 4000,
@@ -130,7 +128,7 @@ const jobs = {
     cancelled: false,
     renderTime: 3600,
   },
-  "130": {
+  130: {
     id: "130",
     spp: 800,
     targetSpp: 4500,
@@ -141,7 +139,7 @@ const jobs = {
     cancelled: false,
     renderTime: 7200,
   },
-  "131": {
+  131: {
     id: "131",
     spp: 900,
     targetSpp: 5000,
@@ -152,7 +150,7 @@ const jobs = {
     cancelled: false,
     renderTime: 2400,
   },
-  "132": {
+  132: {
     id: "132",
     spp: 1000,
     targetSpp: 5500,
@@ -163,7 +161,7 @@ const jobs = {
     cancelled: false,
     renderTime: 5400,
   },
-  "133": {
+  133: {
     id: "133",
     spp: 1100,
     targetSpp: 6000,
@@ -174,7 +172,7 @@ const jobs = {
     cancelled: false,
     renderTime: 3000,
   },
-  "134": {
+  134: {
     id: "134",
     spp: 1200,
     targetSpp: 6500,
@@ -185,7 +183,7 @@ const jobs = {
     cancelled: false,
     renderTime: 3600,
   },
-  "135": {
+  135: {
     id: "135",
     spp: 1300,
     targetSpp: 7000,
@@ -196,7 +194,7 @@ const jobs = {
     cancelled: false,
     renderTime: 7200,
   },
-  "136": {
+  136: {
     id: "136",
     spp: 1400,
     targetSpp: 7500,
@@ -207,7 +205,7 @@ const jobs = {
     cancelled: false,
     renderTime: 2400,
   },
-  "137": {
+  137: {
     id: "137",
     spp: 1500,
     targetSpp: 8000,
@@ -218,7 +216,7 @@ const jobs = {
     cancelled: false,
     renderTime: 5400,
   },
-  "138": {
+  138: {
     id: "138",
     spp: 1600,
     targetSpp: 8500,
@@ -229,7 +227,7 @@ const jobs = {
     cancelled: false,
     renderTime: 3000,
   },
-  "139": {
+  139: {
     id: "139",
     spp: 1700,
     targetSpp: 9000,
@@ -240,7 +238,7 @@ const jobs = {
     cancelled: false,
     renderTime: 3600,
   },
-  "140": {
+  140: {
     id: "140",
     spp: 1800,
     targetSpp: 9500,
@@ -251,7 +249,7 @@ const jobs = {
     cancelled: false,
     renderTime: 7200,
   },
-  "141": {
+  141: {
     id: "141",
     spp: 0,
     targetSpp: 10000,
@@ -262,7 +260,7 @@ const jobs = {
     cancelled: true,
     renderTime: 2400,
   },
-  "142": {
+  142: {
     id: "142",
     spp: 0,
     targetSpp: 11000,
@@ -273,7 +271,7 @@ const jobs = {
     cancelled: false,
     renderTime: 5400,
   },
-  "143": {
+  143: {
     id: "143",
     spp: 0,
     targetSpp: 12000,
@@ -284,7 +282,7 @@ const jobs = {
     cancelled: false,
     renderTime: 3000,
   },
-  "144": {
+  144: {
     id: "144",
     spp: 0,
     targetSpp: 13000,
@@ -295,7 +293,7 @@ const jobs = {
     cancelled: false,
     renderTime: 3600,
   },
-  "145": {
+  145: {
     id: "145",
     spp: 0,
     targetSpp: 14000,
@@ -306,8 +304,6 @@ const jobs = {
     cancelled: false,
     renderTime: 7200,
   },
-
-
 };
 
 // Serve static files (for image/dump mockups)
@@ -318,12 +314,17 @@ app.get("/api/stats", (req, res) => {
   res.json(stats);
 });
 
-// GET job details
+// GET job details delay 3-5 seconds to simulate real API
 app.get("/api/jobs", (req, res) => {
-  res.json(jobs);
+  setTimeout(
+    () => {
+      res.json(jobs);
+    },
+    3000 + Math.random() * 2000,
+  );
 });
 
-// GET job details
+// GET job details delay 3-5 seconds to simulate real API
 app.get("/api/job/:id", (req, res) => {
   const job = jobs[req.params.id];
   if (job) {
@@ -353,8 +354,6 @@ app.get("/api/job/:id/latest.dump", (req, res) => {
   }
 });
 
-
-
 app.post("/api/coins", (req, res) => {
   const { token } = req.body;
 
@@ -377,14 +376,13 @@ app.post("/api/apitoken", (req, res) => {
     return res.status(400).json({ error: "Missing or invalid email" });
   }
 
-  const user = users.find(u => u.email === email);
+  const user = users.find((u) => u.email === email);
   if (!user) {
     return res.status(404).json({ error: "User not found" });
   }
 
   return res.json({ email: user.email, apiToken: user.apiToken });
 });
-
 
 app.listen(port, "0.0.0.0", () => {
   console.log(`Mockup API running at http://0.0.0.0:${port}`);
