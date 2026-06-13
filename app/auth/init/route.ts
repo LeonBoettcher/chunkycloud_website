@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
-import { apiUrl } from "../../../lib/api";
+import { apiUrl } from "../../../lib/config";
 
 export async function GET(request: NextRequest) {
   // Generate a random nonce (this is used later to prevent csrf attacks where

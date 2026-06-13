@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "PORT=3001 next dev --turbopack",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "openapi-ts": "openapi-ts"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
@@ -18,9 +19,12 @@
     "next": "^16.2.7",
     "prop-types": "15.8.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "^0.98.2",
+    "@next/env": "^16.2.9",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.19",
     "@types/jsonwebtoken": "^9.0.10",

@@ -2,17 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "../../app/auth/components/SessionProvider";
+import { getCurrentUser } from "../../lib/api-client";
 
 const LoginButton = () => {
-  const { isLoggedIn, logout, apiClient } = useSession();
+  const { isLoggedIn, logout, client } = useSession();
   const [session, setSession] = useState<{ displayName: string }>();
 
   useEffect(() => {
     const ac = new AbortController();
     if (isLoggedIn) {
-      apiClient
-        .getCurrentUser({ signal: ac.signal })
-        .then((user) => setSession(user))
+      getCurrentUser({ client, signal: ac.signal })
+        .then((user) => setSession(user.data))
         .catch((e) => {
           console.error("Failed to get user", e);
         });

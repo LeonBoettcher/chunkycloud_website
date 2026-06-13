@@ -1,27 +1,25 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { apiUrl } from "../../../lib/api";
+import { refreshToken } from "../../../lib/api-client";
+import { serverApiClient } from "../../../lib/serverApiClient";
 
 export async function POST() {
   const cookieStore = await cookies();
-  const refreshToken = cookieStore.get("refresh_token")?.value;
+  const currentRefreshToken = cookieStore.get("refresh_token")?.value;
 
-  if (!refreshToken) {
+  if (!currentRefreshToken) {
     return NextResponse.json({ accessToken: null }, { status: 401 });
   }
 
-  const res = await fetch(`${apiUrl}/auth/refresh`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ refreshToken }),
+  const { response, data: credentials } = await refreshToken({
+    client: serverApiClient,
+    body: { refreshToken: currentRefreshToken },
+    throwOnError: false,
   });
-  if (!res.ok) {
+  if (!response?.ok || !credentials) {
     return NextResponse.json({ accessToken: null }, { status: 401 });
   }
 
-  const credentials = await res.json();
   cookieStore.set("refresh_token", credentials.refreshToken.token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
-import { apiUrl } from "../../../lib/api";
+import { exchangeToken } from "../../../lib/api-client";
+import { serverApiClient } from "../../../lib/serverApiClient";
 
 export async function GET(request: NextRequest) {
   const state = request.nextUrl.searchParams.get("state");
@@ -39,22 +40,20 @@ export async function GET(request: NextRequest) {
   // Clear the nonce cookie
   cookieStore.delete("auth_nonce");
 
-  // TODO: Handle successful authentication, i.e. get credentials from code
-  const credentials = await fetch(`${apiUrl}/auth/exchange`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  // Get credentials from the code
+  const { response, data: credentials } = await exchangeToken({
+    client: serverApiClient,
+    body: {
+      code,
     },
-    body: JSON.stringify({ code }),
-  }).then((res) => {
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: "Token exchange failed" },
-        { status: 500 },
-      );
-    }
-    return res.json();
+    throwOnError: false,
   });
+  if (!response?.ok || !credentials) {
+    return NextResponse.json(
+      { error: "Token exchange failed" },
+      { status: 500 },
+    );
+  }
 
   cookieStore.set("refresh_token", credentials.refreshToken.token, {
     httpOnly: true,

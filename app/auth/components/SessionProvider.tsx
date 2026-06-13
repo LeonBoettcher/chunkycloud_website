@@ -6,17 +6,18 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { ApiClient } from "../../../lib/api";
+import { createClient, Client } from "../../../lib/api-client/client";
 
 interface SessionProviderContextValue {
   isLoggedIn: boolean;
   getAccessToken: () => Promise<string>;
   logout: () => Promise<void>;
-  apiClient: ApiClient;
+  client: Client;
 }
 
 const SessionProviderContext = createContext<
@@ -64,22 +65,26 @@ export default function SessionProvider({
     setAccessToken(undefined);
   }, []);
 
+  const getAccessToken = useCallback(async () => {
+    let token = validateJwt(lastAccessToken.current);
+    if (!token) {
+      token = await refreshToken();
+    }
+    return token;
+  }, []);
+
   const isLoggedIn = !!accessToken;
   const context = useMemo(() => {
-    const getAccessToken = async () => {
-      let token = validateJwt(lastAccessToken.current);
-      if (!token) {
-        token = await refreshToken();
-      }
-      return token;
-    };
     return {
       isLoggedIn,
       getAccessToken,
       logout,
-      apiClient: new ApiClient({ auth: getAccessToken }),
+      client: createClient({
+        auth: getAccessToken,
+        baseUrl: process.env.NEXT_PUBLIC_BACKEND_URL!,
+      }),
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, getAccessToken]);
 
   return (
     <SessionProviderContext value={context}>{children}</SessionProviderContext>
