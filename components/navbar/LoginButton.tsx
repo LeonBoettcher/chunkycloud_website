@@ -59,12 +59,9 @@ const LoginButton = () => {
       getCurrentUser({ client, signal: ac.signal })
         .then((user) => setSession(user.data))
         .catch((e) => {
-          if ((e as any).name !== "AbortError") {
-            console.error("Failed to get user", e);
-          }
+          console.error("Failed to get user", e);
         });
     }
-    return () => ac.abort();
   }, [isLoggedIn, client]);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -99,7 +96,7 @@ const LoginButton = () => {
     };
   }, [isOpen]);
 
-  if (!isLoggedIn) {
+  if (isLoggedIn) {
     return (
       <>
         <div className="badge badge-neutral mr-5">
@@ -134,65 +131,72 @@ const LoginButton = () => {
           <div className="modal modal-open">
             <div className="modal-box text-center" ref={modalRef}>
               <p className="py-4">{session?.displayName}</p>
-
               {/* Node Tokens Table */}
-              <>
-                <p className="py-4 text-2xl">Node Tokens</p>
-                <div className="overflow-x-auto">
-                  <table className="table">
-                    {/* head */}
-                    <thead>
-                      <tr>
-                        <th></th>
-                        <th>Token</th>
-                        <th></th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {/* rows */}
-                      {nodeTokens.map((token, index) => (
-                        <tr key={token.id}>
-                          {/* ID */}
-                          <th>{index + 1}</th>
-
-                          {/* Token */}
-                          {token.token && <td className="truncate max-w-xs">{token.token}</td>}
-                          {!token.token && <td className="text-gray-400">••••••••••</td>}
-
-                          <td>
-                            <button
-                              className="btn btn-ghost btn-xs"
-                              onClick={() => handleTokenReset(token.id)}
-                            >
-                              Reset
-                            </button>
-                          </td>
-                          <td>
-                            <button
-                              className="btn btn-secondary btn-xs"
-                              onClick={() =>
-                                setNodeTokens((prev) =>
-                                  prev.filter((x) => x.id !== token.id),
-                                )
-                              }
-                            >
-                              Delete
-                            </button>
-                          </td>
+              {nodeTokens.length > 0 && (
+                <>
+                  <p className="py-4 text-2xl">Node Tokens</p>
+                  <div className="overflow-x-auto">
+                    <table className="table">
+                      {/* head */}
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>Token</th>
+                          <th></th>
+                          <th></th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
+                      </thead>
+                      <tbody>
+                        {/* rows */}
+                        {nodeTokens.map((token, index) => (
+                          <tr key={token.id}>
+                            {/* ID */}
+                            <th>{index + 1}</th>
+
+                            {/* Token */}
+                            {token.token && (
+                              <td className="truncate max-w-xs">
+                                {token.token}
+                              </td>
+                            )}
+                            {!token.token && (
+                              <td className="text-gray-400">••••••••••</td>
+                            )}
+
+                            <td>
+                              <button
+                                className="btn btn-ghost btn-xs"
+                                onClick={() => handleTokenReset(token.id)}
+                              >
+                                Reset
+                              </button>
+                            </td>
+                            <td>
+                              <button
+                                className="btn btn-secondary btn-xs"
+                                onClick={() =>
+                                  setNodeTokens((prev) =>
+                                    prev.filter((x) => x.id !== token.id),
+                                  )
+                                }
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+
               <button
                 className="btn btn-primary mt-4"
                 onClick={handleCreateNode}
               >
                 Create Node Token
               </button>
-
               <div className="modal-action">
                 <button
                   className="btn"
