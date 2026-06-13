@@ -1,12 +1,57 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "../../app/auth/components/SessionProvider";
-import { getCurrentUser } from "../../lib/api-client";
+import {
+  getCurrentUser,
+  createNode,
+  resetNodeToken,
+} from "../../lib/api-client";
 
 const LoginButton = () => {
   const { isLoggedIn, logout, client } = useSession();
   const [session, setSession] = useState<{ displayName: string }>();
+  const [nodeTokens, setNodeTokens] = useState<{ id: number; token: string }[]>(
+    [],
+  );
+
+  const handleTokenReset = useCallback(
+    async (nodeId: number) => {
+      try {
+        const res = await resetNodeToken({ client, path: { id: nodeId } });
+        const newToken: string | undefined = (res as any)?.data?.token;
+        if (newToken) {
+          setNodeTokens((prevTokens) =>
+            prevTokens.map((token) =>
+              token.id === nodeId ? { ...token, token: newToken } : token,
+            ),
+          );
+        } else {
+          console.warn("No token returned from response");
+        }
+      } catch (e) {
+        console.error("Failed to reset node token", e);
+      }
+    },
+    [client],
+  );
+
+  const handleCreateNode = useCallback(async () => {
+    try {
+      const res = await createNode({ client, body: { name: "web-ui" } });
+      const newNode = res as any;
+      if (newNode?.data) {
+        setNodeTokens((prevTokens) => [
+          ...prevTokens,
+          { id: newNode.data.id, token: newNode.data.token },
+        ]);
+      } else {
+        console.warn("No data returned from create node response");
+      }
+    } catch (e) {
+      console.error("Failed to create node", e);
+    }
+  }, [client]);
 
   useEffect(() => {
     const ac = new AbortController();
@@ -14,10 +59,13 @@ const LoginButton = () => {
       getCurrentUser({ client, signal: ac.signal })
         .then((user) => setSession(user.data))
         .catch((e) => {
-          console.error("Failed to get user", e);
+          if ((e as any).name !== "AbortError") {
+            console.error("Failed to get user", e);
+          }
         });
     }
-  }, [isLoggedIn]);
+    return () => ac.abort();
+  }, [isLoggedIn, client]);
 
   const [isOpen, setIsOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -51,15 +99,26 @@ const LoginButton = () => {
     };
   }, [isOpen]);
 
-  if (isLoggedIn) {
+  if (!isLoggedIn) {
     return (
       <>
         <div className="badge badge-neutral mr-5">
-          10
-          <img
-            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAE4UlEQVR4nO1Z224bVRRd5IaUqkU0SUnVwF+A2g9BRfAhoHwA7TuggPgDUMsDlxekODS3VnHqSyexZ8aTpGl4IQ1vY884Ptlon7n4jBPic8ZOClKOtJRRJHvW2mfvffZZBq7W1bpaAy8ijJKLe+RhXnh4JDxsCRd/iwbaEvzswBIuHpGLeXJwlwgjb564i/eFh4fCw8GJB0rR6IHbAwckbLwSNh6Qg7nLJ+5gRnj4TuwgzBDXJK9C2AhFHQtUx/TlkPfwqfBwdLKTJS4cULsMCp+BWiug5hLIX4zAz/y/8CmoXQKJWizA7kLYeE02Prk44kWMix18L4kr5DtboGAd5Be6hHUQrIE6VUVEPYKo41t+13DJ/4lJ4eE3lbywIxImpP9NiLC6AqSIGn6lIiaHF/ke8u2KecTPRSFKLSmA06sGohp+JwsTAwvoTZuwNETii1m0n6XkI2xjYbDoe/gsE/nNiyPvJyI2UvIRtnA/H/kDTIkdHGbSZvFycLypCNjGUa4Wy31eLVh/KQeR7Xcl8tTESTXdASIL35hF38Gcekjl7TbHtZsSeT4brMbkI4Rk4QOT6D9MyB9vm724+ccIhZXr1HGm6eTlbQmx8x513GlqV26Qv/SW9neJkiLiBR7oRZ8wIjy8SqPPh5TmC1srY5JsQvwsBOtvm++CJXFAP2C0vwAX99TxwCT6HOWEaKcxIyPert6QdZAIC57qC/AX41qwUnzUX4CH+USASedpLo91ybsz5BdOp4qMvkEK+VxHRUVAFV/o5P/jZKrkwUw7fdYmUgHH9XyF65+BcC0m/0IK+FFHgJWMwjxBau/Ak9Furu/dpvD5taGMG63lmHyEan8BLo4SAepIrLXdtZuZghWNGQo3r1HTMG18NTAFRUAVh/0FNBAmAkwjyC20Y0+d6jxid1a21uYZdeH3gyqggkBfgJtz4iyAwuIkCe/WaSGNW9RaHssnoKorgFMovv6ZplDvi7llcgvlmkg7lDNtnkLVFBop5MBKBJgU8bmFuD5BYm82FcEt16iIqyk0itjB40QA32GHIaC3wFtr49qfC1cVAWWNNsq+TeIe8C3JhCTnfdt6R0ZcPchaq+MkdrsjRnNpRF/4Rpr//Pfz/gIc3E0tj5qZgEzR7s1KQb2zkel4fVKOyTOe40O9Yc7GfiLCZJTmEeK8QY4LmFut7vcFKwr5Ml5qu3nsmCW+DVsf2hErRAUblq9HA9zurAQ/c2s9az7yz0vJTUVABV9qkY/TaI4ds8SzeSMXmpVM9AMq4Y62ALkLdSykrpmV71DLe6Vs8pWylBHwlRF5uQsWbgobh4nZZNqRBkFnI0P+NRVz+qbsVaqOWbhx8eTb6xnyRCV8jEEWe5WqY9YuXiL5Mr4eiLzcBcKoqOEn1TFj34bzdFjEm4VTacP4hQoYG1iAFFHEJLHhqjhmfFflS/eg5IOVUwXLafPz0MxdRcQ4e5WKYyYdA1HOJ4SJi2yfT9NmaJE/U8gW7tMWDhXTSYJ3hC/gfIdtPYlHcU6zQvwDx3I0mPFskxkPKin5vwYuWG0R25hiu48sBIpv00X3Dtu9jKjIEg+4z3PbvhTyGSE27rBjRhb2jcmXsc/jgfEJeyFCCCNsOrFvw9YHuwdUxRFVEMbg5wrP8zwS81T5n/iZ9WpdLfz/1z8Apv6TxK69oQAAAABJRU5ErkJggg=="
-            alt="cheap-2--v1"
-          ></img>
+          123456789
+          <svg
+            width="200%"
+            height="200%"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M13 5C13 6.10457 10.5376 7 7.5 7C4.46243 7 2 6.10457 2 5M13 5C13 3.89543 10.5376 3 7.5 3C4.46243 3 2 3.89543 2 5M13 5V9.45715C11.7785 9.82398 11 10.3789 11 11M2 5V17C2 18.1046 4.46243 19 7.5 19C8.82963 19 10.0491 18.8284 11 18.5429V11M2 9C2 10.1046 4.46243 11 7.5 11C8.82963 11 10.0491 10.8284 11 10.5429M2 13C2 14.1046 4.46243 15 7.5 15C8.82963 15 10.0491 14.8284 11 14.5429M22 11C22 12.1046 19.5376 13 16.5 13C13.4624 13 11 12.1046 11 11M22 11C22 9.89543 19.5376 9 16.5 9C13.4624 9 11 9.89543 11 11M22 11V19C22 20.1046 19.5376 21 16.5 21C13.4624 21 11 20.1046 11 19V11M22 15C22 16.1046 19.5376 17 16.5 17C13.4624 17 11 16.1046 11 15"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
         <div
           tabIndex={0}
@@ -75,10 +134,65 @@ const LoginButton = () => {
           <div className="modal modal-open">
             <div className="modal-box text-center" ref={modalRef}>
               <p className="py-4">{session?.displayName}</p>
-              <p className="py-4">Your API Token</p>
-              <code className="bg-amber-300 text-black p-2 rounded-lg">
-                TODO show api token
-              </code>
+
+              {/* Node Tokens Table */}
+              <>
+                <p className="py-4 text-2xl">Node Tokens</p>
+                <div className="overflow-x-auto">
+                  <table className="table">
+                    {/* head */}
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>Token</th>
+                        <th></th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* rows */}
+                      {nodeTokens.map((token, index) => (
+                        <tr key={token.id}>
+                          {/* ID */}
+                          <th>{index + 1}</th>
+
+                          {/* Token */}
+                          {token.token && <td className="truncate max-w-xs">{token.token}</td>}
+                          {!token.token && <td className="text-gray-400">••••••••••</td>}
+
+                          <td>
+                            <button
+                              className="btn btn-ghost btn-xs"
+                              onClick={() => handleTokenReset(token.id)}
+                            >
+                              Reset
+                            </button>
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-secondary btn-xs"
+                              onClick={() =>
+                                setNodeTokens((prev) =>
+                                  prev.filter((x) => x.id !== token.id),
+                                )
+                              }
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+              <button
+                className="btn btn-primary mt-4"
+                onClick={handleCreateNode}
+              >
+                Create Node Token
+              </button>
+
               <div className="modal-action">
                 <button
                   className="btn"
