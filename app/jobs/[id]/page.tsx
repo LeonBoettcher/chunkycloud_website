@@ -1,6 +1,4 @@
-import { Job } from "../../../lib/types";
-
-async function getJob(id: string): Promise<Job | null> {
+async function getJob(id: string): Promise<any | null> {
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   try {
     const res = await fetch(`${baseUrl}/api/job/${id}`, {
@@ -15,7 +13,7 @@ async function getJob(id: string): Promise<Job | null> {
   }
 }
 
-function getStatusTag(id: string, job: Job) {
+function getStatusTag(id: string, job: any) {
   if (!job.status)
     return <div className="badge badge-outline badge-info">Unknown</div>;
   if (job.status.toLowerCase().includes("queue"))
