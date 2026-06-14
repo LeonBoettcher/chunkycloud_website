@@ -3,6 +3,8 @@ import JobCards from "./JobCards";
 import { Squares2X2Icon } from "@heroicons/react/20/solid";
 import LoadingCards from "./LoadingCards";
 
+//TODO [ISSUE] Fix Page infinitly reloading. Only Happens when F5 /jobs or reloading /jobs
+
 export default function JobsPage() {
   return (
     <div className="bg-base-200 text-white min-h-screen">

@@ -1,18 +1,11 @@
 import React from "react";
 import Link from "next/link";
-
-interface SortVariables {
-  SortOrder: string;
-  SortByUser: string;
-  SortByStatus: string;
-}
-
-//TODO Add Job and jobs interface
+import { Job } from "../../lib/types";
 
 const JobCards = async () => {
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  let jobs: [string, any][] = [];
+  let jobs: [string, Job][] = [];
   let errorMsg = "";
 
   try {
@@ -67,7 +60,7 @@ const JobCards = async () => {
     );
   }
 
-  function getStatusTag(id, job) {
+  function getStatusTag(id: string, job: Job) {
     if (!job.status)
       return <div className="badge badge-outline badge-info">Unknown</div>;
     if (job.status.toLowerCase().includes("queue"))
@@ -117,7 +110,7 @@ const JobCards = async () => {
         }
       `}</style>
 
-      {jobs.map(([id, job]: [string, any]) => (
+      {jobs.map(([id, job]: [string, Job]) => (
         <Link key={id} href={`/jobs/${id}`} className="block mb-4">
           <div
             className="card flex w-full bg-gray-800 text-white shadow-lg job-card cursor-pointer"
@@ -170,9 +163,3 @@ const JobCards = async () => {
 
 export default JobCards;
 
-/*{
-  SortOrder,
-  SortByUser,
-  SortByStatus,
-}: SortVariables
-*/
