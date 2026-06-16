@@ -6,12 +6,12 @@ import {
   ReactNode,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { createClient, Client } from "../../../lib/api-client/client";
+import { Client, createClient } from "../../../lib/api-client/client";
+import { apiUrl } from "../../../lib/config";
 
 interface SessionProviderContextValue {
   isLoggedIn: boolean;
@@ -81,7 +81,7 @@ export default function SessionProvider({
       logout,
       client: createClient({
         auth: getAccessToken,
-        baseUrl: process.env.NEXT_PUBLIC_BACKEND_URL!,
+        baseUrl: apiUrl,
       }),
     };
   }, [isLoggedIn, getAccessToken]);
