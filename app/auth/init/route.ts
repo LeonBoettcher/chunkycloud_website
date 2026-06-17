@@ -21,6 +21,6 @@ export async function GET(request: NextRequest) {
   });
 
   // Redirect to the Discord auth endpoint
-  const redirectUrl = `${apiUrl}/auth/discord?returnTo=${apiUrl.includes("localhost") ? "localhost" : "website"}&state=${nonce}`;
+  const redirectUrl = `${apiUrl}/auth/discord?returnTo=${request.nextUrl.hostname === "localhost" ? "localhost" : "website"}&state=${nonce}`;
   return NextResponse.redirect(redirectUrl);
 }
