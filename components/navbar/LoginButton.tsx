@@ -11,9 +11,10 @@ import {
 const LoginButton = () => {
   const { isLoggedIn, logout, client } = useSession();
   const [session, setSession] = useState<{ displayName: string }>();
-  const [nodeTokens, setNodeTokens] = useState<{ id: number; token: string }[]>(
-    [],
-  );
+  const [nodeName, setNodeName] = useState("");
+  const [nodeTokens, setNodeTokens] = useState<
+    { id: number; token: string; name: string }[]
+  >([]);
 
   const handleTokenReset = useCallback(
     async (nodeId: number) => {
@@ -36,22 +37,55 @@ const LoginButton = () => {
     [client],
   );
 
-  const handleCreateNode = useCallback(async () => {
+  const loadNodeTokens = useCallback(
+    async (signal?: AbortSignal) => {
+      try {
+        const res = await client.get({ url: '/users/me/nodes', signal });
+        const nodes = (res as any)?.data ?? [];
+        setNodeTokens(
+          Array.isArray(nodes)
+            ? nodes.map((node: any) => ({
+                id: node.id,
+                name: node.name ?? "",
+                token: "",
+              }))
+            : [],
+        );
+      } catch (e) {
+        if (signal?.aborted) {
+          return;
+        }
+        console.error("Failed to load node tokens", e);
+      }
+    },
+    [client],
+  );
+
+  const handleCreateNodeToken = useCallback(async () => {
+    if (!nodeName.trim()) {
+      return;
+    }
+
     try {
-      const res = await createNode({ client, body: { name: "web-ui" } });
-      const newNode = res as any;
-      if (newNode?.data) {
+      const res = await createNode({ client, body: { name: nodeName } });
+      const data = (res as any)?.data;
+      if (data?.id) {
         setNodeTokens((prevTokens) => [
           ...prevTokens,
-          { id: newNode.data.id, token: newNode.data.token },
+          {
+            id: data.id,
+            token: data.token ?? "",
+            name: nodeName,
+          },
         ]);
+        setNodeName("");
       } else {
         console.warn("No data returned from create node response");
       }
     } catch (e) {
       console.error("Failed to create node", e);
     }
-  }, [client]);
+  }, [client, nodeName]);
 
   useEffect(() => {
     const ac = new AbortController();
@@ -62,10 +96,22 @@ const LoginButton = () => {
           console.error("Failed to get user", e);
         });
     }
+
+    return () => ac.abort();
   }, [isLoggedIn, client]);
 
   const [isOpen, setIsOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen || !isLoggedIn) {
+      return;
+    }
+
+    const ac = new AbortController();
+    loadNodeTokens(ac.signal);
+    return () => ac.abort();
+  }, [isOpen, isLoggedIn, loadNodeTokens]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -153,6 +199,8 @@ const LoginButton = () => {
                             {/* ID */}
                             <th>{index + 1}</th>
 
+                            {/* Token Name */}
+                            <td>{token.name}</td>
                             {/* Token */}
                             {token.token && (
                               <td className="truncate max-w-xs">
@@ -191,12 +239,27 @@ const LoginButton = () => {
                 </>
               )}
 
-              <button
-                className="btn btn-primary mt-4"
-                onClick={handleCreateNode}
-              >
-                Create Node Token
-              </button>
+              <div className="join">
+                <div>
+                  <label className="input validator join-item">
+                    <input
+                      type="text"
+                      value={nodeName}
+                      onChange={(e) => setNodeName(e.target.value)}
+                      placeholder="MY Nodetoken"
+                      required
+                    />
+                  </label>
+                </div>
+                <button
+                  className="btn btn-neutral join-item"
+                  onClick={handleCreateNodeToken}
+                  disabled={!nodeName.trim()}
+                >
+                  Create
+                </button>
+              </div>
+
               <div className="modal-action">
                 <button
                   className="btn"
