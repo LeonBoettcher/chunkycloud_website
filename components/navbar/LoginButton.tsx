@@ -6,6 +6,7 @@ import {
   getCurrentUser,
   createNode,
   resetNodeToken,
+  getCurrentUserNodes,
 } from "../../lib/api-client";
 
 const LoginButton = () => {
@@ -40,21 +41,22 @@ const LoginButton = () => {
   const loadNodeTokens = useCallback(
     async (signal?: AbortSignal) => {
       try {
-        const res = await client.get({ url: '/users/me/nodes', signal });
+        const res = await getCurrentUserNodes({
+          client,
+          signal,
+        });
+
         const nodes = (res as any)?.data ?? [];
+
         setNodeTokens(
-          Array.isArray(nodes)
-            ? nodes.map((node: any) => ({
-                id: node.id,
-                name: node.name ?? "",
-                token: "",
-              }))
-            : [],
+          nodes.map((node: any) => ({
+            id: node.id,
+            name: node.name ?? "",
+            token: "",
+          })),
         );
       } catch (e) {
-        if (signal?.aborted) {
-          return;
-        }
+        if (signal?.aborted) return;
         console.error("Failed to load node tokens", e);
       }
     },
@@ -175,7 +177,10 @@ const LoginButton = () => {
         </div>
         {isOpen && (
           <div className="modal modal-open">
-            <div className="modal-box text-center" ref={modalRef}>
+            <div
+              className="modal-box text-center max-w-4xl w-full"
+              ref={modalRef}
+            >
               <p className="py-4">{session?.displayName}</p>
               {/* Node Tokens Table */}
               {nodeTokens.length > 0 && (
@@ -187,7 +192,8 @@ const LoginButton = () => {
                       <thead>
                         <tr>
                           <th></th>
-                          <th>Token</th>
+                          <th>Token</th>{" "}
+                          {/* TODO Fix id to get the NodeTOken ID not the if o */}
                           <th></th>
                           <th></th>
                         </tr>
@@ -197,7 +203,7 @@ const LoginButton = () => {
                         {nodeTokens.map((token, index) => (
                           <tr key={token.id}>
                             {/* ID */}
-                            <th>{index + 1}</th>
+                            <th>{token.id}</th>
 
                             {/* Token Name */}
                             <td>{token.name}</td>

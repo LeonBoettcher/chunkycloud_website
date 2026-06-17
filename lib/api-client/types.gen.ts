@@ -8,7 +8,7 @@ export type AuthenticateDto = {
     code: string;
 };
 
-export type TokenResponseDto = {
+export type TokenResponse = {
     refreshToken: {
         expiresAt: string;
         token: string;
@@ -20,9 +20,15 @@ export type RefreshTokenDto = {
     refreshToken: string;
 };
 
-export type UserResponseDto = {
+export type UserResponse = {
     id: number;
     displayName: string;
+};
+
+export type UserNodeResponse = {
+    id: number;
+    name?: string;
+    lastSeenAt?: string;
 };
 
 export type CreateNodeDto = {
@@ -44,6 +50,63 @@ export type ResetNodeTokenResponse = {
     token: string;
 };
 
+export type RenderNodeResponse = {
+    id: number;
+    name?: string;
+    enabled: boolean;
+    lastSeenAt: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type NextTaskResponse = {
+    id: number;
+    job: {
+        id: number;
+    };
+    spp: number;
+    tile: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    };
+    files: {
+        scene: {
+            url: string;
+        };
+        octree: {
+            url: string;
+        };
+        emittergrid?: {
+            url: string;
+        };
+    };
+};
+
+export type FinishTaskRenderingResponse = {
+    uploadUrls: {
+        image: string;
+        dump?: string;
+    };
+};
+
+export type CreateJobDto = {
+    spp: number;
+    width: number;
+    height: number;
+    createDump?: boolean;
+};
+
+export type CreateJobResponse = {
+    id: number;
+    uploadUrls: {
+        scene: string;
+        octree: string;
+        emittergrid: string;
+    };
+};
+
 export type ExchangeTokenData = {
     body: AuthenticateDto;
     path?: never;
@@ -52,7 +115,7 @@ export type ExchangeTokenData = {
 };
 
 export type ExchangeTokenResponses = {
-    201: TokenResponseDto;
+    201: TokenResponse;
 };
 
 export type ExchangeTokenResponse = ExchangeTokenResponses[keyof ExchangeTokenResponses];
@@ -65,7 +128,7 @@ export type RefreshTokenData = {
 };
 
 export type RefreshTokenResponses = {
-    201: TokenResponseDto;
+    201: TokenResponse;
 };
 
 export type RefreshTokenResponse = RefreshTokenResponses[keyof RefreshTokenResponses];
@@ -104,10 +167,23 @@ export type GetCurrentUserData = {
 };
 
 export type GetCurrentUserResponses = {
-    200: UserResponseDto;
+    200: UserResponse;
 };
 
 export type GetCurrentUserResponse = GetCurrentUserResponses[keyof GetCurrentUserResponses];
+
+export type GetCurrentUserNodesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/users/me/nodes';
+};
+
+export type GetCurrentUserNodesResponses = {
+    200: Array<UserNodeResponse>;
+};
+
+export type GetCurrentUserNodesResponse = GetCurrentUserNodesResponses[keyof GetCurrentUserNodesResponses];
 
 export type CreateNodeData = {
     body: CreateNodeDto;
@@ -145,5 +221,140 @@ export type GetCurrentNodeData = {
 };
 
 export type GetCurrentNodeResponses = {
+    default: RenderNodeResponse;
+};
+
+export type GetCurrentNodeResponse = GetCurrentNodeResponses[keyof GetCurrentNodeResponses];
+
+export type GetNextTaskData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/nodes/me/tasks/next';
+};
+
+export type GetNextTaskResponses = {
+    /**
+     * The task this render node should render next
+     */
+    200: NextTaskResponse;
+    /**
+     * There is no task to render at this time
+     */
+    204: void;
+};
+
+export type GetNextTaskResponse = GetNextTaskResponses[keyof GetNextTaskResponses];
+
+export type FinishTaskRenderingData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/nodes/me/tasks/{id}/upload';
+};
+
+export type FinishTaskRenderingErrors = {
+    /**
+     * The task is not being rendered by this render node or already completed
+     */
+    409: unknown;
+};
+
+export type FinishTaskRenderingResponses = {
+    /**
+     * URLs to upload the render results to
+     */
+    200: FinishTaskRenderingResponse;
+};
+
+export type FinishTaskRenderingResponse2 = FinishTaskRenderingResponses[keyof FinishTaskRenderingResponses];
+
+export type FinishTaskData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/nodes/me/tasks/{id}/finish';
+};
+
+export type FinishTaskErrors = {
+    /**
+     * The task can not be finished or required result files are missing
+     */
+    409: unknown;
+};
+
+export type FinishTaskResponses = {
+    /**
+     * Task marked as completed
+     */
+    202: FinishTaskRenderingResponse;
+};
+
+export type FinishTaskResponse = FinishTaskResponses[keyof FinishTaskResponses];
+
+export type CreateJobData = {
+    body: CreateJobDto;
+    path?: never;
+    query?: never;
+    url: '/jobs';
+};
+
+export type CreateJobResponses = {
+    /**
+     * The job was created and scene files can now be uploaded
+     */
+    201: CreateJobResponse;
+};
+
+export type CreateJobResponse2 = CreateJobResponses[keyof CreateJobResponses];
+
+export type StartJobData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/jobs/{id}/start';
+};
+
+export type StartJobErrors = {
+    /**
+     * The job is not a draft or required scene files are missing
+     */
+    409: unknown;
+};
+
+export type StartJobResponses = {
+    /**
+     * The job has been queued
+     */
+    202: unknown;
+};
+
+export type GetJobFileData = {
+    body?: never;
+    path: {
+        id: number;
+        file: 'scene' | 'octree' | 'emittergrid';
+    };
+    query?: never;
+    url: '/jobs/{id}/files/{file}';
+};
+
+export type GetJobFileErrors = {
+    /**
+     * The file does not exist
+     */
+    404: unknown;
+};
+
+export type GetJobFileResponses = {
+    /**
+     * The file download
+     */
     200: unknown;
 };
