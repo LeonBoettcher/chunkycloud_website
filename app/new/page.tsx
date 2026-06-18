@@ -266,6 +266,13 @@ Der Ablauf zum Erstellen von Jobs ist so:
   }, [client]);
 
   /*
+  TODO add Status after clicking Submit (Error codes, Loading Progress, 
+  
+  Creat Job-> Done -> Uploading Files Json, Octree Emitter Skymap(SKIP) -> Job Render Start -> Redirect to Job Page
+
+
+
+
    * TODO: Add Explanation Questionmark Circles
    *
    */
@@ -500,7 +507,7 @@ Der Ablauf zum Erstellen von Jobs ist so:
                       ? "btn-error"
                       : ""
                   }`}
-                  onClick={handleSubmit}
+                  onClick={HandlecreateJob}
                 >
                   {submitting ? (
                     <span className="loading loading-spinner loading-md"></span>
