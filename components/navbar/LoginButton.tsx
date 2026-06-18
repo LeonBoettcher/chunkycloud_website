@@ -9,6 +9,8 @@ import {
   getCurrentUserNodes,
 } from "../../lib/api-client";
 
+//TODO Extract Info Modal with nodetoken and signout to a seperate component
+
 const LoginButton = () => {
   const { isLoggedIn, logout, client } = useSession();
   const [session, setSession] = useState<{ displayName: string }>();

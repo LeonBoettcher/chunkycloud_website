@@ -5,6 +5,9 @@ import Head from "next/head";
 import Header from "../../components/Header";
 import { Fieldset } from "@headlessui/react";
 
+import { useSession } from "../../app/auth/components/SessionProvider";
+import { createJob } from "../../lib/api-client";
+
 //TODO: Add a check for Scene Description description octree to test if the file structure is correct before sending to api
 
 function createFileList(...files: File[]): FileList {
@@ -14,6 +17,8 @@ function createFileList(...files: File[]): FileList {
 }
 
 export default function CreateJob() {
+  const { isLoggedIn, logout, client } = useSession();
+
   const router = useRouter();
 
   const [sceneDescription, setSceneDescription] = useState<File>();
@@ -21,10 +26,10 @@ export default function CreateJob() {
   const [emitterGrid, setEmitterGrid] = useState<File>();
   const [emitterGridRequired, setEmitterGridRequired] = useState(false);
   const [targetSpp, setTargetSpp] = useState(500);
+  const [renderDump, setRenderDump] = useState(false);
   const [texturepack, setTexturepack] = useState<string>("");
   const [skymap, setSkymap] = useState<File>();
   const [skymapRequired, setSkymapRequired] = useState(false);
-  const [apiKey, setApiKey] = useState("");
   const [folderDropSupported, setFolderDropSupported] = useState(false);
 
   const [resourcePacks, setResourcePacks] = useState<
@@ -101,7 +106,7 @@ export default function CreateJob() {
   const [showValidation, setShowValidation] = useState(false);
 
   const handleSubmit = useCallback(async () => {
-    if (!sceneDescription || !octree || !apiKey) {
+    if (!sceneDescription || !octree) {
       setShowValidation(true);
       return;
     }
@@ -123,7 +128,7 @@ export default function CreateJob() {
         {
           method: "POST",
           headers: {
-            "X-Api-Key": apiKey,
+            "X-Api-Key": "NOT REQUIRED ANYMORE ONLY EXAMPLECODE",
           },
           body,
         },
@@ -142,7 +147,6 @@ export default function CreateJob() {
       setSubmitting(false);
     }
   }, [
-    apiKey,
     emitterGrid,
     emitterGridRequired,
     octree,
@@ -234,6 +238,33 @@ export default function CreateJob() {
     [handleFiles],
   );
 
+  const HandlecreateJob = useCallback(async () => {
+    {
+      /*
+Der Ablauf zum Erstellen von Jobs ist so:
+
+1. createJob mit den dort benötigten Daten
+2. Der Endpunkt liefert URLs zum Hochladen von Szene und Octree (und – falls die Szene braucht – Emittergrid) zurück, die jeweils direkt dorthin per PUT-Request hochladen, Dateiinhalt in den Body binär
+3. Dann startJob aufrufen
+      */
+    }
+
+    try {
+      const res = await createJob({
+        client,
+        body: { spp: targetSpp, width: 0, height: 0, createDump: true },
+      });
+      const data = (res as any)?.data;
+      if (data) {
+        console.log(data);
+      } else {
+        console.warn("No data returned from create node response");
+      }
+    } catch (e) {
+      console.error("Failed to create node", e);
+    }
+  }, [client]);
+
   /*
    * TODO: Add Explanation Questionmark Circles
    *
@@ -270,23 +301,6 @@ export default function CreateJob() {
                 {folderDropSupported && " (or the scene folder)"} anywhere on
                 this page.
               </p>
-
-              <div className="form-control w-full mb-4 menu-vertical">
-                <label className="label" htmlFor="apiKey">
-                  <span className="label-text text-base font-bold ">
-                    API Key*
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  id="apiKey"
-                  className={`input input-bordered w-full input-lg ${
-                    showValidation && !apiKey ? "input-error" : ""
-                  }`}
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                />
-              </div>
 
               <div className="form-control w-full mb-4">
                 <label className="label" htmlFor="sceneDescription">
@@ -398,6 +412,50 @@ export default function CreateJob() {
                 </div>
               </div>
 
+              <div className="form-control w-full mb-4 menu-vertical">
+                <label className="label" htmlFor="Create Dump">
+                  <span className="label-text text-base font-bold">
+                    Create Dump
+                  </span>
+                </label>
+
+                <label className="toggle toggle-error m-2">
+                  <input
+                    type="checkbox"
+                    checked={renderDump}
+                    onChange={(e) => setRenderDump(e.target.checked)}
+                  />
+
+                  {/* OFF */}
+                  <svg
+                    aria-label="off"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M18 6 6 18M6 6l12 12"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+
+                  {/* ON */}
+                  <svg
+                    aria-label="on"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M20 6 9 17l-5-5"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </label>
+              </div>
+
               <label className="label" htmlFor="texturepack">
                 <span className="label-text text-base font-bold">
                   Texture pack
@@ -426,9 +484,8 @@ export default function CreateJob() {
                 data-tip={
                   submitting
                     ? "Submitting your render job..."
-                    : !apiKey || !sceneDescription || !octree
+                    : !sceneDescription || !octree
                       ? `Missing required fields: ${[
-                          !apiKey && "API Key",
                           !sceneDescription && "Scene description",
                           !octree && "Octree",
                         ]
@@ -439,7 +496,7 @@ export default function CreateJob() {
               >
                 <button
                   className={`btn btn-primary w-full ${
-                    showValidation && (!apiKey || !sceneDescription || !octree)
+                    showValidation && (!sceneDescription || !octree)
                       ? "btn-error"
                       : ""
                   }`}
