@@ -191,11 +191,19 @@ const LoginButton = () => {
                       {/* head */}
                       <thead>
                         <tr>
-                          <th></th>
-                          <th>Token</th>{" "}
-                          {/* TODO Fix id to get the NodeTOken ID not the if o */}
-                          <th></th>
-                          <th></th>
+                          <th>ID</th>
+                          <th>Name</th>
+
+                          <th>
+                            <div
+                              className="tooltip tooltip-left"
+                              data-tip="Click to copy"
+                            >
+                              Token
+                            </div>
+                          </th>
+
+                          <th>Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -210,7 +218,16 @@ const LoginButton = () => {
                             {/* Token */}
                             {token.token && (
                               <td className="truncate max-w-xs">
-                                {token.token}
+                                <button
+                                  className="btn btn-ghost btn-xs"
+                                  onClick={() =>
+                                    navigator.clipboard.writeText(
+                                      token.token ?? "",
+                                    )
+                                  }
+                                >
+                                  {token.token}
+                                </button>
                               </td>
                             )}
                             {!token.token && (
