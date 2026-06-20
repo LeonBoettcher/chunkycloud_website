@@ -272,8 +272,8 @@ Der Ablauf zum Erstellen von Jobs ist so:
     if (!sceneDescription || !octreeDescription) {
       setShowValidation(true);
       console.log("Job Validation failed Case: Missing required field:", {
-        sceneDescription: !!sceneDescription,
-        octreeDescription: !!octreeDescription,
+        sceneDescription: sceneDescription,
+        octreeDescription: octreeDescription,
       });
       return;
     }
@@ -321,7 +321,18 @@ Der Ablauf zum Erstellen von Jobs ist so:
     } catch (e) {
       console.error("Failed to create node", e);
     }
-  }, [client]);
+  }, [
+    client,
+    sceneDescription,
+    octreeDescription,
+    emitterGrid,
+    emitterGridRequired,
+    skymap,
+    targetSpp,
+    canvasWidth,
+    canvasHeight,
+    texturepack,
+  ]);
 
   async function uploadFile(uploadUrl: string, file: File) {
     const response = await fetch(uploadUrl, {
