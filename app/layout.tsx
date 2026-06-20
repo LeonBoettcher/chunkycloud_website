@@ -27,6 +27,8 @@ export default async function RootLayout({
         >
           <NavBar />
           <main className="flex-1">{children}</main>
+
+          <div className="toast toast-start z-999 fixed"></div>
           <Footer />
         </SessionProvider>
       </body>
