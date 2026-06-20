@@ -18,6 +18,8 @@ const LoginButton = () => {
     { id: number; token: string; name: string }[]
   >([]);
 
+  const [loadingNodes, setLoadingNodes] = useState(false);
+
   const handleTokenReset = useCallback(
     async (nodeId: number) => {
       try {
@@ -41,6 +43,7 @@ const LoginButton = () => {
 
   const loadNodeTokens = useCallback(
     async (signal?: AbortSignal) => {
+      setLoadingNodes(true);
       try {
         const res = await getCurrentUserNodes({
           client,
@@ -59,6 +62,8 @@ const LoginButton = () => {
       } catch (e) {
         if (signal?.aborted) return;
         console.error("Failed to load node tokens", e);
+      } finally {
+        setLoadingNodes(false);
       }
     },
     [client],
@@ -147,6 +152,7 @@ const LoginButton = () => {
           </div>
         </div>
         <AccountModal
+          loadingNodes={loadingNodes}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
           session={session}
