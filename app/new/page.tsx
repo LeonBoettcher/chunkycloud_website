@@ -5,10 +5,21 @@ import Head from "next/head";
 import Header from "../../components/Header";
 import { Fieldset } from "@headlessui/react";
 
+import { canvasSizeToDimensions } from "../new/utils";
+
 import { useSession } from "../../app/auth/components/SessionProvider";
 import { createJob } from "../../lib/api-client";
 
+{
+  /* Things that got removed from the old code, but are needed later 
+  
+  fetchresourcepack
+  
+  */
+}
+
 //TODO: Add a check for Scene Description description octree to test if the file structure is correct before sending to api
+//TODO: Add A Job Name Field
 
 function createFileList(...files: File[]): FileList {
   const dataTransfer = new DataTransfer();
@@ -21,37 +32,49 @@ export default function CreateJob() {
 
   const router = useRouter();
 
+  {
+    /* Form Variables */
+  }
   const [sceneDescription, setSceneDescription] = useState<File>();
-  const [octree, setOctree] = useState<File>();
+
+  const [octreeDescription, setOctree] = useState<File>();
   const [emitterGrid, setEmitterGrid] = useState<File>();
   const [emitterGridRequired, setEmitterGridRequired] = useState(false);
+
+  const [canvasWidth, setCanvasWidth] = useState(1920);
+  const [canvasHeight, setCanvasHeight] = useState(1080);
+  const [canvasSize, setCanvasSize] = useState("1920x1080");
+
   const [targetSpp, setTargetSpp] = useState(500);
   const [renderDump, setRenderDump] = useState(false);
   const [texturepack, setTexturepack] = useState<string>("");
+
   const [skymap, setSkymap] = useState<File>();
   const [skymapRequired, setSkymapRequired] = useState(false);
-  const [folderDropSupported, setFolderDropSupported] = useState(false);
-
   const [resourcePacks, setResourcePacks] = useState<
     { name: string; displayName: string }[]
   >([]);
 
-  useEffect(() => {
-    // fetch available resource packs for the texturepack select
-    (async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/resourcepacks`,
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setResourcePacks(data || []);
-        }
-      } catch (e) {
-        console.error("Could not load resource packs", e);
-      }
-    })();
+  const [folderDropSupported, setFolderDropSupported] = useState(true);
 
+  {
+    /* Upload Variables */
+  }
+  const [jobID, setJobID] = useState<string>();
+  const [sceneUploadURL, setSceneUploadURL] = useState<string>();
+  const [octreeUploadURL, setOctreeUploadURL] = useState<string>();
+  const [emitterGridUploadURL, setEmitterGridUploadURL] = useState<string>();
+
+  {
+    /* Idk what this if for */
+  }
+
+  const sceneDescriptionRef = useRef<HTMLInputElement>(null);
+  const octreeRef = useRef<HTMLInputElement>(null);
+  const emitterGridRef = useRef<HTMLInputElement>(null);
+  const skymapRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
     setFolderDropSupported(
       typeof window !== "undefined" &&
         typeof DataTransferItem !== "undefined" &&
@@ -59,11 +82,6 @@ export default function CreateJob() {
         typeof DataTransfer === "function",
     );
   }, []);
-
-  const sceneDescriptionRef = useRef<HTMLInputElement>(null);
-  const octreeRef = useRef<HTMLInputElement>(null);
-  const emitterGridRef = useRef<HTMLInputElement>(null);
-  const skymapRef = useRef<HTMLInputElement>(null);
 
   const handleSceneDescriptionFileChange = useCallback(
     async (file: File | undefined) => {
@@ -106,7 +124,7 @@ export default function CreateJob() {
   const [showValidation, setShowValidation] = useState(false);
 
   const handleSubmit = useCallback(async () => {
-    if (!sceneDescription || !octree) {
+    if (!sceneDescription || !octreeDescription) {
       setShowValidation(true);
       return;
     }
@@ -116,7 +134,7 @@ export default function CreateJob() {
     try {
       const body = new FormData();
       body.append("scene", sceneDescription);
-      body.append("octree", octree);
+      body.append("octree", octreeDescription);
       if (emitterGridRequired && emitterGrid)
         body.append("emittergrid", emitterGrid);
       body.append("targetSpp", targetSpp.toString());
@@ -149,7 +167,7 @@ export default function CreateJob() {
   }, [
     emitterGrid,
     emitterGridRequired,
-    octree,
+    octreeDescription,
     sceneDescription,
     targetSpp,
     texturepack,
@@ -249,14 +267,54 @@ Der Ablauf zum Erstellen von Jobs ist so:
       */
     }
 
+    console.log("Starting Job Creation");
+
+    if (!sceneDescription || !octreeDescription) {
+      setShowValidation(true);
+      console.log("Job Validation failed Case: Missing required field:", {
+        sceneDescription: !!sceneDescription,
+        octreeDescription: !!octreeDescription,
+      });
+      return;
+    }
+
+    console.log("Job Validation complete");
+
+    setShowValidation(false);
+    setSubmitting(true);
+
     try {
+      console.log("Creating job on backend");
       const res = await createJob({
         client,
-        body: { spp: targetSpp, width: 0, height: 0, createDump: true },
+        body: {
+          spp: targetSpp,
+          width: canvasWidth,
+          height: canvasHeight,
+          createDump: true,
+        },
       });
       const data = (res as any)?.data;
       if (data) {
-        console.log(data);
+        {
+          /* Store the returned URLs for file uploads and job ID */
+        }
+        setJobID(data.id.toString());
+        setSceneUploadURL(data.uploadUrls.scene);
+        setOctreeUploadURL(data.uploadUrls.octree);
+        setEmitterGridUploadURL(data.uploadUrls.emittergrid);
+
+        console.log("Job created with ID:", data.id);
+        console.log("Scene upload URL:", data.uploadUrls.scene);
+        console.log("Octree upload URL:", data.uploadUrls.octree);
+        console.log("EmitterGrid upload URL:", data.uploadUrls.emittergrid);
+
+        await uploadFile(data.uploadUrls.scene, sceneDescription);
+        await uploadFile(data.uploadUrls.octree, octreeDescription);
+
+        if (emitterGridRequired && emitterGrid) {
+          await uploadFile(data.uploadUrls.emittergrid, emitterGrid);
+        }
       } else {
         console.warn("No data returned from create node response");
       }
@@ -264,6 +322,22 @@ Der Ablauf zum Erstellen von Jobs ist so:
       console.error("Failed to create node", e);
     }
   }, [client]);
+
+  async function uploadFile(uploadUrl: string, file: File) {
+    const response = await fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type || "application/octet-stream",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Upload failed: ${response.status} ${response.statusText}`,
+      );
+    }
+  }
 
   /*
   TODO add Status after clicking Submit (Error codes, Loading Progress, 
@@ -338,7 +412,9 @@ Der Ablauf zum Erstellen von Jobs ist so:
                 <input
                   type="file"
                   className={`file-input file-input-bordered w-full ${
-                    showValidation && !octree ? "file-input-error" : ""
+                    showValidation && !octreeDescription
+                      ? "file-input-error"
+                      : ""
                   }`}
                   id="octree"
                   accept=".octree2"
@@ -377,6 +453,34 @@ Der Ablauf zum Erstellen von Jobs ist so:
                   onChange={(e) => setSkymap(e.target.files?.[0])}
                   ref={skymapRef}
                 />
+              </div>
+
+              <div className="form-control w-full mb-4 menu-vertical">
+                <label className="label" htmlFor="Canvas Size">
+                  <span className="label-text text-base font-bold">
+                    Canvas Size
+                  </span>
+                </label>
+                <select
+                  defaultValue="1920x1080"
+                  className="select"
+                  value={canvasSize}
+                  onChange={(e) => {
+                    setCanvasSize(e.target.value);
+                    const { width, height } = canvasSizeToDimensions(
+                      e.target.value,
+                    );
+                    setCanvasWidth(width);
+                    setCanvasHeight(height);
+                  }}
+                >
+                  <option>400x400</option>
+                  <option>960x540</option>
+                  <option>1024x768</option>
+                  <option>1920x1080</option>
+                </select>
+
+                {/* TODO: ADD Custom Canvas Size Input */}
               </div>
 
               <div className="form-control w-full mb-6 menu-vertical">
@@ -491,10 +595,10 @@ Der Ablauf zum Erstellen von Jobs ist so:
                 data-tip={
                   submitting
                     ? "Submitting your render job..."
-                    : !sceneDescription || !octree
+                    : !sceneDescription || !octreeDescription
                       ? `Missing required fields: ${[
                           !sceneDescription && "Scene description",
-                          !octree && "Octree",
+                          !octreeDescription && "Octree",
                         ]
                           .filter(Boolean)
                           .join(", ")}`
@@ -503,7 +607,7 @@ Der Ablauf zum Erstellen von Jobs ist so:
               >
                 <button
                   className={`btn btn-primary w-full ${
-                    showValidation && (!sceneDescription || !octree)
+                    showValidation && (!sceneDescription || !octreeDescription)
                       ? "btn-error"
                       : ""
                   }`}

@@ -15,6 +15,8 @@ interface AccountModalProps {
   logout: () => Promise<void>;
 }
 
+//TODO: Add Information that Nodetokens only can be viewed once
+
 export const AccountModal = ({
   isOpen,
   setIsOpen,
@@ -95,7 +97,7 @@ export const AccountModal = ({
 
                       {/* Token Name */}
                       <td>{token.name}</td>
-                      {/* Token */}
+                      {/* Token*/}
                       {token.token && (
                         <td className="truncate max-w-xs">
                           <button
