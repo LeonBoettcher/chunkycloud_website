@@ -8,8 +8,7 @@ import { Fieldset } from "@headlessui/react";
 import { canvasSizeToDimensions } from "../new/utils";
 
 import { useSession } from "../../app/auth/components/SessionProvider";
-import { createJob } from "../../lib/api-client";
-
+import { createJob, startJob } from "../../lib/api-client";
 {
   /* Things that got removed from the old code, but are needed later 
   
@@ -60,7 +59,7 @@ export default function CreateJob() {
   {
     /* Upload Variables */
   }
-  const [jobID, setJobID] = useState<string>();
+  const [jobID, setJobID] = useState<number>();
   const [sceneUploadURL, setSceneUploadURL] = useState<string>();
   const [octreeUploadURL, setOctreeUploadURL] = useState<string>();
   const [emitterGridUploadURL, setEmitterGridUploadURL] = useState<string>();
@@ -285,7 +284,7 @@ Der Ablauf zum Erstellen von Jobs ist so:
 
     try {
       console.log("Creating job on backend");
-      const res = await createJob({
+      const creation_res = await createJob({
         client,
         body: {
           spp: targetSpp,
@@ -294,32 +293,64 @@ Der Ablauf zum Erstellen von Jobs ist so:
           createDump: true,
         },
       });
-      const data = (res as any)?.data;
-      if (data) {
+      const creation_data = (creation_res as any)?.data;
+      if (creation_data) {
         {
           /* Store the returned URLs for file uploads and job ID */
         }
-        setJobID(data.id.toString());
-        setSceneUploadURL(data.uploadUrls.scene);
-        setOctreeUploadURL(data.uploadUrls.octree);
-        setEmitterGridUploadURL(data.uploadUrls.emittergrid);
+        setJobID(creation_data.id);
+        setSceneUploadURL(creation_data.uploadUrls.scene);
+        setOctreeUploadURL(creation_data.uploadUrls.octree);
+        setEmitterGridUploadURL(creation_data.uploadUrls.emittergrid);
 
-        console.log("Job created with ID:", data.id);
-        console.log("Scene upload URL:", data.uploadUrls.scene);
-        console.log("Octree upload URL:", data.uploadUrls.octree);
-        console.log("EmitterGrid upload URL:", data.uploadUrls.emittergrid);
+        console.log("Job created with ID:", creation_data.id);
+        console.log("Scene upload URL:", creation_data.uploadUrls.scene);
+        console.log("Octree upload URL:", creation_data.uploadUrls.octree);
+        console.log(
+          "EmitterGrid upload URL:",
+          creation_data.uploadUrls.emittergrid,
+        );
 
-        await uploadFile(data.uploadUrls.scene, sceneDescription);
-        await uploadFile(data.uploadUrls.octree, octreeDescription);
+        await uploadFile(creation_data.uploadUrls.scene, sceneDescription);
+        await uploadFile(creation_data.uploadUrls.octree, octreeDescription);
 
         if (emitterGridRequired && emitterGrid) {
-          await uploadFile(data.uploadUrls.emittergrid, emitterGrid);
+          await uploadFile(creation_data.uploadUrls.emittergrid, emitterGrid);
+        }
+
+        {
+          /* After Uploading Start Job */
+        }
+
+        try {
+          console.log("[START JOB] Starting job", creation_data.id);
+
+          const res = await startJob({
+            client,
+            path: {
+              id: creation_data.id,
+            },
+          });
+
+          console.log("Response:", res);
+
+          if ((res as any)?.response?.status === 202) {
+            console.log("Job queued successfully");
+          }
+        } catch (err: any) {
+          console.error("Failed:", err);
+
+          if (err?.response?.status === 409) {
+            console.error("Job is not a draft or required files are missing");
+          }
         }
       } else {
         console.warn("No data returned from create node response");
       }
     } catch (e) {
       console.error("Failed to create node", e);
+    } finally {
+      setSubmitting(false);
     }
   }, [
     client,
@@ -623,6 +654,7 @@ Der Ablauf zum Erstellen von Jobs ist so:
                       : ""
                   }`}
                   onClick={HandlecreateJob}
+                  disabled={submitting}
                 >
                   {submitting ? (
                     <span className="loading loading-spinner loading-md"></span>
