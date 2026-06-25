@@ -74,7 +74,7 @@ export const AccountModal = ({
         {showTokenAlert && (
           <div className="flex items-center content-between">
             <div className=" alert alert-success animate-fade z-41">
-              <span>Token Copyed</span>
+              <span>Token Copied</span>
             </div>
           </div>
         )}

@@ -9,6 +9,8 @@ import { canvasSizeToDimensions } from "../new/utils";
 
 import { useSession } from "../../app/auth/components/SessionProvider";
 import { createJob, startJob } from "../../lib/api-client";
+
+import LogPanel, { LogPanelRef } from "../../components/LogPanel";
 {
   /* Things that got removed from the old code, but are needed later 
   
@@ -55,7 +57,7 @@ export default function CreateJob() {
   >([]);
 
   const [folderDropSupported, setFolderDropSupported] = useState(true);
-
+  const logRef = useRef<LogPanelRef>(null);
   {
     /* Upload Variables */
   }
@@ -265,8 +267,9 @@ Der Ablauf zum Erstellen von Jobs ist so:
 3. Dann startJob aufrufen
       */
     }
-
+    logRef.current?.show();
     console.log("Starting Job Creation");
+    logRef.current?.addLog("Starting Job Creation", "info");
 
     if (!sceneDescription || !octreeDescription) {
       setShowValidation(true);
@@ -274,10 +277,17 @@ Der Ablauf zum Erstellen von Jobs ist so:
         sceneDescription: sceneDescription,
         octreeDescription: octreeDescription,
       });
+
+      logRef.current?.addLog(
+        "Missing required field SceneFile or/and octreeFile",
+        "error",
+      );
+
       return;
     }
 
     console.log("Job Validation complete");
+    logRef.current?.addLog("Job Validation complete", "success");
 
     setShowValidation(false);
     setSubmitting(true);
@@ -304,6 +314,11 @@ Der Ablauf zum Erstellen von Jobs ist so:
         setEmitterGridUploadURL(creation_data.uploadUrls.emittergrid);
 
         console.log("Job created with ID:", creation_data.id);
+        logRef.current?.addLog(
+          "Job created with ID " + creation_data.id,
+          "success",
+        );
+        logRef.current?.addLog("Uploading files ", "info");
         console.log("Scene upload URL:", creation_data.uploadUrls.scene);
         console.log("Octree upload URL:", creation_data.uploadUrls.octree);
         console.log(
@@ -323,7 +338,8 @@ Der Ablauf zum Erstellen von Jobs ist so:
         }
 
         try {
-          console.log("[START JOB] Starting job", creation_data.id);
+          console.log("Starting job ", creation_data.id);
+          logRef.current?.addLog("Starting Job ", "info");
 
           const res = await startJob({
             client,
@@ -336,21 +352,33 @@ Der Ablauf zum Erstellen von Jobs ist so:
 
           if ((res as any)?.response?.status === 202) {
             console.log("Job queued successfully");
+            logRef.current?.addLog("Job queued successfully", "success");
           }
         } catch (err: any) {
           console.error("Failed:", err);
+          logRef.current?.addLog("Starting Job failed", "error");
 
           if (err?.response?.status === 409) {
             console.error("Job is not a draft or required files are missing");
+            logRef.current?.addLog(
+              "Job is not a draft or required files are missing",
+              "error",
+            );
           }
         }
       } else {
-        console.warn("No data returned from create node response");
+        console.warn("No data returned from job creation response");
       }
     } catch (e) {
-      console.error("Failed to create node", e);
+      console.error("Failed to create job", e);
+      logRef.current?.addLog("Failed creating Job", "error");
     } finally {
       setSubmitting(false);
+
+      setTimeout(() => {
+        logRef.current?.clear();
+        logRef.current?.hide();
+      }, 10_000); // 10 seconds
     }
   }, [
     client,
@@ -665,6 +693,9 @@ Der Ablauf zum Erstellen von Jobs ist so:
               </div>
             </div>
           </fieldset>
+          <div>
+            <LogPanel ref={logRef} />
+          </div>
         </div>
       </div>
     </>
