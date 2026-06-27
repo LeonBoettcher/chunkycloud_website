@@ -35,8 +35,14 @@ export default function CreateJob() {
   const router = useRouter();
 
   {
+    /* Objects to Remove from SceneDescription */
+  }
+  const removefromSceneDescription: string[] = ["world", "actors.skin"];
+
+  {
     /* Form Variables */
   }
+
   const [sceneDescription, setSceneDescription] = useState<File>();
 
   const [octreeDescription, setOctree] = useState<File>();
@@ -86,6 +92,21 @@ export default function CreateJob() {
     );
   }, []);
 
+  function deleteByPath(obj: any, path: string) {
+    const parts = path.split(".");
+    const last = parts.pop();
+
+    let current = obj;
+
+    for (const part of parts) {
+      if (!current || typeof current !== "object") return;
+      current = current[part];
+    }
+
+    if (current && last) {
+      delete current[last];
+    }
+  }
   const handleSceneDescriptionFileChange = useCallback(
     async (file: File | undefined) => {
       if (file?.type === "application/json") {
@@ -319,7 +340,28 @@ export default function CreateJob() {
           creation_data.uploadUrls.emittergrid,
         );
 
-        await uploadFile(creation_data.uploadUrls.scene, sceneDescription);
+        {
+          /* Clean scene Description from local Paths*/
+        }
+
+        const json = JSON.parse(await sceneDescription.text());
+
+        removefromSceneDescription.forEach((path) => {
+          deleteByPath(json, path);
+        });
+
+        const cleanedSceneDescription = new File(
+          [JSON.stringify(json)],
+          sceneDescription.name,
+          {
+            type: "application/json",
+          },
+        );
+
+        await uploadFile(
+          creation_data.uploadUrls.scene,
+          cleanedSceneDescription,
+        );
         await uploadFile(creation_data.uploadUrls.octree, octreeDescription);
 
         if (emitterGridRequired && emitterGrid) {
