@@ -609,6 +609,7 @@ export default function CreateJob() {
                     Target SPP
                   </span>
                 </label>
+                <div className="w-full mb-6 flex items-center">
                 <input
                   type="number"
                   placeholder="Target SPP"
@@ -617,6 +618,15 @@ export default function CreateJob() {
                   step={100}
                   onChange={(e) => setTargetSpp(Number(e.target.value))}
                 />
+                {targetSpp > 5000 && (
+                <div className="ml-auto">
+                  <p>⚠ High SPP values may significantly increase render time.</p>
+                  <p>32-1024 daylight without Light Sources</p> 
+                  <p>4096-16384 daylight with Light Sources</p>
+                  <p>16384 nighttime or indoor with Light Sources</p>
+                </div>
+                )}
+                </div>
                 <input
                   type="range"
                   min={500}
