@@ -20,7 +20,8 @@ import LogPanel, { LogPanelRef } from "../../components/LogPanel";
 }
 
 //TODO: Add a check for Scene Description description octree to test if the file structure is correct before sending to api
-//TODO: Add A Job Name Field
+//TODO: Add A Job Name
+//TODO: Show Warning for too high SPP Values
 
 function createFileList(...files: File[]): FileList {
   const dataTransfer = new DataTransfer();
@@ -46,6 +47,7 @@ export default function CreateJob() {
   const [canvasHeight, setCanvasHeight] = useState(1080);
   const [canvasSize, setCanvasSize] = useState("1920x1080");
 
+  const [renderName, setRenderName] = useState<string>("");
   const [targetSpp, setTargetSpp] = useState(500);
   const [renderDump, setRenderDump] = useState(false);
   const [texturepack, setTexturepack] = useState<string>("");
@@ -186,6 +188,8 @@ export default function CreateJob() {
 
         const sceneName = json.name.replace(/\.json$/, "");
 
+        setRenderName(sceneName);
+
         const octreeFile = files.find((f) => f.name === `${sceneName}.octree2`);
         if (octreeFile && octreeRef.current) {
           octreeRef.current.files = createFileList(octreeFile);
@@ -259,32 +263,21 @@ export default function CreateJob() {
 
   const HandlecreateJob = useCallback(async () => {
     {
-      /*
-Der Ablauf zum Erstellen von Jobs ist so:
-
-1. createJob mit den dort benötigten Daten
-2. Der Endpunkt liefert URLs zum Hochladen von Szene und Octree (und – falls die Szene braucht – Emittergrid) zurück, die jeweils direkt dorthin per PUT-Request hochladen, Dateiinhalt in den Body binär
-3. Dann startJob aufrufen
-      */
+      /* Validate if required Inputs are filled out */
     }
-    logRef.current?.show();
-    console.log("Starting Job Creation");
-    logRef.current?.addLog("Starting Job Creation", "info");
-
-    if (!sceneDescription || !octreeDescription) {
+    if (!sceneDescription || !octreeDescription || !renderName) {
       setShowValidation(true);
       console.log("Job Validation failed Case: Missing required field:", {
         sceneDescription: sceneDescription,
         octreeDescription: octreeDescription,
+        renderName: renderName,
       });
-
-      logRef.current?.addLog(
-        "Missing required field SceneFile or/and octreeFile",
-        "error",
-      );
-
       return;
     }
+
+    logRef.current?.show();
+    console.log("Starting Job Creation");
+    logRef.current?.addLog("Starting Job Creation", "info");
 
     console.log("Job Validation complete");
     logRef.current?.addLog("Job Validation complete", "success");
@@ -517,14 +510,27 @@ Der Ablauf zum Erstellen von Jobs ist so:
                 </label>
                 <input
                   type="file"
-                  className="file-input file-input-bordered w-full"
+                  className="file-input file-input-bordered w-full "
                   id="skymap"
                   accept=".hdr, .exr"
                   onChange={(e) => setSkymap(e.target.files?.[0])}
                   ref={skymapRef}
                 />
               </div>
-
+              <div className="form-control w-full mb-6 menu-vertical">
+                <label className="label" htmlFor="renderName">
+                  <span className="label-text text-base font-bold">
+                    Scene Name
+                  </span>
+                </label>
+                <input
+                  type="string"
+                  placeholder="  Scene Name"
+                  className="file-input file-input-bordered max-w-1/2"
+                  value={renderName}
+                  onChange={(e) => setRenderName(String(e.target.value))}
+                />
+              </div>
               <div className="form-control w-full mb-4 menu-vertical">
                 <label className="label" htmlFor="Canvas Size">
                   <span className="label-text text-base font-bold">
@@ -672,7 +678,7 @@ Der Ablauf zum Erstellen von Jobs ist so:
                         ]
                           .filter(Boolean)
                           .join(", ")}`
-                      : "Click to submit your render job"
+                      : "Click to Submit your render job"
                 }
               >
                 <button
