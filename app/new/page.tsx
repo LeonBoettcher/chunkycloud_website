@@ -53,6 +53,9 @@ export default function CreateJob() {
   const [canvasHeight, setCanvasHeight] = useState(1080);
   const [canvasSize, setCanvasSize] = useState("1920x1080");
 
+  const [customWidth, setCustomWidth] = useState(1920);
+  const [customHeight, setCustomHeight] = useState(1080);
+  
   const [renderName, setRenderName] = useState<string>("");
   const [targetSpp, setTargetSpp] = useState(500);
   const [renderDump, setRenderDump] = useState(false);
@@ -92,7 +95,17 @@ export default function CreateJob() {
     );
   }, []);
 
-  function deleteByPath(obj: any, path: string) {
+  function ApplyCustomCanvasSize() {
+    setCanvasHeight(Number(customHeight));
+    setCanvasWidth(Number(customWidth));
+    setCanvasSize(`${customWidth}x${customHeight}`);
+  }
+
+  function UpdateCanvasSize() {
+    setCanvasSize(canvasWidth + "x" + canvasHeight)
+  }
+
+    function deleteByPath(obj: any, path: string) {
     const parts = path.split(".");
     const last = parts.pop();
 
@@ -112,6 +125,13 @@ export default function CreateJob() {
       if (file?.type === "application/json") {
         setSceneDescription(file);
         const json = JSON.parse(await file.text());
+
+        const height = json.height;
+        const width = json.width;
+        setCanvasHeight(height);
+        setCanvasWidth(width);
+        setCanvasSize(height + "x" + width);
+
         const newEmitterGridRequired =
           json.emitterSamplingStrategy &&
           json.emitterSamplingStrategy !== "NONE";
@@ -146,59 +166,6 @@ export default function CreateJob() {
 
   const [submitting, setSubmitting] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
-
-  const handleSubmit = useCallback(async () => {
-    if (!sceneDescription || !octreeDescription) {
-      setShowValidation(true);
-      return;
-    }
-
-    setShowValidation(false);
-    setSubmitting(true);
-    try {
-      const body = new FormData();
-      body.append("scene", sceneDescription);
-      body.append("octree", octreeDescription);
-      if (emitterGridRequired && emitterGrid)
-        body.append("emittergrid", emitterGrid);
-      body.append("targetSpp", targetSpp.toString());
-      if (texturepack) body.append("texturepack", texturepack);
-      if (skymapRequired && skymap) body.append("skymap", skymap);
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/jobs`,
-        {
-          method: "POST",
-          headers: {
-            "X-Api-Key": "NOT REQUIRED ANYMORE ONLY EXAMPLECODE",
-          },
-          body,
-        },
-      );
-
-      if (res.status === 201) {
-        const { _id } = await res.json();
-        router.push(`/jobs/${_id}`);
-      } else {
-        throw new Error(await res.text());
-      }
-    } catch (e: any) {
-      console.error(e);
-      alert("Could not create job: " + e.message);
-    } finally {
-      setSubmitting(false);
-    }
-  }, [
-    emitterGrid,
-    emitterGridRequired,
-    octreeDescription,
-    sceneDescription,
-    targetSpp,
-    texturepack,
-    skymap,
-    skymapRequired,
-    router,
-  ]);
 
   const handleFiles = useCallback(
     (files: File[]) => {
@@ -592,15 +559,50 @@ export default function CreateJob() {
                     setCanvasHeight(height);
                   }}
                 >
+                  <option>Custom</option>
+                  <option>{canvasSize}</option>
                   <option>400x400</option>
                   <option>960x540</option>
                   <option>1024x768</option>
                   <option>1920x1080</option>
                 </select>
-
-                {/* TODO: ADD Custom Canvas Size Input */}
               </div>
 
+              {canvasSize === "Custom"  && (
+              <div className="ml-6 mt-3 bg-base-300 rounded-box p-4 border-l-4 border-primary shadow-sm">
+              <div className="form-control w-full mb-6 menu-vertical">
+                  <label className="label" htmlFor="targetSpp">
+                    <span className="label-text text-base font-bold">
+                      Custom Canvas Size
+                    </span>
+                  </label>
+                  <div className="form-control w-full mb-6 menu-horizontal">
+                  <input
+                    type="number"
+                    placeholder="Target height"
+                    className="input input-bordered input-md w-40 mb-3"
+                    value={customHeight}
+                    step={10}
+                    onChange={(e) => setCustomHeight(Number(e.target.value))}
+                  />
+                  <p className="text-xl m-3"> X </p> 
+                  <input
+                    type="number"
+                    placeholder="Target width"
+                    className="input input-bordered input-md w-40 mb-3"
+                    value={customWidth}
+                    step={10}
+                    onChange={(e) => setCustomWidth(Number(e.target.value))}
+                  />
+                  </div>
+                  <button className="btn btn-info w-1/4"
+                    onClick={ApplyCustomCanvasSize}
+                  >
+                      <p>Apply</p>
+                  </button>
+                </div>
+                </div>
+)}
               <div className="form-control w-full mb-6 menu-vertical">
                 <label className="label" htmlFor="targetSpp">
                   <span className="label-text text-base font-bold">

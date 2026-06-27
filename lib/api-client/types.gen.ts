@@ -291,10 +291,8 @@ export type FinishTaskResponses = {
     /**
      * Task marked as completed
      */
-    202: FinishTaskRenderingResponse;
+    202: unknown;
 };
-
-export type FinishTaskResponse = FinishTaskResponses[keyof FinishTaskResponses];
 
 export type CreateJobData = {
     body: CreateJobDto;
@@ -358,3 +356,32 @@ export type GetJobFileResponses = {
      */
     200: unknown;
 };
+
+export type AbortJobData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/jobs/{id}/abort';
+};
+
+export type AbortJobErrors = {
+    /**
+     * The job does not exist or the user cannot acccess it
+     */
+    404: unknown;
+    /**
+     * The job could not be aborted because it is not queued or running
+     */
+    409: unknown;
+};
+
+export type AbortJobResponses = {
+    /**
+     * The job was aborted
+     */
+    204: void;
+};
+
+export type AbortJobResponse = AbortJobResponses[keyof AbortJobResponses];
