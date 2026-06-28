@@ -31,6 +31,39 @@ export type UserNodeResponse = {
     lastSeenAt?: string;
 };
 
+export type JobStatus = 'draft' | 'queued' | 'running' | 'completed' | 'aborted';
+
+export type Order = 'asc' | 'desc';
+
+export type UserJob = {
+    id: number;
+    status: JobStatus;
+    progress: number;
+    spp: number;
+    width: number;
+    height: number;
+    createDump: boolean;
+    createdAt: string;
+    startedAt?: string;
+    finishedAt?: string;
+    abortedAt?: string;
+};
+
+export type CurrentPage = {
+    page: number;
+    size: number;
+};
+
+export type PaginationInfo = {
+    page: CurrentPage;
+    totalCount: number;
+};
+
+export type UserJobsResponse = {
+    data: Array<UserJob>;
+    extra: PaginationInfo;
+};
+
 export type CreateNodeDto = {
     name?: string;
 };
@@ -89,6 +122,10 @@ export type FinishTaskRenderingResponse = {
         image: string;
         dump?: string;
     };
+};
+
+export type ReportTaskProgressDto = {
+    spp: number;
 };
 
 export type CreateJobDto = {
@@ -184,6 +221,40 @@ export type GetCurrentUserNodesResponses = {
 };
 
 export type GetCurrentUserNodesResponse = GetCurrentUserNodesResponses[keyof GetCurrentUserNodesResponses];
+
+export type GetCurrentUserJobsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        status?: Array<JobStatus>;
+        sort?: 'createdAt' | 'startedAt' | 'finishedAt';
+        order?: Order;
+        page?: number;
+        limit?: number;
+    };
+    url: '/users/me/jobs';
+};
+
+export type GetCurrentUserJobsResponses = {
+    200: Array<UserJobsResponse>;
+};
+
+export type GetCurrentUserJobsResponse = GetCurrentUserJobsResponses[keyof GetCurrentUserJobsResponses];
+
+export type GetCurrentUserJobData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/users/me/jobs/{id}';
+};
+
+export type GetCurrentUserJobResponses = {
+    200: Array<UserJob>;
+};
+
+export type GetCurrentUserJobResponse = GetCurrentUserJobResponses[keyof GetCurrentUserJobResponses];
 
 export type CreateNodeData = {
     body: CreateNodeDto;
@@ -293,6 +364,31 @@ export type FinishTaskResponses = {
      */
     202: unknown;
 };
+
+export type ReportTaskProgressData = {
+    body: ReportTaskProgressDto;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/nodes/me/tasks/{id}/progress';
+};
+
+export type ReportTaskProgressErrors = {
+    /**
+     * The task is not assigned to this render node or was cancelled. The render node should stop rendering it.
+     */
+    409: unknown;
+};
+
+export type ReportTaskProgressResponses = {
+    /**
+     * Task progress updated
+     */
+    204: void;
+};
+
+export type ReportTaskProgressResponse = ReportTaskProgressResponses[keyof ReportTaskProgressResponses];
 
 export type CreateJobData = {
     body: CreateJobDto;
