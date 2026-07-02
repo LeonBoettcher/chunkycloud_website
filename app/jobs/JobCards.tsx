@@ -15,12 +15,6 @@ const JobCards = () => {
 
   useEffect(() => {
     const fetchJobs = async () => {
-      if (!client) {
-        console.log("Not logged in");
-        setLoading(false);
-        return;
-      }
-
       try {
         const fetchedJobs = await getCurrentUserJobs({
           client,
@@ -48,7 +42,7 @@ const JobCards = () => {
     };
 
     fetchJobs();
-  }, [client]);
+  }, []);
 
   const getStatusTag = (job: UserJob) => {
     if (!job.status)
