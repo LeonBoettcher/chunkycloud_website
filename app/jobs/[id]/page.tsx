@@ -1,74 +1,97 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
+import React, { use, useEffect, useState } from "react";
 import { useSession } from "../../../app/auth/components/SessionProvider";
 import { getCurrentUserJob } from "../../../lib/api-client";
 import type { UserJob } from "../../../lib/api-client";
 
-const JobPage = ({ params }: { params: { id: number } }) => {
-  const JobId = 1;
+interface PageProps {
+  params: Promise<{
+    id: number;
+  }>;
+}
+
+const JobPage = ({ params }: PageProps) => {
+  const { id } = use(params);
   const { client } = useSession();
 
   const [job, setJob] = useState<UserJob | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      console.log("CLIENT STATE:", client);
+    const fetchJob = async () => {
       try {
         const fetchedJob = await getCurrentUserJob({
           client,
-          path: {
-            id: JobId,
-          },
+          path: { id },
         });
 
-        const data = fetchedJob.data?.[0];
-
-        setJob(data);
-
-        console.log("Fetched job:", fetchedJob);
+        setJob(fetchedJob.data);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch job:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchJobs();
-  }, []);
+    fetchJob();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <h1 className="text-3xl font-bold mb-6">Job Details</h1>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!job) {
+    return (
+      <div className="p-6">
+        <h1 className="text-3xl font-bold mb-6">Job Details</h1>
+        <p>Job not found.</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div className="p-6">
       <h1 className="text-3xl font-bold mb-6">Job Details</h1>
-      {job && (
-        <div>
-          <p>
-            <strong>ID:</strong> {job.id}
-          </p>
-          <p>
-            <strong>SPP:</strong> {job.spp}
-          </p>
-          <p>
-            <strong>Status:</strong> {job.status}
-          </p>
-          <p>
-            <strong>Created At:</strong> {job.createdAt}
-          </p>
-          <p>
-            <strong>Updated At:</strong>
-            {job.finishedAt}
-          </p>
-          <p>
-            {job.height} X {job.width}
-          </p>
-          <p>
-            <strong>Progress:</strong> {job.progress}%
-          </p>
-          <p>
-            <strong>Dump:</strong> {job.createDump ? "Yes" : "No"}
-          </p>
-          {/* Add more job details as needed */}
-        </div>
-      )}
+
+      <div className="space-y-2">
+        <p>
+          <strong>ID:</strong> {job.id}
+        </p>
+
+        <p>
+          <strong>SPP:</strong> {job.spp}
+        </p>
+
+        <p>
+          <strong>Status:</strong> {job.status}
+        </p>
+
+        <p>
+          <strong>Created At:</strong> {job.createdAt}
+        </p>
+
+        <p>
+          <strong>Finished At:</strong> {job.finishedAt ?? "Not finished yet"}
+        </p>
+
+        <p>
+          <strong>Dimensions:</strong> {job.width} × {job.height}
+        </p>
+
+        <p>
+          <strong>Progress:</strong> {job.progress}%
+        </p>
+
+        <p>
+          <strong>Create Dump:</strong> {job.createDump ? "Yes" : "No"}
+        </p>
+      </div>
     </div>
   );
 };

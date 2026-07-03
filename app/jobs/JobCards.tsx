@@ -16,7 +16,7 @@ const JobCards = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const fetchedJobs = await getCurrentUserJobs({
+        const result = await getCurrentUserJobs({
           client,
           query: {
             status: ["draft", "queued", "running", "completed", "aborted"],
@@ -27,12 +27,17 @@ const JobCards = () => {
           },
         });
 
-        const allJobs =
-          fetchedJobs.data?.flatMap((page) => page.data ?? []) ?? [];
+        const statusCode = result?.error?.statusCode;
+
+        if (statusCode == 400) {
+          setErrorMsg("Error Code 400: " + result?.error?.message);
+        }
+
+        const allJobs = result.data?.flatMap((page) => page.data ?? []) ?? [];
 
         setJobs(allJobs);
 
-        console.log("Fetched jobs:", fetchedJobs);
+        console.log("Fetched jobs:", result);
       } catch (err) {
         console.error(err);
         setErrorMsg(err instanceof Error ? err.message : String(err));
