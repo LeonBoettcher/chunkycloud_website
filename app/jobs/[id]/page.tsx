@@ -26,7 +26,25 @@ const JobPage = ({ params }: PageProps) => {
           path: { id },
         });
 
-        setJob(fetchedJob.data);
+        if (fetchedJob.error) {
+          console.error(
+            `Error ${fetchedJob.error.statusCode}: ${fetchedJob.error.message}`,
+          );
+          return;
+        }
+
+        // fetchedJob.data can be either an array (from 200: Array<UserJob>)
+        // or a single object depending on the client generic. Normalize it
+        // to a single `UserJob | null` before updating state.
+        const maybeData = fetchedJob.data as unknown as UserJob[] | UserJob | undefined;
+        let jobItem: UserJob | null = null;
+        if (Array.isArray(maybeData)) {
+          jobItem = maybeData[0] ?? null;
+        } else {
+          jobItem = (maybeData as UserJob) ?? null;
+        }
+
+        setJob(jobItem);
       } catch (err) {
         console.error("Failed to fetch job:", err);
       } finally {
