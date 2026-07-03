@@ -45,16 +45,35 @@ export default function SessionProvider({
     lastAccessToken.current = accessToken;
   }
 
-  const refreshToken = useCallback(async () => {
-    const res = await fetch("/auth/refresh", { method: "POST" });
-    if (res.ok) {
-      const { accessToken: newAccessToken }: { accessToken: string } =
-        await res.json();
-      setAccessToken(newAccessToken);
-      return newAccessToken;
+  const refreshPromise = useRef<Promise<string> | null>(null);
+
+  const refreshToken = useCallback(async (): Promise<string> => {
+    if (refreshPromise.current) {
+      // do not start a new refresh if one is already in progress
+      return refreshPromise.current;
     }
-    setAccessToken(undefined);
-    throw new Error(`Token refresh failed (${res.status})`);
+
+    refreshPromise.current = (async () => {
+      try {
+        const res = await fetch("/auth/refresh", { method: "POST" });
+
+        if (!res.ok) {
+          setAccessToken(undefined);
+          throw new Error(`Token refresh failed (${res.status})`);
+        }
+
+        const { accessToken: newAccessToken }: { accessToken: string } =
+          await res.json();
+
+        setAccessToken(newAccessToken);
+        return newAccessToken;
+      } finally {
+        // clear the promise so that a new refresh can be started next time
+        refreshPromise.current = null;
+      }
+    })();
+
+    return refreshPromise.current;
   }, []);
 
   const logout = useCallback(async () => {
