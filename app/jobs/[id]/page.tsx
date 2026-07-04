@@ -5,6 +5,8 @@ import { useSession } from "../../../app/auth/components/SessionProvider";
 import { getCurrentUserJob } from "../../../lib/api-client";
 import type { UserJob } from "../../../lib/api-client";
 
+import getStatusTag from "../../../components/Job/getStatusTag";
+
 interface PageProps {
   params: Promise<{
     id: number;
@@ -36,7 +38,10 @@ const JobPage = ({ params }: PageProps) => {
         // fetchedJob.data can be either an array (from 200: Array<UserJob>)
         // or a single object depending on the client generic. Normalize it
         // to a single `UserJob | null` before updating state.
-        const maybeData = fetchedJob.data as unknown as UserJob[] | UserJob | undefined;
+        const maybeData = fetchedJob.data as unknown as
+          | UserJob[]
+          | UserJob
+          | undefined;
         let jobItem: UserJob | null = null;
         if (Array.isArray(maybeData)) {
           jobItem = maybeData[0] ?? null;
@@ -74,41 +79,117 @@ const JobPage = ({ params }: PageProps) => {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Job Details</h1>
+    <div className="flex flex-col space-y-6 p-6">
+      <div className="flex flex-row gap-6">
+        <div className="basis-1/3">
+          <div className="card bg-gray-800 text-white shadow-lg">
+            <div className="card-body space-y-4">
+              <h2 className="card-title text-2xl">ID: {job.id}</h2>
+              <span className="font-mono">{getStatusTag(job)}</span>
 
-      <div className="space-y-2">
-        <p>
-          <strong>ID:</strong> {job.id}
-        </p>
+              <div className="divider"></div>
 
-        <p>
-          <strong>SPP:</strong> {job.spp}
-        </p>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="font-semibold">Progress:</span>
+                  <span className="font-mono">{job.progress}%</span>
+                </div>
+                <progress
+                  className="progress progress-primary w-full"
+                  value={job.progress}
+                  max={100}
+                ></progress>
+              </div>
 
-        <p>
-          <strong>Status:</strong> {job.status}
-        </p>
+              <div className="divider"></div>
 
-        <p>
-          <strong>Created At:</strong> {job.createdAt}
-        </p>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="font-semibold">Render Time:</span>
+                  <span className="font-mono">{job.startedAt}s</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Created:</span>
+                  <span className="font-mono text-sm">
+                    {job.startedAt
+                      ? new Date(job.startedAt).toLocaleString()
+                      : "N/A"}
+                  </span>
+                </div>
+                {job.finishedAt && (
+                  <div className="flex justify-between">
+                    <span className="font-semibold">Finished:</span>
+                    <span className="font-mono text-sm">
+                      {new Date(job.finishedAt).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </div>
 
-        <p>
-          <strong>Finished At:</strong> {job.finishedAt ?? "Not finished yet"}
-        </p>
+              <div className="divider"></div>
 
-        <p>
-          <strong>Dimensions:</strong> {job.width} × {job.height}
-        </p>
+              <div className="space-y-3">
+                <h3 className="font-semibold">Scene Description</h3>
+                <div className="bg-gray-700 p-3 rounded space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span>SPP Goal:</span>
+                    <span className="font-mono">{job.spp}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Resolution:</span>
+                    <span className="font-mono">
+                      {job.width}x{job.height}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Ray Depth:</span>
+                    <span className="font-mono">CURRENTLY NOT IMPLEMENTED</span>
+                  </div>
+                </div>
+              </div>
 
-        <p>
-          <strong>Progress:</strong> {job.progress}%
-        </p>
+              <div className="divider"></div>
+              {job.status === "aborted" || job.status === "completed" ? (
+                <div className="space-y-2 flex flex-row items-start mb-4 gap-2">
+                  <div
+                    className="tooltip"
+                    data-tip="You cannot abort a job that has already been aborted or completed."
+                  >
+                    <button className="btn btn-sm btn-disabled btn-outline btn-warning w-fit">
+                      Abort Job
+                    </button>
+                  </div>
+                  <button className="btn btn-sm btn-outline btn-error w-fit">
+                    Delete Job
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2 flex flex-row items-start mb-4 gap-2">
+                  <button className="btn btn-sm btn-outline btn-warning w-fit">
+                    Abort Job
+                  </button>
+                  <div
+                    className="tooltip"
+                    data-tip="You cannot delete a job that has not been aborted or completed."
+                  >
+                    <button className="btn btn-sm btn-disabled btn-outline btn-error w-fit">
+                      Delete Job
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-        <p>
-          <strong>Create Dump:</strong> {job.createDump ? "Yes" : "No"}
-        </p>
+        <div className="basis-2/3">
+          <div className="aspect-video overflow-hidden rounded-md bg-gray-900 flex items-center justify-center">
+            <div className="text-center text-gray-500">
+              <p className="text-lg">Render Preview</p>
+              <p className="text-sm">Image will be displayed here</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

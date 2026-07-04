@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import JobCards from "./JobCards";
 import { Squares2X2Icon } from "@heroicons/react/20/solid";
+import LoadingCards from "./LoadingCards";
 
 //TODO [ISSUE] Fix Page infinitly reloading. Only Happens when F5 /jobs or reloading /jobs
 
@@ -18,7 +19,9 @@ export default function JobsPage() {
 
         <section className="pt-6 pb-24">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-9 gap-4">
-            <JobCards />
+            <Suspense fallback={<LoadingCards />}>
+              <JobCards />
+            </Suspense>
           </div>
         </section>
       </div>
