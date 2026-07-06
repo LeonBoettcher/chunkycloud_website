@@ -8,21 +8,37 @@ import type { UserJob } from "../../lib/api-client";
 
 import LoadingCards from "./LoadingCards";
 import getStatusTag from "../../components/Job/getStatusTag";
+import type { JobStatus } from "../../lib/api-client";
 
-const JobCards = () => {
+type JobCardsProps = {
+  statuses?: JobStatus[];
+};
+
+const JobCards = ({ statuses = [] }: JobCardsProps) => {
   const { client } = useSession();
 
   const [jobs, setJobs] = useState<UserJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showLoadingFallback, setShowLoadingFallback] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+    const timeoutId = window.setTimeout(() => {
+      if (isMounted) {
+        setShowLoadingFallback(true);
+      }
+    }, 220);
+
     const fetchJobs = async () => {
       try {
+        setLoading(true);
+        setErrorMsg("");
+
         const result = await getCurrentUserJobs({
           client,
           query: {
-            status: ["draft", "queued", "running", "completed", "aborted"],
+            status: statuses,
             sort: "createdAt",
             order: "desc",
             page: 1,
@@ -35,8 +51,6 @@ const JobCards = () => {
         if (statusCode == 400) {
           setErrorMsg("Error Code 400: " + result?.error?.message);
         }
-
-        console.log("Fetched jobs:", result);
 
         // Normalize result.data into an array of UserJob
         let allJobs: UserJob[] = [];
@@ -56,19 +70,30 @@ const JobCards = () => {
           allJobs = [];
         }
 
-        setJobs(allJobs);
-
-        console.log("Fetched jobs:", result);
+        if (isMounted) {
+          setJobs(allJobs);
+        }
       } catch (err) {
-        console.error(err);
-        setErrorMsg(err instanceof Error ? err.message : String(err));
+        if (isMounted) {
+          console.error(err);
+          setErrorMsg(err instanceof Error ? err.message : String(err));
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          window.clearTimeout(timeoutId);
+          setShowLoadingFallback(false);
+          setLoading(false);
+        }
       }
     };
 
     fetchJobs();
-  }, []);
+
+    return () => {
+      isMounted = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [client, statuses]);
 
   const getGlowColor = (status: string | null | undefined): string => {
     if (!status) return "rgba(59,130,246,0.12)"; // default blue
@@ -83,7 +108,7 @@ const JobCards = () => {
     return "rgba(59,130,246,0.12)"; // default blue
   };
 
-  if (loading) {
+  if (loading && showLoadingFallback) {
     return <LoadingCards />;
   }
 
