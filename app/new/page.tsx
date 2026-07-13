@@ -55,7 +55,7 @@ export default function CreateJob() {
 
   const [customWidth, setCustomWidth] = useState(1920);
   const [customHeight, setCustomHeight] = useState(1080);
-  
+
   const [renderName, setRenderName] = useState<string>("");
   const [targetSpp, setTargetSpp] = useState(500);
   const [renderDump, setRenderDump] = useState(false);
@@ -102,10 +102,10 @@ export default function CreateJob() {
   }
 
   function UpdateCanvasSize() {
-    setCanvasSize(canvasWidth + "x" + canvasHeight)
+    setCanvasSize(canvasWidth + "x" + canvasHeight);
   }
 
-    function deleteByPath(obj: any, path: string) {
+  function deleteByPath(obj: any, path: string) {
     const parts = path.split(".");
     const last = parts.pop();
 
@@ -528,21 +528,21 @@ export default function CreateJob() {
               </div>
               <div className="form-control w-full mb-6 menu-vertical">
                 <label className="label" htmlFor="renderName">
-                  <span className="label-text text-base font-bold">
+                  <span className="block mb-2 label-text text-base font-bold">
                     Scene Name
                   </span>
                 </label>
                 <input
                   type="string"
-                  placeholder="  Scene Name"
-                  className="file-input file-input-bordered max-w-1/2"
+                  placeholder="Scene Name"
+                  className="input input-bordered input-md w-1/2 mb-3"
                   value={renderName}
                   onChange={(e) => setRenderName(String(e.target.value))}
                 />
               </div>
               <div className="form-control w-full mb-4 menu-vertical">
                 <label className="label" htmlFor="Canvas Size">
-                  <span className="label-text text-base font-bold">
+                  <span className="input-md label-text text-base font-bold">
                     Canvas Size
                   </span>
                 </label>
@@ -568,41 +568,44 @@ export default function CreateJob() {
                 </select>
               </div>
 
-              {canvasSize === "Custom"  && (
-              <div className="ml-6 mt-3 bg-base-300 rounded-box p-4 border-l-4 border-primary shadow-sm">
-              <div className="form-control w-full mb-6 menu-vertical">
-                  <label className="label" htmlFor="targetSpp">
-                    <span className="label-text text-base font-bold">
-                      Custom Canvas Size
-                    </span>
-                  </label>
-                  <div className="form-control w-full mb-6 menu-horizontal">
-                  <input
-                    type="number"
-                    placeholder="Target height"
-                    className="input input-bordered input-md w-40 mb-3"
-                    value={customHeight}
-                    step={10}
-                    onChange={(e) => setCustomHeight(Number(e.target.value))}
-                  />
-                  <p className="text-xl m-3"> X </p> 
-                  <input
-                    type="number"
-                    placeholder="Target width"
-                    className="input input-bordered input-md w-40 mb-3"
-                    value={customWidth}
-                    step={10}
-                    onChange={(e) => setCustomWidth(Number(e.target.value))}
-                  />
-                  </div>
-                  <button className="btn btn-info w-1/4"
-                    onClick={ApplyCustomCanvasSize}
-                  >
+              {canvasSize === "Custom" && (
+                <div className="ml-6 mt-3 bg-base-300 rounded-box p-4 border-l-4 border-primary shadow-sm">
+                  <div className="form-control w-full mb-6 menu-vertical">
+                    <label className="label" htmlFor="targetSpp">
+                      <span className="label-text text-base font-bold">
+                        Custom Canvas Size
+                      </span>
+                    </label>
+                    <div className="form-control w-full mb-6 menu-horizontal">
+                      <input
+                        type="number"
+                        placeholder="Target height"
+                        className="input input-bordered input-md w-40 mb-3"
+                        value={customHeight}
+                        step={10}
+                        onChange={(e) =>
+                          setCustomHeight(Number(e.target.value))
+                        }
+                      />
+                      <p className="text-xl m-3"> X </p>
+                      <input
+                        type="number"
+                        placeholder="Target width"
+                        className="input input-bordered input-md w-40 mb-3"
+                        value={customWidth}
+                        step={10}
+                        onChange={(e) => setCustomWidth(Number(e.target.value))}
+                      />
+                    </div>
+                    <button
+                      className="btn btn-info w-1/4"
+                      onClick={ApplyCustomCanvasSize}
+                    >
                       <p>Apply</p>
-                  </button>
+                    </button>
+                  </div>
                 </div>
-                </div>
-)}
+              )}
               <div className="form-control w-full mb-6 menu-vertical">
                 <label className="label" htmlFor="targetSpp">
                   <span className="label-text text-base font-bold">
@@ -610,22 +613,25 @@ export default function CreateJob() {
                   </span>
                 </label>
                 <div className="w-full mb-6 flex items-center">
-                <input
-                  type="number"
-                  placeholder="Target SPP"
-                  className="input input-bordered input-md w-40 mb-3"
-                  value={targetSpp}
-                  step={100}
-                  onChange={(e) => setTargetSpp(Number(e.target.value))}
-                />
-                {targetSpp > 5000 && (
-                <div className="ml-auto">
-                  <p>⚠ High SPP values may significantly increase render time.</p>
-                  <p>32-1024 daylight without Light Sources</p> 
-                  <p>4096-16384 daylight with Light Sources</p>
-                  <p>16384 nighttime or indoor with Light Sources</p>
-                </div>
-                )}
+                  <input
+                    type="number"
+                    placeholder="Target SPP"
+                    className="input input-bordered input-md w-40 mb-3"
+                    value={targetSpp}
+                    step={100}
+                    onChange={(e) => setTargetSpp(Number(e.target.value))}
+                  />
+                  {targetSpp > 5000 && (
+                    <div className="ml-auto">
+                      <p>
+                        ⚠ High SPP values may significantly increase render
+                        time.
+                      </p>
+                      <p>32-1024 daylight without Light Sources</p>
+                      <p>4096-16384 daylight with Light Sources</p>
+                      <p>16384 nighttime or indoor with Light Sources</p>
+                    </div>
+                  )}
                 </div>
                 <input
                   type="range"

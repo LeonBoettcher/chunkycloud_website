@@ -11,10 +11,22 @@ import getStatusTag from "../../components/Job/getStatusTag";
 import type { JobStatus } from "../../lib/api-client";
 
 type JobCardsProps = {
-  statuses?: JobStatus[];
+  status?: JobStatus[];
+  sort?: "createdAt" | "updatedAt" | "progress";
+  order?: "asc" | "desc";
+  page?: number;
+  limit?: number;
+  onPaginationInfo?: (totalPages: number) => void;
 };
 
-const JobCards = ({ statuses = [] }: JobCardsProps) => {
+const JobCards = ({
+  status = [],
+  sort = "createdAt",
+  order = "desc",
+  page = 1,
+  limit = 100,
+  onPaginationInfo,
+}: JobCardsProps) => {
   const { client } = useSession();
 
   const [jobs, setJobs] = useState<UserJob[]>([]);
@@ -38,11 +50,11 @@ const JobCards = ({ statuses = [] }: JobCardsProps) => {
         const result = await getCurrentUserJobs({
           client,
           query: {
-            status: statuses,
-            sort: "createdAt",
-            order: "desc",
-            page: 1,
-            limit: 100,
+            status,
+            sort,
+            order,
+            page,
+            limit,
           },
         });
 
@@ -52,26 +64,40 @@ const JobCards = ({ statuses = [] }: JobCardsProps) => {
           setErrorMsg("Error Code 400: " + result?.error?.message);
         }
 
-        // Normalize result.data into an array of UserJob
         let allJobs: UserJob[] = [];
+        let newTotalPages = 1;
         const rdata: unknown = result.data;
 
         if (Array.isArray(rdata)) {
           // shape: [{ data: UserJob[] }, ...]
           allJobs = (rdata as any).flatMap((page: any) => page.data ?? []);
+          newTotalPages = 1;
         } else if (
           rdata &&
           typeof rdata === "object" &&
           Array.isArray((rdata as any).data)
         ) {
-          // shape: { data: UserJob[], extra: { ... } }
-          allJobs = (rdata as any).data;
+          const responseData = rdata as {
+            data: UserJob[];
+            extra?: {
+              page?: { page?: number; size?: number };
+              totalCount?: number;
+            };
+          };
+          allJobs = responseData.data ?? [];
+
+          const totalCount = responseData.extra?.totalCount ?? allJobs.length;
+          const pageSize = responseData.extra?.page?.size ?? limit;
+          newTotalPages =
+            pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
         } else {
           allJobs = [];
+          newTotalPages = 1;
         }
 
         if (isMounted) {
           setJobs(allJobs);
+          onPaginationInfo?.(newTotalPages);
         }
       } catch (err) {
         if (isMounted) {
@@ -93,7 +119,7 @@ const JobCards = ({ statuses = [] }: JobCardsProps) => {
       isMounted = false;
       window.clearTimeout(timeoutId);
     };
-  }, [client, statuses]);
+  }, [client, status, sort, order, page, limit, onPaginationInfo]);
 
   const getGlowColor = (status: string | null | undefined): string => {
     if (!status) return "rgba(59,130,246,0.12)"; // default blue
@@ -162,20 +188,17 @@ const JobCards = ({ statuses = [] }: JobCardsProps) => {
                 />
               </div>
 
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>Target SPP:</span>
-                  <span>{job.spp}</span>
-                </div>
+              <div>{getStatusTag(job)}</div>
 
+              <div>
                 <progress
                   className="progress progress-primary w-full"
                   value={job.progress}
                   max={100}
                 ></progress>
+                <p>{job.progress}%</p>
+                <p>SPP: {job.spp}</p>
               </div>
-
-              <div>{getStatusTag(job)}</div>
 
               <div className="text=[8px] text-gray-500 space-y-1">
                 <p>
@@ -184,6 +207,9 @@ const JobCards = ({ statuses = [] }: JobCardsProps) => {
                     ? new Date(job.startedAt).toLocaleString()
                     : "n/a"}
                 </p>
+                {job.finishedAt && (
+                  <p>Finished: {new Date(job.finishedAt).toLocaleString()}</p>
+                )}
               </div>
             </div>
           </div>
