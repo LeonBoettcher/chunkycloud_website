@@ -12,7 +12,7 @@ import type { JobStatus } from "../../lib/api-client";
 
 type JobCardsProps = {
   status?: JobStatus[];
-  sort?: "createdAt" | "updatedAt" | "progress";
+  sort?: "createdAt" | "startedAt" | "finishedAt";
   order?: "asc" | "desc";
   page?: number;
   limit?: number;
