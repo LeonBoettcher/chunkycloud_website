@@ -134,8 +134,8 @@ const JobCards = ({
     return "rgba(59,130,246,0.12)"; // default blue
   };
 
-  if (loading && showLoadingFallback) {
-    return <LoadingCards />;
+  if (loading) {
+    return showLoadingFallback ? <LoadingCards /> : null;
   }
 
   if (errorMsg) {
