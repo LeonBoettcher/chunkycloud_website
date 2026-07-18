@@ -37,7 +37,11 @@ export default function CreateJob() {
   {
     /* Objects to Remove from SceneDescription */
   }
-  const removefromSceneDescription: string[] = ["world", "actors.skin"];
+  const removefromSceneDescription: string[] = [
+    "world",
+    "actors.skin",
+    "skymap",
+  ];
 
   {
     /* Form Variables */

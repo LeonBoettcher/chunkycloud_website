@@ -1,8 +1,9 @@
 "use client";
 
 import React, { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "../../../app/auth/components/SessionProvider";
-import { getCurrentUserJob } from "../../../lib/api-client";
+import { abortJob, getCurrentUserJob } from "../../../lib/api-client";
 import type { UserJob } from "../../../lib/api-client";
 
 import getStatusTag from "../../../components/Job/getStatusTag";
@@ -16,49 +17,129 @@ interface PageProps {
 const JobPage = ({ params }: PageProps) => {
   const { id } = use(params);
   const { client } = useSession();
+  const router = useRouter();
 
   const [job, setJob] = useState<UserJob | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const fetchJob = async () => {
+    try {
+      const fetchedJob = await getCurrentUserJob({
+        client,
+        path: { id },
+      });
+
+      if (fetchedJob.error) {
+        console.error(
+          `Error ${fetchedJob.error.statusCode}: ${fetchedJob.error.message}`,
+        );
+        return;
+      }
+
+      // fetchedJob.data can be either an array (from 200: Array<UserJob>)
+      // or a single object depending on the client generic. Normalize it
+      // to a single `UserJob | null` before updating state.
+      const maybeData = fetchedJob.data as unknown as
+        | UserJob[]
+        | UserJob
+        | undefined;
+      let jobItem: UserJob | null = null;
+      if (Array.isArray(maybeData)) {
+        jobItem = maybeData[0] ?? null;
+      } else {
+        jobItem = (maybeData as UserJob) ?? null;
+      }
+
+      setJob(jobItem);
+    } catch (err) {
+      console.error("Failed to fetch job:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchJob = async () => {
-      try {
-        const fetchedJob = await getCurrentUserJob({
-          client,
-          path: { id },
-        });
+    void fetchJob();
+  }, [client, id]);
 
-        if (fetchedJob.error) {
-          console.error(
-            `Error ${fetchedJob.error.statusCode}: ${fetchedJob.error.message}`,
-          );
-          return;
-        }
+  const handleAbort = async () => {
+    if (!job || isSubmitting) {
+      return;
+    }
 
-        // fetchedJob.data can be either an array (from 200: Array<UserJob>)
-        // or a single object depending on the client generic. Normalize it
-        // to a single `UserJob | null` before updating state.
-        const maybeData = fetchedJob.data as unknown as
-          | UserJob[]
-          | UserJob
-          | undefined;
-        let jobItem: UserJob | null = null;
-        if (Array.isArray(maybeData)) {
-          jobItem = maybeData[0] ?? null;
-        } else {
-          jobItem = (maybeData as UserJob) ?? null;
-        }
+    setIsSubmitting(true);
+    setActionError(null);
 
-        setJob(jobItem);
-      } catch (err) {
-        console.error("Failed to fetch job:", err);
-      } finally {
-        setLoading(false);
+    try {
+      const result = await abortJob({
+        client,
+        path: { id: job.id },
+        throwOnError: false,
+      });
+
+      if (result.error) {
+        const errorMessage =
+          typeof result.error === "object" &&
+          result.error !== null &&
+          "message" in result.error &&
+          typeof (result.error as { message?: unknown }).message === "string"
+            ? (result.error as { message: string }).message
+            : "Unable to abort the job.";
+        setActionError(errorMessage);
+        return;
       }
-    };
 
-    fetchJob();
-  }, [id]);
+      await fetchJob();
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Unable to abort the job.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!job || isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionError(null);
+
+    try {
+      const result = await client.delete({
+        security: [{ key: "access-token", scheme: "bearer", type: "http" }],
+        url: "/users/me/jobs/{id}",
+        path: { id: job.id },
+        throwOnError: false,
+      });
+
+      if (result.error) {
+        const errorMessage =
+          typeof result.error === "object" &&
+          result.error !== null &&
+          "message" in result.error &&
+          typeof (result.error as { message?: unknown }).message === "string"
+            ? (result.error as { message: string }).message
+            : "Unable to delete the job.";
+        setActionError(errorMessage);
+        return;
+      }
+
+      router.push("/jobs");
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Unable to delete the job.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const canAbort = job?.status === "queued" || job?.status === "running";
 
   if (loading) {
     return (
@@ -149,34 +230,41 @@ const JobPage = ({ params }: PageProps) => {
               </div>
 
               <div className="divider"></div>
-              {job.status === "aborted" || job.status === "completed" ? (
-                <div className="space-y-2 flex flex-row items-start mb-4 gap-2">
+              <div className="space-y-2 flex flex-row items-start mb-4 gap-2 flex-wrap">
+                {canAbort ? (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline btn-warning w-fit"
+                    onClick={handleAbort}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Working..." : "Abort Job"}
+                  </button>
+                ) : (
                   <div
                     className="tooltip"
-                    data-tip="You cannot abort a job that has already been aborted or completed."
+                    data-tip="Only queued or running jobs can be aborted."
                   >
-                    <button className="btn btn-sm btn-disabled btn-outline btn-warning w-fit">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-disabled btn-outline btn-warning w-fit"
+                      disabled
+                    >
                       Abort Job
                     </button>
                   </div>
-                  <button className="btn btn-sm btn-outline btn-error w-fit">
-                    Delete Job
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-2 flex flex-row items-start mb-4 gap-2">
-                  <button className="btn btn-sm btn-outline btn-warning w-fit">
-                    Abort Job
-                  </button>
-                  <div
-                    className="tooltip"
-                    data-tip="You cannot delete a job that has not been aborted or completed."
-                  >
-                    <button className="btn btn-sm btn-disabled btn-outline btn-error w-fit">
-                      Delete Job
-                    </button>
-                  </div>
-                </div>
+                )}
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline btn-error w-fit"
+                  onClick={handleDelete}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Working..." : "Delete Job"}
+                </button>
+              </div>
+              {actionError && (
+                <p className="text-sm text-error">{actionError}</p>
               )}
             </div>
           </div>
