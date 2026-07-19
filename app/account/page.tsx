@@ -245,7 +245,7 @@ const AccountPage = () => {
                   {loadingNodes ? (
                     <tr>
                       <td colSpan={4} className="p-6 text-center">
-                        Loading node tokens…
+                        Loading nodes…
                       </td>
                     </tr>
                   ) : nodeTokens.length === 0 ? (

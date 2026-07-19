@@ -119,7 +119,8 @@ function validateJwt(token: string | null | undefined): string | null {
     if (!decoded || typeof decoded !== "object") {
       return null;
     }
-    if (decoded.exp ?? 0 < Date.now() / 1000 + 60) {
+    // force token refresh if it expires in under a minute
+    if ((decoded.exp ?? 0) < Date.now() / 1000 + 60) {
       return null;
     }
     return token;
