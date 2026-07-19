@@ -192,12 +192,14 @@ const JobPage = ({ params }: PageProps) => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="font-semibold">Progress:</span>
-                  <span className="font-mono">{job.progress}%</span>
+                  <span className="font-mono">
+                    {(job.progress * 100).toFixed(2)}%
+                  </span>
                 </div>
                 <progress
                   className="progress progress-primary w-full"
                   value={job.progress}
-                  max={100}
+                  max={1}
                 ></progress>
               </div>
 
@@ -304,10 +306,8 @@ const JobPage = ({ params }: PageProps) => {
                 <div className="aspect-video rounded-md bg-gray-900 overflow-hidden">
                   <div className="relative w-full h-full">
                     {tiles.map((tile) => (
-                      <img
+                      <div
                         key={`${tile.x}-${tile.y}`}
-                        src={tile.url}
-                        alt=""
                         className="absolute"
                         style={{
                           left: `${(tile.x / canvasWidth) * 100}%`,
@@ -315,7 +315,21 @@ const JobPage = ({ params }: PageProps) => {
                           width: `${(tile.width / canvasWidth) * 100}%`,
                           height: `${(tile.height / canvasHeight) * 100}%`,
                         }}
-                      />
+                      >
+                        <img
+                          src={tile.url}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+
+                        {tile.progress < 1 && (
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                            <p className="text-white font-bold text-lg">
+                              {(tile.progress * 100).toFixed(0)}%
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>

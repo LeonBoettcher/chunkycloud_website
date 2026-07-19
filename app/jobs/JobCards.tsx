@@ -194,9 +194,9 @@ const JobCards = ({
                 <progress
                   className="progress progress-primary w-full"
                   value={job.progress}
-                  max={100}
+                  max={1}
                 ></progress>
-                <p>{job.progress}%</p>
+                <p>{(job.progress * 100).toFixed(0)}%</p>
                 <p>SPP: {job.spp}</p>
               </div>
 
