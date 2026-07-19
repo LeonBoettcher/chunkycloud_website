@@ -8,7 +8,8 @@ import { Fieldset } from "@headlessui/react";
 import { canvasSizeToDimensions } from "../new/utils";
 
 import { useSession } from "../../app/auth/components/SessionProvider";
-import { createJob, startJob } from "../../lib/api-client";
+import { createJob, startJob, getResourcePacks } from "../../lib/api-client";
+import type { ResourcePackResponse } from "../../lib/api-client";
 
 import LogPanel, { LogPanelRef } from "../../components/LogPanel";
 {
@@ -67,9 +68,9 @@ export default function CreateJob() {
 
   const [skymap, setSkymap] = useState<File>();
   const [skymapRequired, setSkymapRequired] = useState(false);
-  const [resourcePacks, setResourcePacks] = useState<
-    { name: string; displayName: string }[]
-  >([]);
+  const [resourcePacks, setResourcePacks] = useState<ResourcePackResponse[]>(
+    [],
+  );
 
   const [folderDropSupported, setFolderDropSupported] = useState(true);
   const logRef = useRef<LogPanelRef>(null);
@@ -91,6 +92,8 @@ export default function CreateJob() {
   const skymapRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    fetchResourcePacks();
+
     setFolderDropSupported(
       typeof window !== "undefined" &&
         typeof DataTransferItem !== "undefined" &&
@@ -98,6 +101,16 @@ export default function CreateJob() {
         typeof DataTransfer === "function",
     );
   }, []);
+
+  function fetchResourcePacks() {
+    getResourcePacks({ client })
+      .then((packs) => {
+        setResourcePacks(packs.data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch resource packs:", error);
+      });
+  }
 
   function ApplyCustomCanvasSize() {
     setCanvasHeight(Number(customHeight));
@@ -124,6 +137,7 @@ export default function CreateJob() {
       delete current[last];
     }
   }
+
   const handleSceneDescriptionFileChange = useCallback(
     async (file: File | undefined) => {
       if (file?.type === "application/json") {
@@ -286,6 +300,7 @@ export default function CreateJob() {
           width: canvasWidth,
           height: canvasHeight,
           createDump: true,
+          resourcePacks: resourcePacks,
         },
       });
       const creation_data = (creation_res as any)?.data;
@@ -720,9 +735,9 @@ export default function CreateJob() {
                   onChange={(e) => setTexturepack(e.target.value)}
                 >
                   {/* we get these resourcepacks from /api/resourcepacks */}
-                  {resourcePacks.map(({ name, displayName }) => (
-                    <option key={name} value={name}>
-                      {displayName}
+                  {resourcePacks.map((pack) => (
+                    <option key={pack.id} value={pack.name}>
+                      {pack.name} ({pack.description})
                     </option>
                   ))}
                 </select>

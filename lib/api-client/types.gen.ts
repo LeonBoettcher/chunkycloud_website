@@ -23,6 +23,9 @@ export type RefreshTokenDto = {
 export type UserResponse = {
     id: number;
     displayName: string;
+    avatarUrl?: {
+        [key: string]: unknown;
+    };
 };
 
 export type UserNodeResponse = {
@@ -96,6 +99,8 @@ export type NextTaskResponse = {
     id: number;
     job: {
         id: number;
+        width: number;
+        height: number;
     };
     spp: number;
     tile: {
@@ -114,6 +119,10 @@ export type NextTaskResponse = {
         emittergrid?: {
             url: string;
         };
+        resourcePacks: Array<{
+            id: number;
+            url: string;
+        }>;
     };
 };
 
@@ -128,11 +137,19 @@ export type ReportTaskProgressDto = {
     spp: number;
 };
 
+export type ResourcePackDto = {
+    /**
+     * Resource pack ID
+     */
+    id: number;
+};
+
 export type CreateJobDto = {
     spp: number;
     width: number;
     height: number;
     createDump?: boolean;
+    resourcePacks: Array<ResourcePackDto>;
 };
 
 export type CreateJobResponse = {
@@ -142,6 +159,48 @@ export type CreateJobResponse = {
         octree: string;
         emittergrid: string;
     };
+};
+
+export type TileResponse = {
+    /**
+     * Horizontal position of the tile in pixels
+     */
+    x: number;
+    /**
+     * Vertical position of the tile in pixels
+     */
+    y: number;
+    /**
+     * Width of the tile in pixels
+     */
+    width: number;
+    /**
+     * Height of the tile in pixels
+     */
+    height: number;
+    /**
+     * Rendering progress of the tile
+     */
+    progress: number;
+    /**
+     * URL to access the rendered tile image in PNG format. The URL is guaranteed to remain valid for at least one hour after it is requested.
+     */
+    url?: string;
+};
+
+export type ResourcePackResponse = {
+    /**
+     * The ID of this resource pack that can be used when creating a render job
+     */
+    id: number;
+    /**
+     * The name of this resource pack
+     */
+    name: string;
+    /**
+     * A description of this resource pack
+     */
+    description?: string;
 };
 
 export type ExchangeTokenData = {
@@ -464,7 +523,7 @@ export type AbortJobData = {
 
 export type AbortJobErrors = {
     /**
-     * The job does not exist or the user cannot acccess it
+     * The job does not exist or the user cannot access it
      */
     404: unknown;
     /**
@@ -481,3 +540,41 @@ export type AbortJobResponses = {
 };
 
 export type AbortJobResponse = AbortJobResponses[keyof AbortJobResponses];
+
+export type GetJobTilesData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/jobs/{id}/tiles';
+};
+
+export type GetJobTilesErrors = {
+    /**
+     * The job does not exist or the user cannot access it
+     */
+    404: unknown;
+};
+
+export type GetJobTilesResponses = {
+    /**
+     * The tiles sorted by row and then column (i.e. the first tile is top left, the last tile is bottom right)
+     */
+    200: Array<TileResponse>;
+};
+
+export type GetJobTilesResponse = GetJobTilesResponses[keyof GetJobTilesResponses];
+
+export type GetResourcePacksData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/resource-packs';
+};
+
+export type GetResourcePacksResponses = {
+    default: Array<ResourcePackResponse>;
+};
+
+export type GetResourcePacksResponse = GetResourcePacksResponses[keyof GetResourcePacksResponses];

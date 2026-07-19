@@ -127,7 +127,7 @@ const JobCards = ({
     if (s.includes("queue")) return "rgba(250,204,21,0.14)"; // yellow
     if (s.includes("render") || s.includes("running"))
       return "rgba(16,185,129,0.14)"; // green
-    if (s.includes("error") || s.includes("failed") || s.includes("cancel"))
+    if (s.includes("error") || s.includes("failed") || s.includes("aborted"))
       return "rgba(239,68,68,0.16)"; // red
     if (s.includes("octree") || s.includes("generating"))
       return "rgba(168,85,247,0.14)"; // purple

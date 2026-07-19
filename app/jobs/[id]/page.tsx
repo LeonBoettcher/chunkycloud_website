@@ -274,7 +274,9 @@ const JobPage = ({ params }: PageProps) => {
           <div className="aspect-video overflow-hidden rounded-md bg-gray-900 flex items-center justify-center">
             <div className="text-center text-gray-500">
               <p className="text-lg">Render Preview</p>
-              <p className="text-sm">Image will be displayed here</p>
+              <p className="text-sm">
+                Waiting for Preview Tiles from Render Nodes
+              </p>
             </div>
           </div>
         </div>
