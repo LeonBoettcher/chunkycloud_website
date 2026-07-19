@@ -3,8 +3,12 @@
 import React, { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "../../../app/auth/components/SessionProvider";
-import { abortJob, getCurrentUserJob } from "../../../lib/api-client";
-import type { UserJob } from "../../../lib/api-client";
+import {
+  abortJob,
+  getCurrentUserJob,
+  getJobTiles,
+} from "../../../lib/api-client";
+import type { UserJob, TileResponse } from "../../../lib/api-client";
 
 import getStatusTag from "../../../components/Job/getStatusTag";
 
@@ -24,19 +28,17 @@ const JobPage = ({ params }: PageProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  const [tilesavailable, setTilesAvailable] = useState(false);
+  const [tiles, setTiles] = useState<TileResponse[]>([]);
+  const canvasWidth = Math.max(...tiles.map((t) => t.x + t.width), 0);
+  const canvasHeight = Math.max(...tiles.map((t) => t.y + t.height), 0);
+
   const fetchJob = async () => {
     try {
       const fetchedJob = await getCurrentUserJob({
         client,
         path: { id },
       });
-
-      if (fetchedJob.error) {
-        console.error(
-          `Error ${fetchedJob.error.statusCode}: ${fetchedJob.error.message}`,
-        );
-        return;
-      }
 
       // fetchedJob.data can be either an array (from 200: Array<UserJob>)
       // or a single object depending on the client generic. Normalize it
@@ -60,8 +62,25 @@ const JobPage = ({ params }: PageProps) => {
     }
   };
 
+  const fetchTile = async () => {
+    try {
+      const result = await getJobTiles({
+        client,
+        path: { id },
+      });
+
+      if (result.data) {
+        setTiles(result.data);
+        setTilesAvailable(true);
+      }
+    } catch (err) {
+      console.error("Failed to fetch tiles:", err);
+    }
+  };
+
   useEffect(() => {
     void fetchJob();
+    void fetchTile();
   }, [client, id]);
 
   const handleAbort = async () => {
@@ -272,12 +291,36 @@ const JobPage = ({ params }: PageProps) => {
 
         <div className="basis-2/3">
           <div className="aspect-video overflow-hidden rounded-md bg-gray-900 flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <p className="text-lg">Render Preview</p>
-              <p className="text-sm">
-                Waiting for Preview Tiles from Render Nodes
-              </p>
-            </div>
+            {tilesavailable == false && (
+              <div className="text-center text-gray-500">
+                <p className="text-lg">Render Preview</p>
+                <p className="text-sm">
+                  Waiting for Preview Tiles from Render Nodes
+                </p>
+              </div>
+            )}
+            {tilesavailable && (
+              <div className="basis-2/3">
+                <div className="aspect-video rounded-md bg-gray-900 overflow-hidden">
+                  <div className="relative w-full h-full">
+                    {tiles.map((tile) => (
+                      <img
+                        key={`${tile.x}-${tile.y}`}
+                        src={tile.url}
+                        alt=""
+                        className="absolute"
+                        style={{
+                          left: `${(tile.x / canvasWidth) * 100}%`,
+                          top: `${(tile.y / canvasHeight) * 100}%`,
+                          width: `${(tile.width / canvasWidth) * 100}%`,
+                          height: `${(tile.height / canvasHeight) * 100}%`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

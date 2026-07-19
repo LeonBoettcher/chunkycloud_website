@@ -8,7 +8,7 @@ import type { UserJob } from "../../lib/api-client";
 
 import LoadingCards from "./LoadingCards";
 import getStatusTag from "../../components/Job/getStatusTag";
-import type { JobStatus } from "../../lib/api-client";
+import type { JobStatus, TileResponse } from "../../lib/api-client";
 
 type JobCardsProps = {
   status?: JobStatus[];
@@ -58,10 +58,10 @@ const JobCards = ({
           },
         });
 
-        const statusCode = result?.error?.statusCode;
+        const statusCode = result.response.status;
 
-        if (statusCode == 400) {
-          setErrorMsg("Error Code 400: " + result?.error?.message);
+        if (statusCode === 400) {
+          setErrorMsg("Error Code 400: Bad Request");
         }
 
         let allJobs: UserJob[] = [];
