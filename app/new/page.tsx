@@ -12,6 +12,7 @@ import { createJob, startJob, getResourcePacks } from "../../lib/api-client";
 import type { ResourcePackResponse } from "../../lib/api-client";
 
 import LogPanel, { LogPanelRef } from "../../components/LogPanel";
+import MultiSelect from "../../components/MultiSelect";
 {
   /* Things that got removed from the old code, but are needed later 
   
@@ -64,7 +65,7 @@ export default function CreateJob() {
   const [renderName, setRenderName] = useState<string>("");
   const [targetSpp, setTargetSpp] = useState(500);
   const [renderDump, setRenderDump] = useState(false);
-  const [texturepack, setTexturepack] = useState<string>("");
+  const [texturepack, setTexturepack] = useState<ResourcePackResponse[]>([]);
 
   const [skymap, setSkymap] = useState<File>();
   const [skymapRequired, setSkymapRequired] = useState(false);
@@ -300,7 +301,7 @@ export default function CreateJob() {
           width: canvasWidth,
           height: canvasHeight,
           createDump: true,
-          resourcePacks: [{ id: 1 }], // hard-coded vanilla resource pack for now
+          resourcePacks: texturepack,
         },
       });
       const creation_data = (creation_res as any)?.data;
@@ -727,20 +728,14 @@ export default function CreateJob() {
                   Texture pack
                 </span>
               </label>
-              <div className="select w-full mb-6">
-                <select
-                  id="texturepack"
-                  className="select select-bordered w-full"
+              <div className="w-full mb-6">
+                <MultiSelect
+                  packs={resourcePacks}
                   value={texturepack}
-                  onChange={(e) => setTexturepack(e.target.value)}
-                >
-                  {/* we get these resourcepacks from /api/resourcepacks */}
-                  {resourcePacks.map((pack) => (
-                    <option key={pack.id} value={pack.name}>
-                      {pack.name} ({pack.description})
-                    </option>
-                  ))}
-                </select>
+                  onChange={(packs) => {
+                    setTexturepack(packs);
+                  }}
+                />
               </div>
 
               {/* Submit Button with Hover text of what is missing to being enabled */}

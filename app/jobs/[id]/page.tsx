@@ -275,6 +275,8 @@ const JobPage = ({ params }: PageProps) => {
                     </button>
                   </div>
                 )}
+                <div className="divider"></div>
+                <div className="divider"></div>
                 <button
                   type="button"
                   className="btn btn-sm btn-outline btn-error w-fit"
