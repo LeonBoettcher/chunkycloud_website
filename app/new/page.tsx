@@ -300,7 +300,7 @@ export default function CreateJob() {
           width: canvasWidth,
           height: canvasHeight,
           createDump: true,
-          resourcePacks: resourcePacks,
+          resourcePacks: [{ id: 1 }], // hard-coded vanilla resource pack for now
         },
       });
       const creation_data = (creation_res as any)?.data;
