@@ -17,7 +17,7 @@ const FILE_OPTIONS: { label: string; value: DownloadableFile }[] = [
   { label: "Scene", value: "scene" },
   { label: "Octree", value: "octree" },
   { label: "Emitter Grid", value: "emittergrid" },
-  { label: "Dump", value: "dump" },
+  //{ label: "Dump", value: "dump" }, ADD LATER WHEN IMPLEMENTED
 ];
 
 const DOWNLOAD_ERROR_MESSAGE = "File is not available yet.";
