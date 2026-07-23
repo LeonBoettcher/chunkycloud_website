@@ -43,7 +43,7 @@ function getFallbackFilename(
   fileType: DownloadableFile,
 ): string {
   const extensionByType: Record<DownloadableFile, string> = {
-    scene: "scene",
+    scene: "json",
     octree: "octree",
     emittergrid: "emittergrid",
   };
@@ -97,7 +97,6 @@ export default function DownloadModal({
       const result = await getJobFile({
         client,
         path: { id: jobId, file },
-        parseAs: "stream",
       });
       triggerBrowserDownload(result.data.url, getFallbackFilename(jobId, file));
       onClose();
