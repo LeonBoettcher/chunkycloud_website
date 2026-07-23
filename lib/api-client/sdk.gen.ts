@@ -256,7 +256,7 @@ export const startJob = <ThrowOnError extends boolean = true>(options: Options<S
 });
 
 /**
- * Download scene files of a job
+ * Get the download url of a scene file of a job
  */
 export const getJobFile = <ThrowOnError extends boolean = true>(options: Options<GetJobFileData, ThrowOnError>): RequestResult<GetJobFileResponses, GetJobFileErrors, ThrowOnError> => options.client.get<GetJobFileResponses, GetJobFileErrors, ThrowOnError>({
     security: [{

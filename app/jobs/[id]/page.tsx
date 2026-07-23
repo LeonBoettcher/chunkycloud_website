@@ -355,6 +355,7 @@ const JobPage = ({ params }: PageProps) => {
       <DownloadModal
         isOpen={isDownloadModalOpen}
         jobId={job.id}
+        hasEmitterGrid={job.hasEmitterGrid}
         client={client}
         onClose={() => setIsDownloadModalOpen(false)}
       />

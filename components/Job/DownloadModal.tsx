@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { getJobFile } from "../../lib/api-client";
 import type { Client } from "../../lib/api-client/client";
 
@@ -9,6 +9,7 @@ type DownloadableFile = "scene" | "octree" | "emittergrid";
 interface DownloadModalProps {
   isOpen: boolean;
   jobId: number;
+  hasEmitterGrid: boolean;
   client: Client;
   onClose: () => void;
 }
@@ -19,8 +20,6 @@ const FILE_OPTIONS: { label: string; value: DownloadableFile }[] = [
   { label: "Emitter Grid", value: "emittergrid" },
   //{ label: "Dump", value: "dump" }, ADD LATER WHEN IMPLEMENTED
 ];
-
-const DOWNLOAD_ERROR_MESSAGE = "File is not available yet.";
 
 function getMessageFromPayload(payload: unknown): string | null {
   if (
@@ -70,6 +69,7 @@ function getFilenameFromHeader(
 export default function DownloadModal({
   isOpen,
   jobId,
+  hasEmitterGrid,
   client,
   onClose,
 }: DownloadModalProps) {
@@ -77,16 +77,12 @@ export default function DownloadModal({
     useState<DownloadableFile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const triggerBrowserDownload = (downloadUrl: string, filename?: string) => {
+  const triggerBrowserDownload = (downloadUrl: string, filename: string) => {
     const anchor = document.createElement("a");
     anchor.href = downloadUrl;
-    if (filename) {
-      anchor.download = filename;
-    }
-    anchor.rel = "noopener noreferrer";
-    document.body.appendChild(anchor);
+    anchor.download = filename;
     anchor.click();
-    anchor.remove();
+    console.log({ downloadUrl, filename });
   };
 
   const handleDownload = async (file: DownloadableFile) => {
@@ -102,45 +98,8 @@ export default function DownloadModal({
         client,
         path: { id: jobId, file },
         parseAs: "stream",
-        throwOnError: false,
       });
-
-      if (result.error) {
-        setError(getMessageFromPayload(result.error) ?? DOWNLOAD_ERROR_MESSAGE);
-        return;
-      }
-
-      const response = result.response;
-      if (!response) {
-        setError(DOWNLOAD_ERROR_MESSAGE);
-        return;
-      }
-
-      const contentType =
-        response.headers.get("content-type")?.toLowerCase() ?? "";
-      if (contentType.includes("application/json")) {
-        const payload = (await response.json()) as unknown;
-        setError(
-          getMessageFromPayload(payload) ??
-            "The server returned a message instead of a file.",
-        );
-        return;
-      }
-
-      const blob = await response.blob();
-      if (!(blob instanceof Blob)) {
-        setError("Unexpected download response.");
-        return;
-      }
-
-      const headerFilename = getFilenameFromHeader(
-        result.response?.headers.get("content-disposition") ?? null,
-      );
-      const filename = headerFilename ?? getFallbackFilename(jobId, file);
-
-      const downloadUrl = URL.createObjectURL(blob);
-      triggerBrowserDownload(downloadUrl, filename);
-      URL.revokeObjectURL(downloadUrl);
+      triggerBrowserDownload(result.data.url, getFallbackFilename(jobId, file));
       onClose();
     } catch (downloadError) {
       setError(
@@ -176,7 +135,10 @@ export default function DownloadModal({
                 onClick={() => {
                   void handleDownload(option.value);
                 }}
-                disabled={downloadingFile !== null}
+                disabled={
+                  downloadingFile !== null ||
+                  (option.value === "emittergrid" && !hasEmitterGrid)
+                }
               >
                 <span>{option.label}</span>
                 <span className="inline-flex items-center gap-2">

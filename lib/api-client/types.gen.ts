@@ -45,6 +45,7 @@ export type UserJob = {
     spp: number;
     width: number;
     height: number;
+    hasEmitterGrid: boolean;
     createDump: boolean;
     createdAt: string;
     startedAt?: string;
@@ -159,6 +160,10 @@ export type CreateJobResponse = {
         octree: string;
         emittergrid: string;
     };
+};
+
+export type UrlResponse = {
+    url: string;
 };
 
 export type TileResponse = {
@@ -507,10 +512,12 @@ export type GetJobFileErrors = {
 
 export type GetJobFileResponses = {
     /**
-     * The file download
+     * A download URL for the requested file, valid for at least 1 hour
      */
-    200: unknown;
+    200: UrlResponse;
 };
+
+export type GetJobFileResponse = GetJobFileResponses[keyof GetJobFileResponses];
 
 export type AbortJobData = {
     body?: never;
