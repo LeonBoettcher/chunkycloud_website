@@ -11,6 +11,7 @@ import {
 import type { UserJob, TileResponse } from "../../../lib/api-client";
 
 import getStatusTag from "../../../components/Job/getStatusTag";
+import DownloadModal from "../../../components/Job/DownloadModal";
 
 interface PageProps {
   params: Promise<{
@@ -27,6 +28,7 @@ const JobPage = ({ params }: PageProps) => {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
   const [tilesavailable, setTilesAvailable] = useState(false);
   const [tiles, setTiles] = useState<TileResponse[]>([]);
@@ -251,39 +253,48 @@ const JobPage = ({ params }: PageProps) => {
               </div>
 
               <div className="divider"></div>
-              <div className="space-y-2 flex flex-row items-start mb-4 gap-2 flex-wrap">
-                {canAbort ? (
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline btn-warning w-fit"
-                    onClick={handleAbort}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Working..." : "Abort Job"}
-                  </button>
-                ) : (
-                  <div
-                    className="tooltip"
-                    data-tip="Only queued or running jobs can be aborted."
-                  >
+              <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+                <div className="flex flex-wrap items-start gap-2">
+                  {canAbort ? (
                     <button
                       type="button"
-                      className="btn btn-sm btn-disabled btn-outline btn-warning w-fit"
-                      disabled
+                      className="btn btn-sm btn-outline btn-warning w-fit"
+                      onClick={handleAbort}
+                      disabled={isSubmitting}
                     >
-                      Abort Job
+                      {isSubmitting ? "Working..." : "Abort Job"}
                     </button>
-                  </div>
-                )}
-                <div className="divider"></div>
-                <div className="divider"></div>
+                  ) : (
+                    <div
+                      className="tooltip"
+                      data-tip="Only queued or running jobs can be aborted."
+                    >
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-disabled btn-outline btn-warning w-fit"
+                        disabled
+                      >
+                        Abort Job
+                      </button>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline btn-error w-fit"
+                    onClick={handleDelete}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Working..." : "Delete Job"}
+                  </button>
+                </div>
+
                 <button
                   type="button"
-                  className="btn btn-sm btn-outline btn-error w-fit"
-                  onClick={handleDelete}
-                  disabled={isSubmitting}
+                  className="btn btn-sm btn-outline btn-info w-fit"
+                  onClick={() => setIsDownloadModalOpen(true)}
                 >
-                  {isSubmitting ? "Working..." : "Delete Job"}
+                  Download
                 </button>
               </div>
               {actionError && (
@@ -340,6 +351,13 @@ const JobPage = ({ params }: PageProps) => {
           </div>
         </div>
       </div>
+
+      <DownloadModal
+        isOpen={isDownloadModalOpen}
+        jobId={job.id}
+        client={client}
+        onClose={() => setIsDownloadModalOpen(false)}
+      />
     </div>
   );
 };

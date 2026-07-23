@@ -171,7 +171,7 @@ const JobCards = ({
       {jobs.map((job) => (
         <Link key={job.id} href={`/jobs/${job.id}`} className="block mb-4">
           <div
-            className="card flex w-full bg-gray-800 text-white shadow-lg job-card cursor-pointer"
+            className="card flex w-full bg-gray-800/90 text-white shadow-lg job-card cursor-pointer"
             style={
               {
                 ["--job-card-glow" as any]: getGlowColor(job.status),
