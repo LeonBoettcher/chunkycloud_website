@@ -1,17 +1,18 @@
 "use client";
 
-import React, { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { use, useEffect, useLayoutEffect, useState } from "react";
 import { useSession } from "../../../app/auth/components/SessionProvider";
+import type { TileResponse, UserJob } from "../../../lib/api-client";
 import {
   abortJob,
   getCurrentUserJob,
   getJobTiles,
 } from "../../../lib/api-client";
-import type { UserJob, TileResponse } from "../../../lib/api-client";
 
-import getStatusTag from "../../../components/Job/getStatusTag";
 import DownloadModal from "../../../components/Job/DownloadModal";
+import getStatusTag from "../../../components/Job/getStatusTag";
+import { DurationCounter } from "./DurationCounter";
 
 interface PageProps {
   params: Promise<{
@@ -30,10 +31,7 @@ const JobPage = ({ params }: PageProps) => {
   const [actionError, setActionError] = useState<string | null>(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
-  const [tilesavailable, setTilesAvailable] = useState(false);
   const [tiles, setTiles] = useState<TileResponse[]>([]);
-  const canvasWidth = Math.max(...tiles.map((t) => t.x + t.width), 0);
-  const canvasHeight = Math.max(...tiles.map((t) => t.y + t.height), 0);
 
   const fetchJob = async () => {
     try {
@@ -73,7 +71,6 @@ const JobPage = ({ params }: PageProps) => {
 
       if (result.data) {
         setTiles(result.data);
-        setTilesAvailable(true);
       }
     } catch (err) {
       console.error("Failed to fetch tiles:", err);
@@ -162,6 +159,84 @@ const JobPage = ({ params }: PageProps) => {
 
   const canAbort = job?.status === "queued" || job?.status === "running";
 
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  useLayoutEffect(() => {
+    let cancelled = false;
+    let blobUrl: string | null = null;
+    async function render() {
+      const width = Math.max(
+        ...tiles.map((tile: any) => tile.x + tile.width),
+        0,
+      );
+      const height = Math.max(
+        ...tiles.map((tile: any) => tile.y + tile.height),
+        0,
+      );
+
+      if (width === 0 || height === 0) {
+        return;
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, width, height);
+
+      await Promise.all(
+        tiles.map(async (tile: any) => {
+          if (!tile.url) {
+            return;
+          }
+
+          const image = new Image();
+          image.crossOrigin = "anonymous";
+          image.src = tile.url;
+
+          await new Promise<void>((resolve, reject) => {
+            image.onload = () => resolve();
+            image.onerror = () =>
+              reject(new Error(`Failed to load tile: ${tile.url}`));
+          });
+
+          ctx.drawImage(image, tile.x, tile.y, tile.width, tile.height);
+        }),
+      );
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error("Failed to create image blob"));
+          }
+        }, "image/png");
+      });
+
+      if (cancelled) {
+        return;
+      }
+
+      blobUrl = URL.createObjectURL(blob);
+      setImageUrl(blobUrl);
+    }
+
+    if (tiles) {
+      render().catch(console.error);
+
+      return () => {
+        cancelled = true;
+
+        if (blobUrl) {
+          URL.revokeObjectURL(blobUrl);
+        }
+      };
+    }
+  }, [id, tiles]);
+
   if (loading) {
     return (
       <div className="p-6">
@@ -210,24 +285,41 @@ const JobPage = ({ params }: PageProps) => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="font-semibold">Render Time:</span>
-                  <span className="font-mono">{job.startedAt}s</span>
+                  <span className="font-mono">
+                    {job.status !== "aborted" && job.startedAt ? (
+                      <DurationCounter
+                        startDate={job.startedAt}
+                        endDate={job.finishedAt}
+                      />
+                    ) : (
+                      "n/a"
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-semibold">Created:</span>
+                  <span className="font-semibold">Created at:</span>
                   <span className="font-mono text-sm">
                     {job.startedAt
                       ? new Date(job.startedAt).toLocaleString()
-                      : "N/A"}
+                      : "n/a"}
                   </span>
                 </div>
-                {job.finishedAt && (
-                  <div className="flex justify-between">
-                    <span className="font-semibold">Finished:</span>
-                    <span className="font-mono text-sm">
-                      {new Date(job.finishedAt).toLocaleString()}
-                    </span>
-                  </div>
-                )}
+                <div className="flex justify-between">
+                  <span className="font-semibold">Started at:</span>
+                  <span className="font-mono text-sm">
+                    {job.startedAt
+                      ? new Date(job.startedAt).toLocaleString()
+                      : "n/a"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Finished at:</span>
+                  <span className="font-mono text-sm">
+                    {job.finishedAt
+                      ? new Date(job.finishedAt).toLocaleString()
+                      : "n/a"}
+                  </span>
+                </div>
               </div>
 
               <div className="divider"></div>
@@ -245,10 +337,10 @@ const JobPage = ({ params }: PageProps) => {
                       {job.width}x{job.height}
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  {/*<div className="flex justify-between">
                     <span>Ray Depth:</span>
                     <span className="font-mono">CURRENTLY NOT IMPLEMENTED</span>
-                  </div>
+                  </div>*/}
                 </div>
               </div>
 
@@ -306,46 +398,33 @@ const JobPage = ({ params }: PageProps) => {
 
         <div className="basis-2/3">
           <div className="aspect-video overflow-hidden rounded-md bg-gray-900 flex items-center justify-center">
-            {tilesavailable == false && (
+            {imageUrl ? (
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  overflow: "hidden",
+                }}
+              >
+                <img
+                  src={imageUrl}
+                  alt={`Job ${id}`}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    width: "auto",
+                    height: "auto",
+                    objectFit: "contain",
+                  }}
+                />
+              </div>
+            ) : (
               <div className="text-center text-gray-500">
                 <p className="text-lg">Render Preview</p>
-                <p className="text-sm">
-                  Waiting for Preview Tiles from Render Nodes
-                </p>
-              </div>
-            )}
-            {tilesavailable && (
-              <div className="basis-2/3">
-                <div className="aspect-video rounded-md bg-gray-900 overflow-hidden">
-                  <div className="relative w-full h-full">
-                    {tiles.map((tile) => (
-                      <div
-                        key={`${tile.x}-${tile.y}`}
-                        className="absolute"
-                        style={{
-                          left: `${(tile.x / canvasWidth) * 100}%`,
-                          top: `${(tile.y / canvasHeight) * 100}%`,
-                          width: `${(tile.width / canvasWidth) * 100}%`,
-                          height: `${(tile.height / canvasHeight) * 100}%`,
-                        }}
-                      >
-                        <img
-                          src={tile.url}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-
-                        {tile.progress < 1 && (
-                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                            <p className="text-white font-bold text-lg">
-                              {(tile.progress * 100).toFixed(0)}%
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <p className="text-sm">Waiting for tiles from render nodes…</p>
               </div>
             )}
           </div>
