@@ -117,9 +117,19 @@ export default function DownloadModal({
 
   return (
     <div className="modal modal-open">
-      <div className="modal-box max-w-lg">
-        <h3 className="text-xl font-semibold">Download Job File</h3>
-        <p className="mt-2 text-sm opacity-80">Job ID: {jobId}</p>
+      <div
+        className="modal-box max-h-[90vh] w-[calc(100%-1rem)] max-w-lg overflow-y-auto p-4 sm:p-6"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="download-modal-title"
+        aria-describedby="download-modal-description"
+      >
+        <h3 id="download-modal-title" className="text-xl font-semibold">
+          Download Job File
+        </h3>
+        <p id="download-modal-description" className="mt-2 text-sm opacity-80">
+          Job ID: {jobId}
+        </p>
 
         <div className="mt-5 space-y-3">
           <p className="font-medium">Choose file to download:</p>
@@ -130,10 +140,11 @@ export default function DownloadModal({
               <button
                 key={option.value}
                 type="button"
-                className="btn btn-outline w-full justify-between"
+                className="btn btn-outline w-full min-h-12 justify-between px-4 text-left"
                 onClick={() => {
                   void handleDownload(option.value);
                 }}
+                aria-label={`Download ${option.label} file`}
                 disabled={
                   downloadingFile !== null ||
                   (option.value === "emittergrid" && !hasEmitterGrid)
@@ -160,16 +171,16 @@ export default function DownloadModal({
         {error && <p className="mt-4 text-sm text-error">{error}</p>}
 
         <div className="modal-action">
-          <button type="button" className="btn" onClick={onClose}>
+          <button type="button" className="btn w-full sm:w-auto" onClick={onClose}>
             Close
           </button>
         </div>
       </div>
       <button
         type="button"
-        className="modal-backdrop"
+        className="modal-backdrop bg-black/60"
         onClick={onClose}
-        aria-label="Close"
+        aria-label="Close download dialog"
       >
         Close
       </button>

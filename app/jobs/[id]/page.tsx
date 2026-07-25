@@ -256,10 +256,10 @@ const JobPage = ({ params }: PageProps) => {
   }
 
   return (
-    <div className="flex flex-col space-y-6 p-6">
-      <div className="flex flex-row gap-6">
-        <div className="basis-1/3">
-          <div className="card bg-gray-800 text-white shadow-lg">
+    <div className="flex flex-col space-y-4 p-4 sm:space-y-6 sm:p-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
+        <div className="w-full lg:basis-1/3 lg:min-w-[280px]">
+          <div className="card min-w-0 bg-gray-800 text-white shadow-lg">
             <div className="card-body space-y-4">
               <h2 className="card-title text-2xl">ID: {job.id}</h2>
               <span className="font-mono">{getStatusTag(job)}</span>
@@ -267,9 +267,9 @@ const JobPage = ({ params }: PageProps) => {
               <div className="divider"></div>
 
               <div className="space-y-2">
-                <div className="flex justify-between">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <span className="font-semibold">Progress:</span>
-                  <span className="font-mono">
+                  <span className="font-mono text-sm">
                     {(job.progress * 100).toFixed(2)}%
                   </span>
                 </div>
@@ -277,15 +277,16 @@ const JobPage = ({ params }: PageProps) => {
                   className="progress progress-primary w-full"
                   value={job.progress}
                   max={1}
+                  aria-label={`Job progress ${((job.progress * 100).toFixed(2))}%`}
                 ></progress>
               </div>
 
               <div className="divider"></div>
 
               <div className="space-y-2">
-                <div className="flex justify-between">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                   <span className="font-semibold">Render Time:</span>
-                  <span className="font-mono">
+                  <span className="font-mono text-sm">
                     {job.status !== "aborted" && job.startedAt ? (
                       <DurationCounter
                         startDate={job.startedAt}
@@ -296,7 +297,7 @@ const JobPage = ({ params }: PageProps) => {
                     )}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                   <span className="font-semibold">Created at:</span>
                   <span className="font-mono text-sm">
                     {job.startedAt
@@ -304,7 +305,7 @@ const JobPage = ({ params }: PageProps) => {
                       : "n/a"}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                   <span className="font-semibold">Started at:</span>
                   <span className="font-mono text-sm">
                     {job.startedAt
@@ -312,7 +313,7 @@ const JobPage = ({ params }: PageProps) => {
                       : "n/a"}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                   <span className="font-semibold">Finished at:</span>
                   <span className="font-mono text-sm">
                     {job.finishedAt
@@ -326,12 +327,12 @@ const JobPage = ({ params }: PageProps) => {
 
               <div className="space-y-3">
                 <h3 className="font-semibold">Scene Description</h3>
-                <div className="bg-gray-700 p-3 rounded space-y-1 text-sm">
-                  <div className="flex justify-between">
+                <div className="bg-gray-700 p-3 rounded space-y-2 text-sm">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                     <span>SPP Goal:</span>
                     <span className="font-mono">{job.spp}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                     <span>Resolution:</span>
                     <span className="font-mono">
                       {job.width}x{job.height}
@@ -345,12 +346,12 @@ const JobPage = ({ params }: PageProps) => {
               </div>
 
               <div className="divider"></div>
-              <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
-                <div className="flex flex-wrap items-start gap-2">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                   {canAbort ? (
                     <button
                       type="button"
-                      className="btn btn-sm btn-outline btn-warning w-fit"
+                      className="btn btn-sm btn-outline btn-warning w-full min-h-11 sm:w-fit"
                       onClick={handleAbort}
                       disabled={isSubmitting}
                     >
@@ -358,12 +359,12 @@ const JobPage = ({ params }: PageProps) => {
                     </button>
                   ) : (
                     <div
-                      className="tooltip"
+                      className="tooltip w-full sm:w-fit"
                       data-tip="Only queued or running jobs can be aborted."
                     >
                       <button
                         type="button"
-                        className="btn btn-sm btn-disabled btn-outline btn-warning w-fit"
+                        className="btn btn-sm btn-disabled btn-outline btn-warning w-full min-h-11 sm:w-fit"
                         disabled
                       >
                         Abort Job
@@ -373,7 +374,7 @@ const JobPage = ({ params }: PageProps) => {
 
                   <button
                     type="button"
-                    className="btn btn-sm btn-outline btn-error w-fit"
+                    className="btn btn-sm btn-outline btn-error w-full min-h-11 sm:w-fit"
                     onClick={handleDelete}
                     disabled={isSubmitting}
                   >
@@ -383,7 +384,7 @@ const JobPage = ({ params }: PageProps) => {
 
                 <button
                   type="button"
-                  className="btn btn-sm btn-outline btn-info w-fit"
+                  className="btn btn-sm btn-outline btn-info w-full min-h-11 sm:w-fit"
                   onClick={() => setIsDownloadModalOpen(true)}
                 >
                   Download
@@ -396,8 +397,8 @@ const JobPage = ({ params }: PageProps) => {
           </div>
         </div>
 
-        <div className="basis-2/3">
-          <div className="aspect-video overflow-hidden rounded-md bg-gray-900 flex items-center justify-center">
+        <div className="w-full lg:basis-2/3">
+          <div className="aspect-video overflow-hidden rounded-md bg-gray-900 flex items-center justify-center p-2">
             {imageUrl ? (
               <div
                 style={{
@@ -411,7 +412,7 @@ const JobPage = ({ params }: PageProps) => {
               >
                 <img
                   src={imageUrl}
-                  alt={`Job ${id}`}
+                  alt={`Render preview for job ${id}`}
                   style={{
                     maxWidth: "100%",
                     maxHeight: "100%",
