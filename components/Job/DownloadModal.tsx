@@ -171,7 +171,11 @@ export default function DownloadModal({
         {error && <p className="mt-4 text-sm text-error">{error}</p>}
 
         <div className="modal-action">
-          <button type="button" className="btn w-full sm:w-auto" onClick={onClose}>
+          <button
+            type="button"
+            className="btn w-full sm:w-auto"
+            onClick={onClose}
+          >
             Close
           </button>
         </div>

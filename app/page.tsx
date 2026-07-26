@@ -3,7 +3,6 @@
 import Link from "next/link";
 import React from "react";
 import HeroCards from "../components/Index/HeroCards";
-import { env } from "process";
 
 const MainPage = () => {
   return (

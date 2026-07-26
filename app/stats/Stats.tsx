@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Step from "../../components/Stats/step";
+import Step from "../../components/Stats/Step";
 
 export default function Stats({ initialStats }) {
   const [stats, setStats] = useState(initialStats);

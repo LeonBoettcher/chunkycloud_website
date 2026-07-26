@@ -1,9 +1,7 @@
 "use client";
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Head from "next/head";
 import Header from "../../components/Header";
-import { Fieldset } from "@headlessui/react";
 
 import { canvasSizeToDimensions } from "../new/utils";
 
@@ -13,6 +11,8 @@ import type { ResourcePackResponse } from "../../lib/api-client";
 
 import LogPanel, { LogPanelRef } from "../../components/LogPanel";
 import MultiSelect from "../../components/MultiSelect";
+
+// TODO: Add a clear prompt/CTA for users who are not logged in.
 {
   /* Things that got removed from the old code, but are needed later 
   
@@ -24,6 +24,7 @@ import MultiSelect from "../../components/MultiSelect";
 //TODO: Add a check for Scene Description description octree to test if the file structure is correct before sending to api
 //TODO: Add A Job Name
 //TODO: Show Warning for too high SPP Values
+//TODO: Split this page into smaller reusable components (deferred cleanup)
 
 function createFileList(...files: File[]): FileList {
   const dataTransfer = new DataTransfer();
@@ -32,9 +33,7 @@ function createFileList(...files: File[]): FileList {
 }
 
 export default function CreateJob() {
-  const { isLoggedIn, logout, client } = useSession();
-
-  const router = useRouter();
+  const { client } = useSession();
 
   {
     /* Objects to Remove from SceneDescription */
@@ -75,13 +74,6 @@ export default function CreateJob() {
 
   const [folderDropSupported, setFolderDropSupported] = useState(true);
   const logRef = useRef<LogPanelRef>(null);
-  {
-    /* Upload Variables */
-  }
-  const [jobID, setJobID] = useState<number>();
-  const [sceneUploadURL, setSceneUploadURL] = useState<string>();
-  const [octreeUploadURL, setOctreeUploadURL] = useState<string>();
-  const [emitterGridUploadURL, setEmitterGridUploadURL] = useState<string>();
 
   {
     /* Idk what this if for */
@@ -117,10 +109,6 @@ export default function CreateJob() {
     setCanvasHeight(Number(customHeight));
     setCanvasWidth(Number(customWidth));
     setCanvasSize(`${customWidth}x${customHeight}`);
-  }
-
-  function UpdateCanvasSize() {
-    setCanvasSize(canvasWidth + "x" + canvasHeight);
   }
 
   function deleteByPath(obj: any, path: string) {
@@ -306,14 +294,6 @@ export default function CreateJob() {
       });
       const creation_data = (creation_res as any)?.data;
       if (creation_data) {
-        {
-          /* Store the returned URLs for file uploads and job ID */
-        }
-        setJobID(creation_data.id);
-        setSceneUploadURL(creation_data.uploadUrls.scene);
-        setOctreeUploadURL(creation_data.uploadUrls.octree);
-        setEmitterGridUploadURL(creation_data.uploadUrls.emittergrid);
-
         console.log("Job created with ID:", creation_data.id);
         logRef.current?.addLog(
           "Job created with ID " + creation_data.id,

@@ -8,7 +8,7 @@ import type { UserJob } from "../../lib/api-client";
 
 import LoadingCards from "./LoadingCards";
 import getStatusTag from "../../components/Job/getStatusTag";
-import type { JobStatus, TileResponse } from "../../lib/api-client";
+import type { JobStatus } from "../../lib/api-client";
 
 type JobCardsProps = {
   status?: JobStatus[];

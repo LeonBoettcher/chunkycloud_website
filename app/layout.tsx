@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import Footer from "../components/Footer";
-import NavBar from "../components/navbar/navbar";
+import NavBar from "../components/Navbar/NavBar";
 import SessionProvider from "./auth/components/SessionProvider";
 import "./global.css";
 

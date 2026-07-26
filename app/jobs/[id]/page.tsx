@@ -20,6 +20,7 @@ interface PageProps {
   }>;
 }
 
+// TODO: Split this page into smaller reusable components (deferred cleanup)
 const JobPage = ({ params }: PageProps) => {
   const { id } = use(params);
   const { client } = useSession();
@@ -277,7 +278,7 @@ const JobPage = ({ params }: PageProps) => {
                   className="progress progress-primary w-full"
                   value={job.progress}
                   max={1}
-                  aria-label={`Job progress ${((job.progress * 100).toFixed(2))}%`}
+                  aria-label={`Job progress ${(job.progress * 100).toFixed(2)}%`}
                 ></progress>
               </div>
 

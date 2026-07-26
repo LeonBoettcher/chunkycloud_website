@@ -6,6 +6,7 @@ import { Squares2X2Icon } from "@heroicons/react/20/solid";
 import LoadingCards from "./LoadingCards";
 import type { JobStatus } from "../../lib/api-client";
 
+// TODO: Add a clear prompt/CTA for users who are not logged in.
 const statusOptions: JobStatus[] = [
   "draft",
   "queued",

@@ -20,6 +20,7 @@ type UserSession = {
   displayName: string;
 };
 
+// TODO: Split this page into smaller reusable components (deferred cleanup)
 const AccountPage = () => {
   const { isLoggedIn, logout, client } = useSession();
   const [session, setSession] = useState<UserSession | null>(null);
