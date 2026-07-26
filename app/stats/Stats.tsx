@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Step from "../../components/Stats/Step";
+import Step from "../../components/Stats/step";
 
 export default function Stats({ initialStats }) {
   const [stats, setStats] = useState(initialStats);
@@ -12,7 +12,7 @@ export default function Stats({ initialStats }) {
     async function loadStats() {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/stats`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/stats`,
         );
         if (res.ok) {
           const json = await res.json();
