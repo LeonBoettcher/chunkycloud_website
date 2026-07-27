@@ -426,7 +426,7 @@ export default function CreateJob() {
   return (
     <>
       <div
-        className="hero min-h-screen relative"
+        className="bg-fixed bg-cover bg-center overflow-hidden"
         style={{
           backgroundImage: "url(/images/boscawinks-Basalt_Deltas_be_like.png)",
         }}
