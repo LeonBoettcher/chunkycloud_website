@@ -23,12 +23,49 @@ export type RefreshTokenDto = {
 export type UserResponse = {
     id: number;
     displayName: string;
+    avatarUrl?: {
+        [key: string]: unknown;
+    };
 };
 
 export type UserNodeResponse = {
     id: number;
     name?: string;
     lastSeenAt?: string;
+};
+
+export type JobStatus = 'draft' | 'queued' | 'running' | 'completed' | 'aborted';
+
+export type Order = 'asc' | 'desc';
+
+export type UserJob = {
+    id: number;
+    status: JobStatus;
+    progress: number;
+    spp: number;
+    width: number;
+    height: number;
+    hasEmitterGrid: boolean;
+    createDump: boolean;
+    createdAt: string;
+    startedAt?: string;
+    finishedAt?: string;
+    abortedAt?: string;
+};
+
+export type CurrentPage = {
+    page: number;
+    size: number;
+};
+
+export type PaginationInfo = {
+    page: CurrentPage;
+    totalCount: number;
+};
+
+export type UserJobsResponse = {
+    data: Array<UserJob>;
+    extra: PaginationInfo;
 };
 
 export type CreateNodeDto = {
@@ -63,6 +100,8 @@ export type NextTaskResponse = {
     id: number;
     job: {
         id: number;
+        width: number;
+        height: number;
     };
     spp: number;
     tile: {
@@ -81,6 +120,10 @@ export type NextTaskResponse = {
         emittergrid?: {
             url: string;
         };
+        resourcePacks: Array<{
+            id: number;
+            url: string;
+        }>;
     };
 };
 
@@ -91,11 +134,23 @@ export type FinishTaskRenderingResponse = {
     };
 };
 
+export type ReportTaskProgressDto = {
+    spp: number;
+};
+
+export type ResourcePackDto = {
+    /**
+     * Resource pack ID
+     */
+    id: number;
+};
+
 export type CreateJobDto = {
     spp: number;
     width: number;
     height: number;
     createDump?: boolean;
+    resourcePacks: Array<ResourcePackDto>;
 };
 
 export type CreateJobResponse = {
@@ -105,6 +160,52 @@ export type CreateJobResponse = {
         octree: string;
         emittergrid: string;
     };
+};
+
+export type UrlResponse = {
+    url: string;
+};
+
+export type TileResponse = {
+    /**
+     * Horizontal position of the tile in pixels
+     */
+    x: number;
+    /**
+     * Vertical position of the tile in pixels
+     */
+    y: number;
+    /**
+     * Width of the tile in pixels
+     */
+    width: number;
+    /**
+     * Height of the tile in pixels
+     */
+    height: number;
+    /**
+     * Rendering progress of the tile
+     */
+    progress: number;
+    /**
+     * URL to access the rendered tile image in PNG format. The URL is guaranteed to remain valid for at least one hour after it is requested.
+     */
+    url?: string;
+};
+
+export type ResourcePackResponse = {
+    /**
+     * The ID of this resource pack that can be used when creating a render job
+     */
+    id: number;
+    /**
+     * The name of this resource pack
+     */
+    name: string;
+    /**
+     * A description of this resource pack
+     */
+    description?: string;
 };
 
 export type ExchangeTokenData = {
@@ -184,6 +285,40 @@ export type GetCurrentUserNodesResponses = {
 };
 
 export type GetCurrentUserNodesResponse = GetCurrentUserNodesResponses[keyof GetCurrentUserNodesResponses];
+
+export type GetCurrentUserJobsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        status?: Array<JobStatus>;
+        sort?: 'createdAt' | 'startedAt' | 'finishedAt';
+        order?: Order;
+        page?: number;
+        limit?: number;
+    };
+    url: '/users/me/jobs';
+};
+
+export type GetCurrentUserJobsResponses = {
+    200: Array<UserJobsResponse>;
+};
+
+export type GetCurrentUserJobsResponse = GetCurrentUserJobsResponses[keyof GetCurrentUserJobsResponses];
+
+export type GetCurrentUserJobData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/users/me/jobs/{id}';
+};
+
+export type GetCurrentUserJobResponses = {
+    200: Array<UserJob>;
+};
+
+export type GetCurrentUserJobResponse = GetCurrentUserJobResponses[keyof GetCurrentUserJobResponses];
 
 export type CreateNodeData = {
     body: CreateNodeDto;
@@ -294,6 +429,31 @@ export type FinishTaskResponses = {
     202: unknown;
 };
 
+export type ReportTaskProgressData = {
+    body: ReportTaskProgressDto;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/nodes/me/tasks/{id}/progress';
+};
+
+export type ReportTaskProgressErrors = {
+    /**
+     * The task is not assigned to this render node or was cancelled. The render node should stop rendering it.
+     */
+    409: unknown;
+};
+
+export type ReportTaskProgressResponses = {
+    /**
+     * Task progress updated
+     */
+    204: void;
+};
+
+export type ReportTaskProgressResponse = ReportTaskProgressResponses[keyof ReportTaskProgressResponses];
+
 export type CreateJobData = {
     body: CreateJobDto;
     path?: never;
@@ -352,10 +512,12 @@ export type GetJobFileErrors = {
 
 export type GetJobFileResponses = {
     /**
-     * The file download
+     * A download URL for the requested file, valid for at least 1 hour
      */
-    200: unknown;
+    200: UrlResponse;
 };
+
+export type GetJobFileResponse = GetJobFileResponses[keyof GetJobFileResponses];
 
 export type AbortJobData = {
     body?: never;
@@ -368,7 +530,7 @@ export type AbortJobData = {
 
 export type AbortJobErrors = {
     /**
-     * The job does not exist or the user cannot acccess it
+     * The job does not exist or the user cannot access it
      */
     404: unknown;
     /**
@@ -385,3 +547,41 @@ export type AbortJobResponses = {
 };
 
 export type AbortJobResponse = AbortJobResponses[keyof AbortJobResponses];
+
+export type GetJobTilesData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/jobs/{id}/tiles';
+};
+
+export type GetJobTilesErrors = {
+    /**
+     * The job does not exist or the user cannot access it
+     */
+    404: unknown;
+};
+
+export type GetJobTilesResponses = {
+    /**
+     * The tiles sorted by row and then column (i.e. the first tile is top left, the last tile is bottom right)
+     */
+    200: Array<TileResponse>;
+};
+
+export type GetJobTilesResponse = GetJobTilesResponses[keyof GetJobTilesResponses];
+
+export type GetResourcePacksData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/resource-packs';
+};
+
+export type GetResourcePacksResponses = {
+    default: Array<ResourcePackResponse>;
+};
+
+export type GetResourcePacksResponse = GetResourcePacksResponses[keyof GetResourcePacksResponses];

@@ -1,99 +1,161 @@
-"Use Client";
+"use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "../../app/auth/components/SessionProvider";
+import { getCurrentUserJobs } from "../../lib/api-client";
+import type { UserJob } from "../../lib/api-client";
 
-const JobCards = async () => {
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+import LoadingCards from "./LoadingCards";
+import getStatusTag from "../../components/Job/getStatusTag";
+import type { JobStatus } from "../../lib/api-client";
 
-  let jobs: [string, any][] = [];
-  let errorMsg = "";
+type JobCardsProps = {
+  status?: JobStatus[];
+  sort?: "createdAt" | "startedAt" | "finishedAt";
+  order?: "asc" | "desc";
+  page?: number;
+  limit?: number;
+  onPaginationInfo?: (totalPages: number) => void;
+};
 
-  try {
-    const res = await fetch(`${baseUrl}/api/jobs`, {
-      cache: "no-store",
-    });
+const JobCards = ({
+  status = [],
+  sort = "createdAt",
+  order = "desc",
+  page = 1,
+  limit = 100,
+  onPaginationInfo,
+}: JobCardsProps) => {
+  const { client } = useSession();
 
-    if (!res.ok) {
-      throw new Error(`Backend returned status ${res.status}`);
-    }
+  const [jobs, setJobs] = useState<UserJob[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [showLoadingFallback, setShowLoadingFallback] = useState(false);
 
-    const data = await res.json();
-    jobs = Object.entries(data);
-  } catch (error) {
-    errorMsg = error instanceof Error ? error.message : String(error);
-  }
+  useEffect(() => {
+    let isMounted = true;
+    const timeoutId = window.setTimeout(() => {
+      if (isMounted) {
+        setShowLoadingFallback(true);
+      }
+    }, 220);
 
-  // Helper: Glow-Farbe pro Status
+    const fetchJobs = async () => {
+      try {
+        setLoading(true);
+        setErrorMsg("");
+
+        const result = await getCurrentUserJobs({
+          client,
+          query: {
+            status,
+            sort,
+            order,
+            page,
+            limit,
+          },
+        });
+
+        const statusCode = result.response.status;
+
+        if (statusCode === 400) {
+          setErrorMsg("Error Code 400: Bad Request");
+        }
+
+        let allJobs: UserJob[] = [];
+        let newTotalPages = 1;
+        const rdata: unknown = result.data;
+
+        if (Array.isArray(rdata)) {
+          // shape: [{ data: UserJob[] }, ...]
+          allJobs = (rdata as any).flatMap((page: any) => page.data ?? []);
+          newTotalPages = 1;
+        } else if (
+          rdata &&
+          typeof rdata === "object" &&
+          Array.isArray((rdata as any).data)
+        ) {
+          const responseData = rdata as {
+            data: UserJob[];
+            extra?: {
+              page?: { page?: number; size?: number };
+              totalCount?: number;
+            };
+          };
+          allJobs = responseData.data ?? [];
+
+          const totalCount = responseData.extra?.totalCount ?? allJobs.length;
+          const pageSize = responseData.extra?.page?.size ?? limit;
+          newTotalPages =
+            pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
+        } else {
+          allJobs = [];
+          newTotalPages = 1;
+        }
+
+        if (isMounted) {
+          setJobs(allJobs);
+          onPaginationInfo?.(newTotalPages);
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error(err);
+          setErrorMsg(err instanceof Error ? err.message : String(err));
+        }
+      } finally {
+        if (isMounted) {
+          window.clearTimeout(timeoutId);
+          setShowLoadingFallback(false);
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchJobs();
+
+    return () => {
+      isMounted = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [client, status, sort, order, page, limit, onPaginationInfo]);
+
   const getGlowColor = (status: string | null | undefined): string => {
     if (!status) return "rgba(59,130,246,0.12)"; // default blue
     const s = String(status).toLowerCase();
     if (s.includes("queue")) return "rgba(250,204,21,0.14)"; // yellow
     if (s.includes("render") || s.includes("running"))
       return "rgba(16,185,129,0.14)"; // green
-    if (s.includes("error") || s.includes("failed") || s.includes("cancel"))
+    if (s.includes("error") || s.includes("failed") || s.includes("aborted"))
       return "rgba(239,68,68,0.16)"; // red
     if (s.includes("octree") || s.includes("generating"))
       return "rgba(168,85,247,0.14)"; // purple
     return "rgba(59,130,246,0.12)"; // default blue
   };
 
+  if (loading) {
+    return showLoadingFallback ? <LoadingCards /> : null;
+  }
+
   if (errorMsg) {
     return (
-      <div className="alert alert-error shadow-lg">
-        <div>
-          <h3 className="font-bold">Failed to load jobs</h3>
-          <p className="text-sm">{errorMsg}</p>
-          <p className="text-xs mt-1">Backend URL: {baseUrl}</p>
-        </div>
+      <div className="alert alert-error">
+        <span>{errorMsg}</span>
       </div>
     );
   }
 
   if (jobs.length === 0) {
     return (
-      <div className="alert alert-info shadow-lg">
-        <div>
-          <h3 className="font-bold">No jobs found</h3>
-          <p className="text-sm">No job data available</p>
-        </div>
+      <div className="alert alert-info">
+        <span>No jobs found.</span>
       </div>
     );
   }
 
-  function getStatusTag(id: string, job: any) {
-    if (!job.status)
-      return <div className="badge badge-outline badge-info">Unknown</div>;
-    if (job.status.toLowerCase().includes("queue"))
-      return <div className="badge badge-outline badge-warning">Queued</div>;
-    if (
-      job.status.toLowerCase().includes("render") ||
-      job.status.toLowerCase().includes("running")
-    )
-      return (
-        <div className="badge badge-outline badge-success">{job.status}</div>
-      );
-    if (
-      job.status.toLowerCase().includes("error") ||
-      job.status.toLowerCase().includes("failed")
-    )
-      return (
-        <div className="badge badge-outline badge-error">{job.status}</div>
-      );
-    if (job.status.toLowerCase().includes("cancel"))
-      return <div className="badge badge-neutral badge-outline"></div>;
-    if (
-      job.status.toLowerCase().includes("octree") ||
-      job.status.toLowerCase().includes("generating")
-    )
-      return (
-        <div className="badge badge-outline badge-primary">{job.status}</div>
-      );
-  }
-
   return (
     <>
-      {/* Inline CSS für Job-Card Glow-Effekt */}
       <style>{`
         .job-card {
           transition: box-shadow 200ms ease;
@@ -104,17 +166,12 @@ const JobCards = async () => {
         .job-card:hover {
           box-shadow: 0 0 30px var(--job-card-glow, rgba(59,130,246,0.12));
         }
-        .job-card .card-body img {
-          display: block;
-          max-width: 100%;
-          height: auto;
-        }
       `}</style>
 
-      {jobs.map(([id, job]: [string, any]) => (
-        <Link key={id} href={`/jobs/${id}`} className="block mb-4">
+      {jobs.map((job) => (
+        <Link key={job.id} href={`/jobs/${job.id}`} className="block mb-4">
           <div
-            className="card flex w-full bg-gray-800 text-white shadow-lg job-card cursor-pointer"
+            className="card flex w-full bg-gray-800/90 text-white shadow-lg job-card cursor-pointer"
             style={
               {
                 ["--job-card-glow" as any]: getGlowColor(job.status),
@@ -122,7 +179,7 @@ const JobCards = async () => {
             }
           >
             <div className="card-body p-4 space-y-3">
-              <h2 className="card-title text-lg">{id}</h2>
+              <h2 className="card-title text-lg">ID: {job.id}</h2>
               <div className="aspect-video overflow-hidden rounded-md">
                 <img
                   src="/images/blueprint.png"
@@ -131,28 +188,28 @@ const JobCards = async () => {
                 />
               </div>
 
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>SPP:</span>
-                  <span>
-                    {job.spp} / {job.targetSpp}
-                  </span>
-                </div>
+              <div>{getStatusTag(job)}</div>
 
+              <div>
                 <progress
                   className="progress progress-primary w-full"
-                  value={job.spp}
-                  max={job.targetSpp}
+                  value={job.progress}
+                  max={1}
                 ></progress>
+                <p>{(job.progress * 100).toFixed(0)}%</p>
+                <p>SPP: {job.spp}</p>
               </div>
-
-              <div>{getStatusTag(id, job)}</div>
 
               <div className="text=[8px] text-gray-500 space-y-1">
                 <p>
-                  Created:{" "}
-                  {job.created ? new Date(job.created).toLocaleString() : "n/a"}
+                  Started:{" "}
+                  {job.startedAt
+                    ? new Date(job.startedAt).toLocaleString()
+                    : "n/a"}
                 </p>
+                {job.finishedAt && (
+                  <p>Finished: {new Date(job.finishedAt).toLocaleString()}</p>
+                )}
               </div>
             </div>
           </div>

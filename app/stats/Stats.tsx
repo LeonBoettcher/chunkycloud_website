@@ -12,7 +12,7 @@ export default function Stats({ initialStats }) {
     async function loadStats() {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/stats`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/stats`,
         );
         if (res.ok) {
           const json = await res.json();

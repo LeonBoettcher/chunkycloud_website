@@ -37,3 +37,9 @@ process.env
 # vercel
 .vercel
 process.env
+
+# webstorm
+.idea
+
+# vs code
+.vscode

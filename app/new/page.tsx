@@ -1,16 +1,18 @@
 "use client";
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Head from "next/head";
 import Header from "../../components/Header";
-import { Fieldset } from "@headlessui/react";
 
 import { canvasSizeToDimensions } from "../new/utils";
 
 import { useSession } from "../../app/auth/components/SessionProvider";
-import { createJob, startJob } from "../../lib/api-client";
+import { createJob, startJob, getResourcePacks } from "../../lib/api-client";
+import type { ResourcePackResponse } from "../../lib/api-client";
 
 import LogPanel, { LogPanelRef } from "../../components/LogPanel";
+import MultiSelect from "../../components/MultiSelect";
+
+// TODO: Add a clear prompt/CTA for users who are not logged in.
 {
   /* Things that got removed from the old code, but are needed later 
   
@@ -22,6 +24,7 @@ import LogPanel, { LogPanelRef } from "../../components/LogPanel";
 //TODO: Add a check for Scene Description description octree to test if the file structure is correct before sending to api
 //TODO: Add A Job Name
 //TODO: Show Warning for too high SPP Values
+//TODO: Split this page into smaller reusable components (deferred cleanup)
 
 function createFileList(...files: File[]): FileList {
   const dataTransfer = new DataTransfer();
@@ -30,14 +33,16 @@ function createFileList(...files: File[]): FileList {
 }
 
 export default function CreateJob() {
-  const { isLoggedIn, logout, client } = useSession();
-
-  const router = useRouter();
+  const { client } = useSession();
 
   {
     /* Objects to Remove from SceneDescription */
   }
-  const removefromSceneDescription: string[] = ["world", "actors.skin"];
+  const removefromSceneDescription: string[] = [
+    "world",
+    "actors.skin",
+    "skymap",
+  ];
 
   {
     /* Form Variables */
@@ -55,27 +60,20 @@ export default function CreateJob() {
 
   const [customWidth, setCustomWidth] = useState(1920);
   const [customHeight, setCustomHeight] = useState(1080);
-  
+
   const [renderName, setRenderName] = useState<string>("");
   const [targetSpp, setTargetSpp] = useState(500);
   const [renderDump, setRenderDump] = useState(false);
-  const [texturepack, setTexturepack] = useState<string>("");
+  const [texturepack, setTexturepack] = useState<ResourcePackResponse[]>([]);
 
   const [skymap, setSkymap] = useState<File>();
   const [skymapRequired, setSkymapRequired] = useState(false);
-  const [resourcePacks, setResourcePacks] = useState<
-    { name: string; displayName: string }[]
-  >([]);
+  const [resourcePacks, setResourcePacks] = useState<ResourcePackResponse[]>(
+    [],
+  );
 
   const [folderDropSupported, setFolderDropSupported] = useState(true);
   const logRef = useRef<LogPanelRef>(null);
-  {
-    /* Upload Variables */
-  }
-  const [jobID, setJobID] = useState<number>();
-  const [sceneUploadURL, setSceneUploadURL] = useState<string>();
-  const [octreeUploadURL, setOctreeUploadURL] = useState<string>();
-  const [emitterGridUploadURL, setEmitterGridUploadURL] = useState<string>();
 
   {
     /* Idk what this if for */
@@ -87,6 +85,8 @@ export default function CreateJob() {
   const skymapRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    fetchResourcePacks();
+
     setFolderDropSupported(
       typeof window !== "undefined" &&
         typeof DataTransferItem !== "undefined" &&
@@ -95,17 +95,23 @@ export default function CreateJob() {
     );
   }, []);
 
+  function fetchResourcePacks() {
+    getResourcePacks({ client })
+      .then((packs) => {
+        setResourcePacks(packs.data);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch resource packs:", error);
+      });
+  }
+
   function ApplyCustomCanvasSize() {
     setCanvasHeight(Number(customHeight));
     setCanvasWidth(Number(customWidth));
     setCanvasSize(`${customWidth}x${customHeight}`);
   }
 
-  function UpdateCanvasSize() {
-    setCanvasSize(canvasWidth + "x" + canvasHeight)
-  }
-
-    function deleteByPath(obj: any, path: string) {
+  function deleteByPath(obj: any, path: string) {
     const parts = path.split(".");
     const last = parts.pop();
 
@@ -120,6 +126,7 @@ export default function CreateJob() {
       delete current[last];
     }
   }
+
   const handleSceneDescriptionFileChange = useCallback(
     async (file: File | undefined) => {
       if (file?.type === "application/json") {
@@ -282,18 +289,11 @@ export default function CreateJob() {
           width: canvasWidth,
           height: canvasHeight,
           createDump: true,
+          resourcePacks: texturepack,
         },
       });
       const creation_data = (creation_res as any)?.data;
       if (creation_data) {
-        {
-          /* Store the returned URLs for file uploads and job ID */
-        }
-        setJobID(creation_data.id);
-        setSceneUploadURL(creation_data.uploadUrls.scene);
-        setOctreeUploadURL(creation_data.uploadUrls.octree);
-        setEmitterGridUploadURL(creation_data.uploadUrls.emittergrid);
-
         console.log("Job created with ID:", creation_data.id);
         logRef.current?.addLog(
           "Job created with ID " + creation_data.id,
@@ -528,21 +528,21 @@ export default function CreateJob() {
               </div>
               <div className="form-control w-full mb-6 menu-vertical">
                 <label className="label" htmlFor="renderName">
-                  <span className="label-text text-base font-bold">
+                  <span className="block mb-2 label-text text-base font-bold">
                     Scene Name
                   </span>
                 </label>
                 <input
                   type="string"
-                  placeholder="  Scene Name"
-                  className="file-input file-input-bordered max-w-1/2"
+                  placeholder="Scene Name"
+                  className="input input-bordered input-md w-1/2 mb-3"
                   value={renderName}
                   onChange={(e) => setRenderName(String(e.target.value))}
                 />
               </div>
               <div className="form-control w-full mb-4 menu-vertical">
                 <label className="label" htmlFor="Canvas Size">
-                  <span className="label-text text-base font-bold">
+                  <span className="input-md label-text text-base font-bold">
                     Canvas Size
                   </span>
                 </label>
@@ -568,41 +568,44 @@ export default function CreateJob() {
                 </select>
               </div>
 
-              {canvasSize === "Custom"  && (
-              <div className="ml-6 mt-3 bg-base-300 rounded-box p-4 border-l-4 border-primary shadow-sm">
-              <div className="form-control w-full mb-6 menu-vertical">
-                  <label className="label" htmlFor="targetSpp">
-                    <span className="label-text text-base font-bold">
-                      Custom Canvas Size
-                    </span>
-                  </label>
-                  <div className="form-control w-full mb-6 menu-horizontal">
-                  <input
-                    type="number"
-                    placeholder="Target height"
-                    className="input input-bordered input-md w-40 mb-3"
-                    value={customHeight}
-                    step={10}
-                    onChange={(e) => setCustomHeight(Number(e.target.value))}
-                  />
-                  <p className="text-xl m-3"> X </p> 
-                  <input
-                    type="number"
-                    placeholder="Target width"
-                    className="input input-bordered input-md w-40 mb-3"
-                    value={customWidth}
-                    step={10}
-                    onChange={(e) => setCustomWidth(Number(e.target.value))}
-                  />
-                  </div>
-                  <button className="btn btn-info w-1/4"
-                    onClick={ApplyCustomCanvasSize}
-                  >
+              {canvasSize === "Custom" && (
+                <div className="ml-6 mt-3 bg-base-300 rounded-box p-4 border-l-4 border-primary shadow-sm">
+                  <div className="form-control w-full mb-6 menu-vertical">
+                    <label className="label" htmlFor="targetSpp">
+                      <span className="label-text text-base font-bold">
+                        Custom Canvas Size
+                      </span>
+                    </label>
+                    <div className="form-control w-full mb-6 menu-horizontal">
+                      <input
+                        type="number"
+                        placeholder="Target height"
+                        className="input input-bordered input-md w-40 mb-3"
+                        value={customHeight}
+                        step={10}
+                        onChange={(e) =>
+                          setCustomHeight(Number(e.target.value))
+                        }
+                      />
+                      <p className="text-xl m-3"> X </p>
+                      <input
+                        type="number"
+                        placeholder="Target width"
+                        className="input input-bordered input-md w-40 mb-3"
+                        value={customWidth}
+                        step={10}
+                        onChange={(e) => setCustomWidth(Number(e.target.value))}
+                      />
+                    </div>
+                    <button
+                      className="btn btn-info w-1/4"
+                      onClick={ApplyCustomCanvasSize}
+                    >
                       <p>Apply</p>
-                  </button>
+                    </button>
+                  </div>
                 </div>
-                </div>
-)}
+              )}
               <div className="form-control w-full mb-6 menu-vertical">
                 <label className="label" htmlFor="targetSpp">
                   <span className="label-text text-base font-bold">
@@ -610,22 +613,25 @@ export default function CreateJob() {
                   </span>
                 </label>
                 <div className="w-full mb-6 flex items-center">
-                <input
-                  type="number"
-                  placeholder="Target SPP"
-                  className="input input-bordered input-md w-40 mb-3"
-                  value={targetSpp}
-                  step={100}
-                  onChange={(e) => setTargetSpp(Number(e.target.value))}
-                />
-                {targetSpp > 5000 && (
-                <div className="ml-auto">
-                  <p>⚠ High SPP values may significantly increase render time.</p>
-                  <p>32-1024 daylight without Light Sources</p> 
-                  <p>4096-16384 daylight with Light Sources</p>
-                  <p>16384 nighttime or indoor with Light Sources</p>
-                </div>
-                )}
+                  <input
+                    type="number"
+                    placeholder="Target SPP"
+                    className="input input-bordered input-md w-40 mb-3"
+                    value={targetSpp}
+                    step={100}
+                    onChange={(e) => setTargetSpp(Number(e.target.value))}
+                  />
+                  {targetSpp > 5000 && (
+                    <div className="ml-auto">
+                      <p>
+                        ⚠ High SPP values may significantly increase render
+                        time.
+                      </p>
+                      <p>32-1024 daylight without Light Sources</p>
+                      <p>4096-16384 daylight with Light Sources</p>
+                      <p>16384 nighttime or indoor with Light Sources</p>
+                    </div>
+                  )}
                 </div>
                 <input
                   type="range"
@@ -702,20 +708,14 @@ export default function CreateJob() {
                   Texture pack
                 </span>
               </label>
-              <div className="select w-full mb-6">
-                <select
-                  id="texturepack"
-                  className="select select-bordered w-full"
+              <div className="w-full mb-6">
+                <MultiSelect
+                  packs={resourcePacks}
                   value={texturepack}
-                  onChange={(e) => setTexturepack(e.target.value)}
-                >
-                  {/* we get these resourcepacks from /api/resourcepacks */}
-                  {resourcePacks.map(({ name, displayName }) => (
-                    <option key={name} value={name}>
-                      {displayName}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(packs) => {
+                    setTexturepack(packs);
+                  }}
+                />
               </div>
 
               {/* Submit Button with Hover text of what is missing to being enabled */}

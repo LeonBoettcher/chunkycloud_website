@@ -1,124 +1,38 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useSession } from "../../app/auth/components/SessionProvider";
-import {
-  getCurrentUser,
-  createNode,
-  resetNodeToken,
-  getCurrentUserNodes,
-} from "../../lib/api-client";
-import { AccountModal } from "./AccountModal";
+import { getCurrentUser } from "../../lib/api-client";
+
+type CurrentUser = {
+  displayName: string;
+  avatarUrl?: string;
+};
 
 const LoginButton = () => {
-  const { isLoggedIn, logout, client } = useSession();
-  const [session, setSession] = useState<{ displayName: string }>();
-  const [nodeName, setNodeName] = useState("");
-  const [nodeTokens, setNodeTokens] = useState<
-    { id: number; token: string; name: string }[]
-  >([]);
-
-  const [loadingNodes, setLoadingNodes] = useState(false);
-
-  const handleTokenReset = useCallback(
-    async (nodeId: number) => {
-      try {
-        const res = await resetNodeToken({ client, path: { id: nodeId } });
-        const newToken: string | undefined = (res as any)?.data?.token;
-        if (newToken) {
-          setNodeTokens((prevTokens) =>
-            prevTokens.map((token) =>
-              token.id === nodeId ? { ...token, token: newToken } : token,
-            ),
-          );
-        } else {
-          console.warn("No token returned from response");
-        }
-      } catch (e) {
-        console.error("Failed to reset node token", e);
-      }
-    },
-    [client],
-  );
-
-  const loadNodeTokens = useCallback(
-    async (signal?: AbortSignal) => {
-      setLoadingNodes(true);
-      try {
-        const res = await getCurrentUserNodes({
-          client,
-          signal,
-        });
-
-        const nodes = (res as any)?.data ?? [];
-
-        setNodeTokens(
-          nodes.map((node: any) => ({
-            id: node.id,
-            name: node.name ?? "",
-            token: "",
-          })),
-        );
-      } catch (e) {
-        if (signal?.aborted) return;
-        console.error("Failed to load node tokens", e);
-      } finally {
-        setLoadingNodes(false);
-      }
-    },
-    [client],
-  );
-
-  const handleCreateNodeToken = useCallback(async () => {
-    if (!nodeName.trim()) {
-      return;
-    }
-
-    try {
-      const res = await createNode({ client, body: { name: nodeName } });
-      const data = (res as any)?.data;
-      if (data?.id) {
-        setNodeTokens((prevTokens) => [
-          ...prevTokens,
-          {
-            id: data.id,
-            token: data.token ?? "",
-            name: nodeName,
-          },
-        ]);
-        setNodeName("");
-      } else {
-        console.warn("No data returned from create node response");
-      }
-    } catch (e) {
-      console.error("Failed to create node", e);
-    }
-  }, [client, nodeName]);
+  const { isLoggedIn, client } = useSession();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const ac = new AbortController();
-    if (isLoggedIn) {
-      getCurrentUser({ client, signal: ac.signal })
-        .then((user) => setSession(user.data))
-        .catch((e) => {
-          console.error("Failed to get user", e);
-        });
-    }
-
-    return () => ac.abort();
-  }, [isLoggedIn, client]);
-
-  const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    if (!isOpen || !isLoggedIn) {
+    if (!isLoggedIn) {
+      setAvatarUrl(null);
       return;
     }
 
     const ac = new AbortController();
-    loadNodeTokens(ac.signal);
+
+    getCurrentUser({ client, signal: ac.signal })
+      .then((user) =>
+        setAvatarUrl((user.data as CurrentUser).avatarUrl ?? null),
+      )
+      .catch((error) => {
+        if (ac.signal.aborted) return;
+        console.error("Failed to load current user avatar", error);
+      });
+
     return () => ac.abort();
-  }, [isOpen, isLoggedIn, loadNodeTokens]);
+  }, [client, isLoggedIn]);
 
   if (isLoggedIn) {
     return (
@@ -141,32 +55,18 @@ const LoginButton = () => {
             />
           </svg>
         </div>
-        <div
-          tabIndex={0}
-          role="button"
-          className="btn btn-ghost btn-circle avatar mr-2"
-          onClick={() => setIsOpen(true)}
-        >
-          <div className="w-10 rounded-full">
-            <img alt="Avatar" src={"https://placehold.co/10x10/png"} />
+        <Link href="/account" className="btn btn-ghost btn-circle avatar mr-2">
+          <div className="w-10 rounded-full overflow-hidden">
+            <img
+              alt="Avatar"
+              src={avatarUrl ?? "https://placehold.co/10x10/png"}
+            />
           </div>
-        </div>
-        <AccountModal
-          loadingNodes={loadingNodes}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          session={session}
-          nodeTokens={nodeTokens}
-          setNodeTokens={setNodeTokens}
-          nodeName={nodeName}
-          setNodeName={setNodeName}
-          handleTokenReset={handleTokenReset}
-          handleCreateNodeToken={handleCreateNodeToken}
-          logout={logout}
-        />
+        </Link>
       </>
     );
   }
+
   return (
     <a className="btn" href="/auth/init">
       Login
