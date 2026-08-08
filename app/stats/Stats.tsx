@@ -53,7 +53,10 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
       <h1 className="text-3xl font-bold mb-6">ChunkyCloud statistics</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <Step Title="Connected render nodes" value={stats.nodes?.connected ?? 0} />
+        <Step
+          Title="Connected render nodes"
+          value={stats.nodes?.connected ?? 0}
+        />
         <Step Title="Rendering nodes" value={stats.nodes?.rendering ?? 0} />
         <Step Title="Queued jobs" value={stats.jobs?.queued ?? 0} />
         <Step Title="Running jobs" value={stats.jobs?.running ?? 0} />
