@@ -1,22 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { PublicStatsResponse } from "../../lib/api-client";
+import { getPublicStats } from "../../lib/api-client";
+import { publicApiClient } from "../../lib/publicApiClient";
 import Step from "../../components/Stats/step";
 
-export default function Stats({ initialStats }) {
-  const [stats, setStats] = useState(initialStats);
+const defaultStats: PublicStatsResponse = {
+  nodes: {
+    connected: 0,
+    rendering: 0,
+  },
+  jobs: {
+    queued: 0,
+    running: 0,
+  },
+};
+
+type StatsProps = {
+  initialStats?: PublicStatsResponse;
+};
+
+export default function Stats({ initialStats = defaultStats }: StatsProps) {
+  const [stats, setStats] = useState<PublicStatsResponse>(initialStats);
 
   useEffect(() => {
     let stale = false;
 
     async function loadStats() {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/stats`,
-        );
-        if (res.ok) {
-          const json = await res.json();
-          if (!stale) setStats(json);
+        const { data } = await getPublicStats({
+          client: publicApiClient,
+          throwOnError: false,
+        });
+        if (!stale && data) {
+          setStats(data);
         }
       } catch (err) {
         console.error("Fehler beim Laden der Stats:", err);
@@ -34,84 +52,21 @@ export default function Stats({ initialStats }) {
     <div className="p-6 max-w-5xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">ChunkyCloud statistics</h1>
 
-      {/* Top stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-6">
-        <Step Title="Queue" value={stats.tasks.preparePending} />
-        <Step
-          Title={
-            <>
-              Generating octree
-              {/*<div
-                className="tooltip tooltip-right"
-                data-tip="Explaining octree -> Platzhalter sollte rechts neben Text und viel Kleiner"
-              >
-                <button className="btn rounded">?</button>
-              </div>*/}
-            </>
-          }
-          value={stats.tasks.prepareRunning}
-        />
-        <Step Title="Queue" value={stats.tasks.pending} />
-        <Step Title="Rendering" value={stats.tasks.running} />
-        <Step
-          Title="Merging"
-          value={stats.tasks.mergePending + stats.tasks.mergeRunning}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <Step Title="Connected render nodes" value={stats.nodes?.connected ?? 0} />
+        <Step Title="Rendering nodes" value={stats.nodes?.rendering ?? 0} />
+        <Step Title="Queued jobs" value={stats.jobs?.queued ?? 0} />
+        <Step Title="Running jobs" value={stats.jobs?.running ?? 0} />
       </div>
 
-      {/* Daily stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        {Object.entries(stats.today).map(([label, value], i) => (
-          <div
-            key={i}
-            className="text-center p-4 bg-base-200 rounded-xl shadow"
-          >
-            <p className="text-2xl font-bold">{value as number}</p>
-            <p className="text-sm text-gray-500">{label}</p>
-          </div>
-        ))}
+      <div className="mb-10 rounded-xl bg-base-200 p-6 shadow">
+        <h2 className="text-xl font-semibold mb-3">Service overview</h2>
+        <p className="text-sm text-gray-600 leading-6">
+          The live stats below are fetched from the public API endpoint and
+          refreshed every 30 seconds.
+        </p>
       </div>
 
-      {/* Node status */}
-      <div className="mb-10">
-        <h2 className="text-xl font-semibold mb-4">
-          Render nodes{" "}
-          <span className="text-sm text-gray-500">(1 of 2 nodes working)</span>
-        </h2>
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="card bg-base-100 shadow-md">
-            <div className="card-body">
-              <h2 className="card-title">🖥️ Node1</h2>
-              <p>8 threads</p>
-            </div>
-          </div>
-          <div className="card bg-base-100 shadow-md opacity-60">
-            <div className="card-body">
-              <h2 className="card-title">🖥️ Node2</h2>
-              <p>4 threads</p>
-            </div>
-          </div>
-        </div>
-
-        <h2 className="text-xl font-semibold mb-4">
-          Region processing nodes{" "}
-          <span className="text-sm text-gray-500">(1 of 2 nodes working)</span>
-        </h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="card bg-base-100 shadow-md">
-            <div className="card-body">
-              <h2 className="card-title">🧩 PrepareNode1</h2>
-            </div>
-          </div>
-          <div className="card bg-base-100 shadow-md opacity-60">
-            <div className="card-body">
-              <h2 className="card-title">🧩 PrepareNode2</h2>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* How it works */}
       <div className="prose max-w-none bg-base-200 p-6 rounded-xl shadow">
         <h2>How ChunkyCloud works</h2>
         <p>

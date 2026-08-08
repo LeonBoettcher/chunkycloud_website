@@ -1,11 +1,12 @@
 import Stats from "./Stats";
+import { getPublicStats } from "../../lib/api-client";
+import { publicApiClient } from "../../lib/publicApiClient";
 
 export default async function StatsPage() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/stats`, {
-    cache: "no-store",
+  const { data } = await getPublicStats({
+    client: publicApiClient,
+    throwOnError: false,
   });
-
-  const data = await res.json();
 
   return <Stats initialStats={data} />;
 }

@@ -208,6 +208,17 @@ export type ResourcePackResponse = {
     description?: string;
 };
 
+export type PublicStatsResponse = {
+    nodes?: {
+        connected: number;
+        rendering: number;
+    };
+    jobs?: {
+        queued: number;
+        running: number;
+    };
+};
+
 export type ExchangeTokenData = {
     body: AuthenticateDto;
     path?: never;
@@ -585,3 +596,16 @@ export type GetResourcePacksResponses = {
 };
 
 export type GetResourcePacksResponse = GetResourcePacksResponses[keyof GetResourcePacksResponses];
+
+export type GetPublicStatsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/stats';
+};
+
+export type GetPublicStatsResponses = {
+    200: PublicStatsResponse;
+};
+
+export type GetPublicStatsResponse = GetPublicStatsResponses[keyof GetPublicStatsResponses];
