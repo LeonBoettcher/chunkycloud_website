@@ -38,7 +38,12 @@ const LoginButton = () => {
     return (
       <>
         <div className="badge badge-neutral mr-5">
-          123456789
+          <div
+            className="tooltip tooltip-bottom"
+            data-tip="Not Implemented yet Coming Soon..."
+          >
+            0
+          </div>
           <svg
             width="200%"
             height="200%"

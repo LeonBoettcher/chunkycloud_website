@@ -69,7 +69,7 @@ export default function JobsPage() {
             </button>
 
             <div className="pointer-events-none invisible absolute right-0 top-full z-20 mt-2 w-[min(36rem,calc(100vw-2rem))] translate-y-2 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-              <div className="card border border-base-300/80 bg-gray-100/90 shadow-xl backdrop-blur">
+              <div className="card border border-base-300/80 bg-gray-900/90 shadow-xl backdrop-blur">
                 <div className="card-body gap-4 p-4 sm:p-6">
                   <div className="label pb-1">
                     <span className="label-text">Sort by</span>
