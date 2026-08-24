@@ -29,7 +29,7 @@ const getStatusTag = (job: UserJob) => {
     return <div className="badge badge-outline badge-success">completed</div>;
 
   if (status.includes("aborted"))
-    return <div className="badge badge-error badge-outline">aborted</div>;
+    return <div className="badge badge-error badge-outline">cancelled</div>;
 
   return <div className="badge badge-outline badge-primary">{job.status}</div>;
 };
