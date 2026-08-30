@@ -187,9 +187,7 @@ const AccountPage = () => {
           <div className="rounded-3xl border border-base-300/80 bg-base-200 p-6">
             <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-gray-500">
-                  Signed in as
-                </p>
+                <p className="text-sm text-gray-500">Signed in as</p>
                 <p className="text-xl font-semibold">{session?.displayName}</p>
               </div>
               <div className="space-y-2 text-right text-sm text-gray-400">
@@ -276,12 +274,12 @@ const AccountPage = () => {
                         <td className="flex flex-wrap gap-2">
                           <button
                             type="button"
-                            className="btn btn-ghost btn-xs"
+                            className="btn btn-primary btn-xs"
                             onClick={() => handleTokenReset(token.id)}
                           >
                             Reset
                           </button>
-                          <button
+                          {/*<button
                             type="button"
                             className="btn btn-secondary btn-xs"
                             onClick={() =>
@@ -291,7 +289,7 @@ const AccountPage = () => {
                             }
                           >
                             Delete
-                          </button>
+                          </button>*/}
                         </td>
                       </tr>
                     ))

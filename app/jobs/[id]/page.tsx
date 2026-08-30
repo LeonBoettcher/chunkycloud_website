@@ -373,7 +373,7 @@ const JobPage = ({ params }: PageProps) => {
                     </div>
                   )}
 
-                  <button
+                  {/*<button
                     type="button"
                     className="btn btn-sm btn-outline btn-error w-full min-h-11 sm:w-fit"
                     onClick={handleDelete}
@@ -381,6 +381,7 @@ const JobPage = ({ params }: PageProps) => {
                   >
                     {isSubmitting ? "Working..." : "Delete Job"}
                   </button>
+                  */}
                 </div>
 
                 <button
