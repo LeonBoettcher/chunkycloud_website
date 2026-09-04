@@ -4,7 +4,7 @@ import { loadEnvConfig } from "@next/env";
 const projectDir = process.cwd();
 loadEnvConfig(projectDir);
 const apiUrl =
-  process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://api.chunkycloud.lemaik.de";
+  process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://api.chunkycloud.net";
 
 export default defineConfig({
   input: `${apiUrl}/api-json`,
