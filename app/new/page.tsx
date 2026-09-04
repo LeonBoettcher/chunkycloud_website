@@ -11,6 +11,7 @@ import type { ResourcePackResponse } from "../../lib/api-client";
 
 import LogPanel, { LogPanelRef } from "../../components/LogPanel";
 import MultiSelect from "../../components/MultiSelect";
+import Link from "next/link";
 
 // TODO: Add a clear prompt/CTA for users who are not logged in.
 {
@@ -33,7 +34,7 @@ function createFileList(...files: File[]): FileList {
 }
 
 export default function CreateJob() {
-  const { client } = useSession();
+  const { client, isLoggedIn } = useSession();
 
   {
     /* Objects to Remove from SceneDescription */
@@ -422,6 +423,27 @@ export default function CreateJob() {
    * TODO: Add Explanation Questionmark Circles
    *
    */
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-base-200 text-white px-4 py-24">
+        <div className="mx-auto max-w-xl rounded-2xl border border-base-300/80 bg-base-100/90 p-8 text-center shadow-xl">
+          <h1 className="text-3xl font-bold">Create Job</h1>
+          <p className="mt-4 text-gray-400">
+            You need to sign in before creating a render job.
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Link href="/auth/init" className="btn btn-primary">
+              Login
+            </Link>
+            <Link href="/" className="btn btn-ghost">
+              Back Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

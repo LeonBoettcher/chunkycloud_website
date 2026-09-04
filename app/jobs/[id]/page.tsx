@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useLayoutEffect, useState } from "react";
 import { useSession } from "../../../app/auth/components/SessionProvider";
@@ -23,7 +24,7 @@ interface PageProps {
 // TODO: Split this page into smaller reusable components (deferred cleanup)
 const JobPage = ({ params }: PageProps) => {
   const { id } = use(params);
-  const { client } = useSession();
+  const { client, isLoggedIn } = useSession();
   const router = useRouter();
 
   const [job, setJob] = useState<UserJob | null>(null);
@@ -237,6 +238,27 @@ const JobPage = ({ params }: PageProps) => {
       };
     }
   }, [id, tiles]);
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-base-200 text-white px-4 py-24">
+        <div className="mx-auto max-w-xl rounded-2xl border border-base-300/80 bg-base-100/90 p-8 text-center shadow-xl">
+          <h1 className="text-3xl font-bold">Job Details</h1>
+          <p className="mt-4 text-gray-400">
+            You need to sign in to view this render job.
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Link href="/auth/init" className="btn btn-primary">
+              Login
+            </Link>
+            <Link href="/" className="btn btn-ghost">
+              Back Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

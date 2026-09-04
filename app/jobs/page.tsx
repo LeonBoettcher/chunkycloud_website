@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import JobCards from "./JobCards";
 import { Squares2X2Icon } from "@heroicons/react/20/solid";
 import LoadingCards from "./LoadingCards";
 import type { JobStatus } from "../../lib/api-client";
+import { useSession } from "../auth/components/SessionProvider";
 
 // TODO: Add a clear prompt/CTA for users who are not logged in.
 const statusOptions: JobStatus[] = [
@@ -19,6 +21,7 @@ type SortOption = "createdAt" | "startedAt" | "finishedAt";
 type OrderOption = "asc" | "desc";
 
 export default function JobsPage() {
+  const { isLoggedIn } = useSession();
   const [selectedStatus, setSelectedStatus] =
     useState<JobStatus[]>(statusOptions);
   const [selectedSort, setSelectedSort] = useState<SortOption>("createdAt");
@@ -48,6 +51,27 @@ export default function JobsPage() {
   const resetStatuses = () => {
     setSelectedStatus(statusOptions);
   };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-base-200 text-white px-4 py-24">
+        <div className="mx-auto max-w-xl rounded-2xl border border-base-300/80 bg-base-100/90 p-8 text-center shadow-xl">
+          <h1 className="text-3xl font-bold">Jobs</h1>
+          <p className="mt-4 text-gray-400">
+            You need to sign in to view your render jobs.
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Link href="/auth/init" className="btn btn-primary">
+              Login
+            </Link>
+            <Link href="/" className="btn btn-ghost">
+              Back Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
