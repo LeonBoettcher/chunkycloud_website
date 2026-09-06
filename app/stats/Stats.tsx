@@ -15,6 +15,7 @@ const defaultStats: PublicStatsResponse = {
     queued: 0,
     running: 0,
   },
+  totalSamplesPerSeconds: 0,
 };
 
 type StatsProps = {

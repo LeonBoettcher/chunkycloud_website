@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
-import { exchangeToken } from "../../../lib/api-client";
+import { exchangeToken } from "../../../lib/api-client-internal";
 import { serverApiClient } from "../../../lib/serverApiClient";
 
 export async function GET(request: NextRequest) {

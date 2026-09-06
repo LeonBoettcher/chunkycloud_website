@@ -4,22 +4,6 @@ export type ClientOptions = {
     baseUrl: string;
 };
 
-export type AuthenticateDto = {
-    code: string;
-};
-
-export type TokenResponse = {
-    refreshToken: {
-        expiresAt: string;
-        token: string;
-    };
-    accessToken: string;
-};
-
-export type RefreshTokenDto = {
-    refreshToken: string;
-};
-
 export type UserResponse = {
     id: number;
     displayName: string;
@@ -34,7 +18,7 @@ export type UserNodeResponse = {
     lastSeenAt?: string;
 };
 
-export type JobStatus = 'draft' | 'queued' | 'running' | 'completed' | 'aborted';
+export type JobStatus = 'draft' | 'queued' | 'running' | 'merge_pending' | 'merge_running' | 'completed' | 'aborted';
 
 export type Order = 'asc' | 'desc';
 
@@ -51,6 +35,7 @@ export type UserJob = {
     startedAt?: string;
     finishedAt?: string;
     abortedAt?: string;
+    thumbnailUrl?: string;
 };
 
 export type CurrentPage = {
@@ -68,74 +53,8 @@ export type UserJobsResponse = {
     extra: PaginationInfo;
 };
 
-export type CreateNodeDto = {
-    name?: string;
-};
-
-export type CreateNodeResponse = {
-    id: number;
-    /**
-     * Render node token (can not be retrieved again later)
-     */
-    token: string;
-};
-
-export type ResetNodeTokenResponse = {
-    /**
-     * New render node token (can not be retrieved again later)
-     */
-    token: string;
-};
-
-export type RenderNodeResponse = {
-    id: number;
-    name?: string;
-    enabled: boolean;
-    lastSeenAt: string;
-    createdAt: string;
-    updatedAt: string;
-};
-
-export type NextTaskResponse = {
-    id: number;
-    job: {
-        id: number;
-        width: number;
-        height: number;
-    };
-    spp: number;
-    tile: {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    };
-    files: {
-        scene: {
-            url: string;
-        };
-        octree: {
-            url: string;
-        };
-        emittergrid?: {
-            url: string;
-        };
-        resourcePacks: Array<{
-            id: number;
-            url: string;
-        }>;
-    };
-};
-
-export type FinishTaskRenderingResponse = {
-    uploadUrls: {
-        image: string;
-        dump?: string;
-    };
-};
-
-export type ReportTaskProgressDto = {
-    spp: number;
+export type UrlResponse = {
+    url: string;
 };
 
 export type ResourcePackDto = {
@@ -160,10 +79,6 @@ export type CreateJobResponse = {
         octree: string;
         emittergrid: string;
     };
-};
-
-export type UrlResponse = {
-    url: string;
 };
 
 export type TileResponse = {
@@ -213,63 +128,15 @@ export type PublicStatsResponse = {
         connected: number;
         rendering: number;
     };
+    /**
+     * Approximate total current rendering speed in samples per second
+     */
+    totalSamplesPerSeconds: number;
     jobs?: {
         queued: number;
         running: number;
     };
 };
-
-export type ExchangeTokenData = {
-    body: AuthenticateDto;
-    path?: never;
-    query?: never;
-    url: '/auth/exchange';
-};
-
-export type ExchangeTokenResponses = {
-    201: TokenResponse;
-};
-
-export type ExchangeTokenResponse = ExchangeTokenResponses[keyof ExchangeTokenResponses];
-
-export type RefreshTokenData = {
-    body: RefreshTokenDto;
-    path?: never;
-    query?: never;
-    url: '/auth/refresh';
-};
-
-export type RefreshTokenResponses = {
-    201: TokenResponse;
-};
-
-export type RefreshTokenResponse = RefreshTokenResponses[keyof RefreshTokenResponses];
-
-export type RevokeRefreshTokenData = {
-    body: RefreshTokenDto;
-    path?: never;
-    query?: never;
-    url: '/auth/revoke';
-};
-
-export type RevokeRefreshTokenResponses = {
-    204: void;
-};
-
-export type RevokeRefreshTokenResponse = RevokeRefreshTokenResponses[keyof RevokeRefreshTokenResponses];
-
-export type RevokeAllRefreshTokensData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/auth/revoke-all';
-};
-
-export type RevokeAllRefreshTokensResponses = {
-    204: void;
-};
-
-export type RevokeAllRefreshTokensResponse = RevokeAllRefreshTokensResponses[keyof RevokeAllRefreshTokensResponses];
 
 export type GetCurrentUserData = {
     body?: never;
@@ -331,139 +198,34 @@ export type GetCurrentUserJobResponses = {
 
 export type GetCurrentUserJobResponse = GetCurrentUserJobResponses[keyof GetCurrentUserJobResponses];
 
-export type CreateNodeData = {
-    body: CreateNodeDto;
-    path?: never;
-    query?: never;
-    url: '/nodes';
-};
-
-export type CreateNodeResponses = {
-    201: CreateNodeResponse;
-};
-
-export type CreateNodeResponse2 = CreateNodeResponses[keyof CreateNodeResponses];
-
-export type ResetNodeTokenData = {
+export type GetJobResultFileData = {
     body?: never;
     path: {
         id: number;
+        /**
+         * The dump is only available if the job was created with createDump set to true
+         */
+        file: 'image' | 'dump';
     };
     query?: never;
-    url: '/nodes/{id}/reset-token';
+    url: '/users/me/jobs/{id}/results/{file}';
 };
 
-export type ResetNodeTokenResponses = {
-    200: ResetNodeTokenResponse;
-};
-
-export type ResetNodeTokenResponse2 = ResetNodeTokenResponses[keyof ResetNodeTokenResponses];
-
-export type GetCurrentNodeData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/nodes/me';
-};
-
-export type GetCurrentNodeResponses = {
-    default: RenderNodeResponse;
-};
-
-export type GetCurrentNodeResponse = GetCurrentNodeResponses[keyof GetCurrentNodeResponses];
-
-export type GetNextTaskData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/nodes/me/tasks/next';
-};
-
-export type GetNextTaskResponses = {
+export type GetJobResultFileErrors = {
     /**
-     * The task this render node should render next
+     *  The requested file is invalid or not available for this job
      */
-    200: NextTaskResponse;
+    400: unknown;
+};
+
+export type GetJobResultFileResponses = {
     /**
-     * There is no task to render at this time
+     * A download URL for the requested file, valid for at least 1 hour
      */
-    204: void;
+    200: UrlResponse;
 };
 
-export type GetNextTaskResponse = GetNextTaskResponses[keyof GetNextTaskResponses];
-
-export type FinishTaskRenderingData = {
-    body?: never;
-    path: {
-        id: number;
-    };
-    query?: never;
-    url: '/nodes/me/tasks/{id}/upload';
-};
-
-export type FinishTaskRenderingErrors = {
-    /**
-     * The task is not being rendered by this render node or already completed
-     */
-    409: unknown;
-};
-
-export type FinishTaskRenderingResponses = {
-    /**
-     * URLs to upload the render results to
-     */
-    200: FinishTaskRenderingResponse;
-};
-
-export type FinishTaskRenderingResponse2 = FinishTaskRenderingResponses[keyof FinishTaskRenderingResponses];
-
-export type FinishTaskData = {
-    body?: never;
-    path: {
-        id: number;
-    };
-    query?: never;
-    url: '/nodes/me/tasks/{id}/finish';
-};
-
-export type FinishTaskErrors = {
-    /**
-     * The task can not be finished or required result files are missing
-     */
-    409: unknown;
-};
-
-export type FinishTaskResponses = {
-    /**
-     * Task marked as completed
-     */
-    202: unknown;
-};
-
-export type ReportTaskProgressData = {
-    body: ReportTaskProgressDto;
-    path: {
-        id: number;
-    };
-    query?: never;
-    url: '/nodes/me/tasks/{id}/progress';
-};
-
-export type ReportTaskProgressErrors = {
-    /**
-     * The task is not assigned to this render node or was cancelled. The render node should stop rendering it.
-     */
-    409: unknown;
-};
-
-export type ReportTaskProgressResponses = {
-    /**
-     * Task progress updated
-     */
-    204: void;
-};
-
-export type ReportTaskProgressResponse = ReportTaskProgressResponses[keyof ReportTaskProgressResponses];
+export type GetJobResultFileResponse = GetJobResultFileResponses[keyof GetJobResultFileResponses];
 
 export type CreateJobData = {
     body: CreateJobDto;

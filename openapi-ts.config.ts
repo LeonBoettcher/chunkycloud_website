@@ -6,28 +6,43 @@ loadEnvConfig(projectDir);
 const apiUrl =
   process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://api.chunkycloud.net";
 
-export default defineConfig({
-  input: `${apiUrl}/api-json`,
-  output: "./lib/api-client",
-  plugins: [
-    {
-      name: "@hey-api/client-next",
-      throwOnError: true,
-    },
-    {
-      name: "@hey-api/sdk",
-      client: false,
-    },
-  ],
-  parser: {
-    filters: {
-      tags: {
-        exclude: ["DiscordAuth"],
+export default defineConfig([
+  {
+    input: `${apiUrl}/openapi.json`,
+    output: "./lib/api-client",
+    plugins: [
+      {
+        name: "@hey-api/client-next",
+        throwOnError: true,
       },
-      operations: {
-        // exclude methods that can only be used by render nodes
-        exclude: ["getCurrentNode"],
+      {
+        name: "@hey-api/sdk",
+        client: false,
+      },
+    ],
+    parser: {
+      filters: {
+        tags: {
+          exclude: ["DiscordAuth"],
+        },
+        operations: {
+          exclude: ["getCurrentNode"],
+        },
       },
     },
   },
-});
+  {
+    input: `${apiUrl}/internal/openapi.json`,
+    output: "./lib/api-client-internal",
+    plugins: [
+      {
+        name: "@hey-api/client-next",
+        throwOnError: true,
+      },
+      {
+        name: "@hey-api/sdk",
+        client: false,
+      },
+    ],
+  },
+]);

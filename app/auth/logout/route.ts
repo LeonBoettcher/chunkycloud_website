@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { revokeRefreshToken } from "../../../lib/api-client";
+import { revokeRefreshToken } from "../../../lib/api-client-internal";
 import { serverApiClient } from "../../../lib/serverApiClient";
 
 export async function POST(request: NextRequest) {

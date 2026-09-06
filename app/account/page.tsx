@@ -3,12 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "../auth/components/SessionProvider";
-import {
-  createNode,
-  getCurrentUser,
-  getCurrentUserNodes,
-  resetNodeToken,
-} from "../../lib/api-client";
+import { getCurrentUser, getCurrentUserNodes } from "../../lib/api-client";
+import { createNode, resetNodeToken } from "../../lib/api-client-internal";
 
 type NodeToken = {
   id: number;
