@@ -62,7 +62,15 @@ export const revokeRefreshToken = <ThrowOnError extends boolean = true>(options:
  *
  * This revokes all refresh token of the current user. All access tokens generated before will continue to work until they expire.
  */
-export const revokeAllRefreshTokens = <ThrowOnError extends boolean = true>(options: Options<RevokeAllRefreshTokensData, ThrowOnError>): RequestResult<RevokeAllRefreshTokensResponses, unknown, ThrowOnError> => options.client.post<RevokeAllRefreshTokensResponses, unknown, ThrowOnError>({ url: '/auth/revoke-all', ...options });
+export const revokeAllRefreshTokens = <ThrowOnError extends boolean = true>(options: Options<RevokeAllRefreshTokensData, ThrowOnError>): RequestResult<RevokeAllRefreshTokensResponses, unknown, ThrowOnError> => options.client.post<RevokeAllRefreshTokensResponses, unknown, ThrowOnError>({
+    security: [{
+            key: 'access-token',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/auth/revoke-all',
+    ...options
+});
 
 /**
  * Initiate the Discord OAuth login
@@ -78,6 +86,11 @@ export const discordCallback = <ThrowOnError extends boolean = true>(options: Op
  * Create a new render node
  */
 export const createNode = <ThrowOnError extends boolean = true>(options: Options<CreateNodeData, ThrowOnError>): RequestResult<CreateNodeResponses, unknown, ThrowOnError> => options.client.post<CreateNodeResponses, unknown, ThrowOnError>({
+    security: [{
+            key: 'access-token',
+            scheme: 'bearer',
+            type: 'http'
+        }],
     url: '/nodes',
     ...options,
     headers: {
@@ -89,7 +102,15 @@ export const createNode = <ThrowOnError extends boolean = true>(options: Options
 /**
  * Reset the authentication token of a render node
  */
-export const resetNodeToken = <ThrowOnError extends boolean = true>(options: Options<ResetNodeTokenData, ThrowOnError>): RequestResult<ResetNodeTokenResponses, unknown, ThrowOnError> => options.client.post<ResetNodeTokenResponses, unknown, ThrowOnError>({ url: '/nodes/{id}/reset-token', ...options });
+export const resetNodeToken = <ThrowOnError extends boolean = true>(options: Options<ResetNodeTokenData, ThrowOnError>): RequestResult<ResetNodeTokenResponses, unknown, ThrowOnError> => options.client.post<ResetNodeTokenResponses, unknown, ThrowOnError>({
+    security: [{
+            key: 'access-token',
+            scheme: 'bearer',
+            type: 'http'
+        }],
+    url: '/nodes/{id}/reset-token',
+    ...options
+});
 
 /**
  * Get the current render node
