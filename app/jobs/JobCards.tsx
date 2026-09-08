@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "../../app/auth/components/SessionProvider";
-import { getCurrentUserJobs } from "../../lib/api-client";
+import { getCurrentUserJobs, getJobResultFile} from "../../lib/api-client";
 import type { UserJob } from "../../lib/api-client";
 
 import LoadingCards from "./LoadingCards";
@@ -33,6 +33,7 @@ const JobCards = ({
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [showLoadingFallback, setShowLoadingFallback] = useState(false);
+  const [resultPreviewUrls, setResultPreviewUrls] = useState<Record<number, string>>({});
 
   useEffect(() => {
     let isMounted = true;
@@ -98,6 +99,34 @@ const JobCards = ({
         if (isMounted) {
           setJobs(allJobs);
           onPaginationInfo?.(newTotalPages);
+
+          const completedJobs = allJobs.filter((job) => job.status === "completed");
+          const completedResults = await Promise.allSettled(
+            completedJobs.map(async (job) => {
+              const result = await getJobResultFile({
+                client,
+                path: { id: job.id, file: "image" },
+                throwOnError: false,
+              });
+
+              return {
+                id: job.id,
+                url: result.data?.url ?? null,
+              };
+            }),
+          );
+
+          if (isMounted) {
+            setResultPreviewUrls((previous) => {
+              const next = { ...previous };
+              for (const result of completedResults) {
+                if (result.status === "fulfilled" && result.value.url) {
+                  next[result.value.id] = result.value.url;
+                }
+              }
+              return next;
+            });
+          }
         }
       } catch (err) {
         if (isMounted) {
@@ -168,25 +197,33 @@ const JobCards = ({
         }
       `}</style>
 
-      {jobs.map((job) => (
-        <Link key={job.id} href={`/jobs/${job.id}`} className="block mb-4">
-          <div
-            className="card flex w-full bg-gray-800/90 text-white shadow-lg job-card cursor-pointer"
-            style={
-              {
-                ["--job-card-glow" as any]: getGlowColor(job.status),
-              } as React.CSSProperties
-            }
-          >
-            <div className="card-body p-4 space-y-3">
-              <h2 className="card-title text-lg">ID: {job.id}</h2>
-              <div className="aspect-video overflow-hidden rounded-md">
-                <img
-                  src="/images/blueprint.png"
-                  alt="Job Thumbnail"
-                  className="h-full w-full object-cover"
-                />
-              </div>
+      {jobs.map((job) => {
+        const imageSrc =
+          resultPreviewUrls[job.id] ?? job.thumbnailUrl ?? "/images/blueprint.png";
+
+        return (
+          <Link key={job.id} href={`/jobs/${job.id}`} className="block mb-4">
+            <div
+              className="card flex w-full bg-gray-800/90 text-white shadow-lg job-card cursor-pointer"
+              style={
+                {
+                  ["--job-card-glow" as any]: getGlowColor(job.status),
+                } as React.CSSProperties
+              }
+            >
+              <div className="card-body p-4 space-y-3">
+                <h2 className="card-title text-lg">ID: {job.id}</h2>
+                <div className="aspect-video overflow-hidden rounded-md">
+                  <img
+                    src={imageSrc}
+                    alt="Job Thumbnail"
+                    className="h-full w-full object-cover"
+                    onError={(event) => {
+                      const target = event.currentTarget as HTMLImageElement;
+                      target.src = "/images/blueprint.png";
+                    }}
+                  />
+                </div>
 
               <div>{getStatusTag(job)}</div>
 
@@ -210,11 +247,12 @@ const JobCards = ({
                 {job.finishedAt && (
                   <p>Finished: {new Date(job.finishedAt).toLocaleString()}</p>
                 )}
+                </div>
               </div>
             </div>
-          </div>
-        </Link>
-      ))}
+          </Link>
+        );
+      })}
     </>
   );
 };

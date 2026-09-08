@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { getJobFile } from "../../lib/api-client";
+import { getJobFile, getJobResultFile } from "../../lib/api-client";
 import type { Client } from "../../lib/api-client/client";
 
-type DownloadableFile = "scene" | "octree" | "emittergrid";
+type DownloadableFile = "result" | "scene" | "octree" | "emittergrid";
 
 interface DownloadModalProps {
   isOpen: boolean;
@@ -15,6 +15,7 @@ interface DownloadModalProps {
 }
 
 const FILE_OPTIONS: { label: string; value: DownloadableFile }[] = [
+  { label: "Result Image", value: "result" },
   { label: "Scene", value: "scene" },
   { label: "Octree", value: "octree" },
   { label: "Emitter Grid", value: "emittergrid" },
@@ -43,6 +44,7 @@ function getFallbackFilename(
   fileType: DownloadableFile,
 ): string {
   const extensionByType: Record<DownloadableFile, string> = {
+    result: "png",
     scene: "json",
     octree: "octree",
     emittergrid: "emittergrid",
@@ -94,10 +96,17 @@ export default function DownloadModal({
     setError(null);
 
     try {
-      const result = await getJobFile({
-        client,
-        path: { id: jobId, file },
-      });
+      const result =
+        file === "result"
+          ? await getJobResultFile({
+              client,
+              path: { id: jobId, file: "image" },
+            })
+          : await getJobFile({
+              client,
+              path: { id: jobId, file },
+            });
+
       triggerBrowserDownload(result.data.url, getFallbackFilename(jobId, file));
       onClose();
     } catch (downloadError) {

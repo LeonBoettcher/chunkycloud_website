@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useLayoutEffect, useState } from "react";
 import { useSession } from "../../../app/auth/components/SessionProvider";
@@ -8,6 +7,7 @@ import type { TileResponse, UserJob } from "../../../lib/api-client";
 import {
   abortJob,
   getCurrentUserJob,
+  getJobResultFile,
   getJobTiles,
 } from "../../../lib/api-client";
 
@@ -24,7 +24,7 @@ interface PageProps {
 // TODO: Split this page into smaller reusable components (deferred cleanup)
 const JobPage = ({ params }: PageProps) => {
   const { id } = use(params);
-  const { client, isLoggedIn } = useSession();
+  const { client } = useSession();
   const router = useRouter();
 
   const [job, setJob] = useState<UserJob | null>(null);
@@ -34,6 +34,26 @@ const JobPage = ({ params }: PageProps) => {
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
   const [tiles, setTiles] = useState<TileResponse[]>([]);
+  const [resultImageUrl, setResultImageUrl] = useState<string | null>(null);
+
+  const fetchResultImage = async (jobId: number) => {
+    try {
+      const result = await getJobResultFile({
+        client,
+        path: { id: jobId, file: "image" },
+        throwOnError: false,
+      });
+
+      if (result.data?.url) {
+        setResultImageUrl(result.data.url);
+      } else {
+        setResultImageUrl(null);
+      }
+    } catch (err) {
+      console.error("Failed to fetch result image:", err);
+      setResultImageUrl(null);
+    }
+  };
 
   const fetchJob = async () => {
     try {
@@ -57,6 +77,12 @@ const JobPage = ({ params }: PageProps) => {
       }
 
       setJob(jobItem);
+
+      if (jobItem?.status === "completed") {
+        await fetchResultImage(jobItem.id);
+      } else {
+        setResultImageUrl(null);
+      }
     } catch (err) {
       console.error("Failed to fetch job:", err);
     } finally {
@@ -162,8 +188,15 @@ const JobPage = ({ params }: PageProps) => {
   const canAbort = job?.status === "queued" || job?.status === "running";
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const previewImageUrl =
+    job?.status === "completed" ? resultImageUrl : imageUrl;
 
   useLayoutEffect(() => {
+    if (job?.status === "completed") {
+      setImageUrl(null);
+      return;
+    }
+
     let cancelled = false;
     let blobUrl: string | null = null;
     async function render() {
@@ -237,28 +270,7 @@ const JobPage = ({ params }: PageProps) => {
         }
       };
     }
-  }, [id, tiles]);
-
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-base-200 text-white px-4 py-24">
-        <div className="mx-auto max-w-xl rounded-2xl border border-base-300/80 bg-base-100/90 p-8 text-center shadow-xl">
-          <h1 className="text-3xl font-bold">Job Details</h1>
-          <p className="mt-4 text-gray-400">
-            You need to sign in to view this render job.
-          </p>
-          <div className="mt-6 flex justify-center gap-3">
-            <Link href="/auth/init" className="btn btn-primary">
-              Login
-            </Link>
-            <Link href="/" className="btn btn-ghost">
-              Back Home
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  }, [id, job?.status, tiles]);
 
   if (loading) {
     return (
@@ -423,7 +435,7 @@ const JobPage = ({ params }: PageProps) => {
 
         <div className="w-full lg:basis-2/3">
           <div className="aspect-video overflow-hidden rounded-md bg-gray-900 flex items-center justify-center p-2">
-            {imageUrl ? (
+            {previewImageUrl ? (
               <div
                 style={{
                   width: "100%",
@@ -435,7 +447,7 @@ const JobPage = ({ params }: PageProps) => {
                 }}
               >
                 <img
-                  src={imageUrl}
+                  src={previewImageUrl}
                   alt={`Render preview for job ${id}`}
                   style={{
                     maxWidth: "100%",
@@ -444,12 +456,20 @@ const JobPage = ({ params }: PageProps) => {
                     height: "auto",
                     objectFit: "contain",
                   }}
+                  onError={(event) => {
+                    const target = event.currentTarget as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
                 />
               </div>
             ) : (
               <div className="text-center text-gray-500">
                 <p className="text-lg">Render Preview</p>
-                <p className="text-sm">Waiting for tiles from render nodes…</p>
+                <p className="text-sm">
+                  {job.status === "completed"
+                    ? "Result image is not available yet."
+                    : "Waiting for tiles from render nodes…"}
+                </p>
               </div>
             )}
           </div>
