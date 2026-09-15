@@ -41,18 +41,6 @@ const Footer = () => {
           ChunkyCloud
         </Link>
       </nav>
-      <nav>
-        <h6 className="footer-title">Placeholder Legal</h6>
-        <Link href="" className="link link-hover">
-          Terms of use
-        </Link>
-        <Link href="" className="link link-hover">
-          Privacy policy
-        </Link>
-        <Link href="" className="link link-hover">
-          Cookie policy
-        </Link>
-      </nav>
       <div className="absolute bottom-4 right-10">
         <p className="text-xs text-gray-500">
           {" "}
