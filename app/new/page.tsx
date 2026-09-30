@@ -1,23 +1,21 @@
 "use client";
-import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Head from "next/head";
-import Header from "../../components/Header";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { canvasSizeToDimensions } from "../new/utils";
 
 import { useSession } from "../../app/auth/components/SessionProvider";
+import type { ResourcePackResponse } from "../../lib/api-client";
 import {
   createJob,
   estimateJobCost,
-  startJob,
   getResourcePacks,
+  startJob,
 } from "../../lib/api-client";
-import type { ResourcePackResponse } from "../../lib/api-client";
 
+import Link from "next/link";
 import LogPanel, { LogPanelRef } from "../../components/LogPanel";
 import MultiSelect from "../../components/MultiSelect";
-import Link from "next/link";
 
 // TODO: Add a clear prompt/CTA for users who are not logged in.
 {
@@ -228,8 +226,10 @@ export default function CreateJob() {
   const [estimatedWorkUnits, setEstimatedWorkUnits] = useState<number | null>(
     null,
   );
-  const [estimatedCredits, setEstimatedCredits] = useState<number | null>(null);
-  const estimateTimerRef = useRef<number | null>(null);
+  const estimatedCredits =
+    estimatedWorkUnits != null
+      ? Math.round(Number(estimatedWorkUnits) * 0.000001)
+      : null;
 
   // animated displayed values
   const animatedWorkUnits = useAnimatedNumber(estimatedWorkUnits, 500);
@@ -316,28 +316,6 @@ export default function CreateJob() {
     },
     [handleFiles],
   );
-
-  const HandleEstimateJobCost = useCallback(async () => {
-    if (!client) return;
-    try {
-      const res = await estimateJobCost({
-        client,
-        body: { width: canvasWidth, height: canvasHeight, spp: targetSpp },
-      });
-      const data = (res as any)?.data;
-      if (data) {
-        const wu = data.workUnits ? Number(data.workUnits) : null;
-        setEstimatedWorkUnits(wu);
-        setEstimatedCredits(
-          data.workUnits ? Math.round(Number(data.workUnits) * 0.000001) : null,
-        );
-      }
-    } catch (err: any) {
-      console.error("Estimate failed", err);
-      setEstimatedWorkUnits(null);
-      setEstimatedCredits(null);
-    }
-  }, [client, canvasWidth, canvasHeight, targetSpp]);
 
   useEffect(() => {
     if (!client) return;
@@ -534,22 +512,35 @@ export default function CreateJob() {
   ]);
 
   useEffect(() => {
-    // debounce:300ms
-    if (estimateTimerRef.current) window.clearTimeout(estimateTimerRef.current);
-    estimateTimerRef.current = window.setTimeout(() => {
-      HandleEstimateJobCost();
-    }, 300) as unknown as number;
-    return () => {
-      if (estimateTimerRef.current)
-        window.clearTimeout(estimateTimerRef.current);
-    };
-  }, [
-    canvasWidth,
-    canvasHeight,
-    targetSpp,
-    sceneDescription,
-    HandleEstimateJobCost,
-  ]);
+    const ac = new AbortController();
+    const debounce = setTimeout(async () => {
+      if (!client) return;
+      try {
+        const res = await estimateJobCost({
+          client,
+          body: { width: canvasWidth, height: canvasHeight, spp: targetSpp },
+        });
+        if (ac.signal.aborted) {
+          return;
+        }
+        const data = (res as any)?.data;
+        if (data) {
+          const wu = data.workUnits ? Number(data.workUnits) : null;
+          setEstimatedWorkUnits(wu);
+        }
+      } catch (err: any) {
+        if (ac.signal.aborted) {
+          return;
+        }
+        console.error("Estimate failed", err);
+        setEstimatedWorkUnits(null);
+      }
+    }, 300);
+    ac.signal.addEventListener("abort", () => {
+      clearTimeout(debounce);
+    });
+    return () => ac.abort();
+  }, [canvasWidth, canvasHeight, targetSpp, sceneDescription]);
 
   async function uploadFile(uploadUrl: string, file: File) {
     const response = await fetch(uploadUrl, {
