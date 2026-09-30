@@ -715,20 +715,21 @@ export default function CreateJob() {
                   </span>
                 </label>
                 <select
-                  defaultValue="1920x1080"
                   className="select"
                   value={canvasSize}
                   onChange={(e) => {
                     setCanvasSize(e.target.value);
-                    const { width, height } = canvasSizeToDimensions(
-                      e.target.value,
-                    );
-                    setCanvasWidth(width);
-                    setCanvasHeight(height);
+                    if (e.target.value !== "Custom") {
+                      const { width, height } = canvasSizeToDimensions(
+                        e.target.value,
+                      );
+                      setCanvasWidth(width);
+                      setCanvasHeight(height);
+                    }
                   }}
                 >
                   <option>Custom</option>
-                  <option>{canvasSize}</option>
+                  {canvasSize !== "Custom" && <option>{canvasSize}</option>}
                   <option>400x400</option>
                   <option>960x540</option>
                   <option>1024x768</option>
@@ -737,14 +738,23 @@ export default function CreateJob() {
               </div>
 
               {canvasSize === "Custom" && (
-                <div className="ml-6 mt-3 bg-base-300 rounded-box p-4 border-l-4 border-primary shadow-sm">
-                  <div className="form-control w-full mb-6 menu-vertical">
+                <div className="ml-6 mt-3 bg-base-300 rounded-box p-4 border-l-4 border-primary shadow-sm mb-6">
+                  <div className="form-control w-full menu-vertical">
                     <label className="label" htmlFor="targetSpp">
                       <span className="label-text text-base font-bold">
                         Custom Canvas Size
                       </span>
                     </label>
                     <div className="form-control w-full mb-6 menu-horizontal">
+                      <input
+                        type="number"
+                        placeholder="Target width"
+                        className="input input-bordered input-md w-40 mb-3"
+                        value={customWidth}
+                        step={10}
+                        onChange={(e) => setCustomWidth(Number(e.target.value))}
+                      />
+                      <p className="text-xl m-3"> &times; </p>
                       <input
                         type="number"
                         placeholder="Target height"
@@ -754,15 +764,6 @@ export default function CreateJob() {
                         onChange={(e) =>
                           setCustomHeight(Number(e.target.value))
                         }
-                      />
-                      <p className="text-xl m-3"> X </p>
-                      <input
-                        type="number"
-                        placeholder="Target width"
-                        className="input input-bordered input-md w-40 mb-3"
-                        value={customWidth}
-                        step={10}
-                        onChange={(e) => setCustomWidth(Number(e.target.value))}
                       />
                     </div>
                     <button
