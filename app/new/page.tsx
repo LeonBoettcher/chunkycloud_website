@@ -239,7 +239,7 @@ export default function CreateJob() {
   );
   const estimatedCredits =
     estimatedWorkUnits != null
-      ? Math.round(Number(estimatedWorkUnits) * 0.000001)
+      ? Math.round(Number(estimatedWorkUnits) / 100000)
       : null;
 
   // animated displayed values
