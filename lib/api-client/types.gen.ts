@@ -58,7 +58,7 @@ export type UserTransactionsResponse = {
 
 export type JobStatus = 'draft' | 'queued' | 'running' | 'merge_pending' | 'merge_running' | 'completed' | 'aborted';
 
-export type UserJob = {
+export type UserJobItem = {
     id: number;
     status: JobStatus;
     progress: number;
@@ -75,7 +75,7 @@ export type UserJob = {
 };
 
 export type UserJobsResponse = {
-    data: Array<UserJob>;
+    data: Array<UserJobItem>;
     extra: PaginationInfo;
 };
 
@@ -107,6 +107,26 @@ export type UserJobHistoryEvent = {
 export type UserJobHistoryResponse = {
     data: Array<UserJobHistoryEvent>;
     extra: PaginationInfo;
+};
+
+export type UserJob = {
+    id: number;
+    status: JobStatus;
+    progress: number;
+    spp: number;
+    width: number;
+    height: number;
+    hasEmitterGrid: boolean;
+    createDump: boolean;
+    createdAt: string;
+    startedAt?: string | null;
+    finishedAt?: string | null;
+    abortedAt?: string | null;
+    thumbnailUrl?: string;
+    /**
+     * Approximate samples per second this job is currently rendering at
+     */
+    samplesPerSecond: number;
 };
 
 export type UrlResponse = {
