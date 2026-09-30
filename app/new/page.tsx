@@ -168,6 +168,17 @@ export default function CreateJob() {
     }
   }
 
+  useEffect(() => {
+    if (texturepack.length == 0 && resourcePacks.length > 0) {
+      const defaultResourcepack = resourcePacks.find(
+        (rp) => rp.name === "Minecraft 26.2",
+      );
+      if (defaultResourcepack) {
+        setTexturepack([defaultResourcepack]);
+      }
+    }
+  }, [texturepack, resourcePacks]);
+
   const handleSceneDescriptionFileChange = useCallback(
     async (file: File | undefined) => {
       if (file?.type === "application/json") {
