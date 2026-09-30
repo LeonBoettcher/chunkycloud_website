@@ -1,7 +1,7 @@
 import Link from "next/link";
 import React from "react";
 
-const commit = process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7) ?? "dev";
+const commit = process.env.VERCEL_GIT_COMMIT_SHA;
 
 const Footer = () => {
   return (
@@ -44,12 +44,20 @@ const Footer = () => {
           ChunkyCloud API
         </Link>
       </nav>
-      <div className="absolute bottom-4 right-10">
-        <p className="text-xs text-gray-500">
-          {" "}
-          v{process.env.NEXT_PUBLIC_APP_VERSION} • {commit}
-        </p>
-      </div>
+      {commit && (
+        <div className="absolute bottom-4 right-10">
+          <p className="text-xs text-gray-500">
+            <a
+              href={`https://github.com/ChunkyCloud/website/commit/${commit}`}
+              rel="noopener noreferrer"
+              target="_blank"
+              title="Open the source code on GitHub"
+            >
+              {commit.substring(0, 7)}
+            </a>
+          </p>
+        </div>
+      )}
     </footer>
   );
 };
