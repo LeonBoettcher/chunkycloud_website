@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 
 import {
@@ -18,6 +18,8 @@ interface MultiSelectProps {
   packs: ResourcePackResponse[];
   value: ResourcePackResponse[];
   onChange: (packs: ResourcePackResponse[]) => void;
+  error?: boolean;
+  errorMessage?: string;
 }
 
 interface SortableItemProps {
@@ -87,17 +89,36 @@ export default function MultiSelect({
   packs,
   value,
   onChange,
+  error = false,
+  errorMessage,
 }: MultiSelectProps) {
   const [selected, setSelected] = useState<ResourcePackResponse[]>(value);
 
   const [open, setOpen] = useState(false);
 
   const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Keep local state synced with parent
   useEffect(() => {
     setSelected(value);
   }, [value]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [open]);
 
   function update(items: ResourcePackResponse[]) {
     setSelected(items);
@@ -137,24 +158,29 @@ export default function MultiSelect({
   );
 
   return (
-    <div className="w-full relative">
+    <div className="w-full relative" ref={containerRef}>
       {/* Selector */}
       <button
         type="button"
-        className="
+        className={`
           input
           input-bordered
           w-full
           text-left
           flex
           items-center
-        "
+          ${error ? "border-error text-error" : ""}
+        `}
         onClick={() => setOpen((previous) => !previous)}
       >
         {selected.length === 0
           ? "Select resource packs..."
           : `${selected.length} packs selected`}
       </button>
+
+      {error && errorMessage && (
+        <div className="mt-2 text-sm text-error">{errorMessage}</div>
+      )}
 
       {open && (
         <div

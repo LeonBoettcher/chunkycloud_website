@@ -140,10 +140,11 @@ export default function CreateJob() {
   function fetchResourcePacks() {
     getResourcePacks({ client })
       .then((packs) => {
-        setResourcePacks(packs.data);
+        setResourcePacks(Array.isArray(packs?.data) ? packs.data : []);
       })
       .catch((error) => {
         console.error("Failed to fetch resource packs:", error);
+        setResourcePacks([]);
       });
   }
 
@@ -218,6 +219,10 @@ export default function CreateJob() {
   const [userDisplayCredits, setUserDisplayCredits] = useState<number | null>(
     null,
   );
+  const noResourcePacksAvailable =
+    !Array.isArray(resourcePacks) || resourcePacks.length === 0;
+  const resourcePackValidationError =
+    showValidation && (noResourcePacksAvailable || texturepack.length === 0);
 
   // Estimate state
   const [estimatedWorkUnits, setEstimatedWorkUnits] = useState<number | null>(
@@ -366,6 +371,18 @@ export default function CreateJob() {
           octreeDescription: octreeDescription,
           renderName: renderName,
         },
+      );
+      return;
+    }
+
+    if (noResourcePacksAvailable || texturepack.length === 0) {
+      setShowValidation(true);
+      logRef.current?.show();
+      logRef.current?.addLog(
+        noResourcePacksAvailable
+          ? "No resource packs are available for this job"
+          : "Please select at least one resource pack",
+        "error",
       );
       return;
     }
@@ -902,6 +919,12 @@ export default function CreateJob() {
                 <MultiSelect
                   packs={resourcePacks}
                   value={texturepack}
+                  error={resourcePackValidationError}
+                  errorMessage={
+                    noResourcePacksAvailable
+                      ? "No resource packs are available. Add a resource pack before submitting."
+                      : "Please select at least one resource pack."
+                  }
                   onChange={(packs) => {
                     setTexturepack(packs);
                   }}
@@ -915,29 +938,36 @@ export default function CreateJob() {
                 data-tip={
                   submitting
                     ? "Submitting your render job..."
-                    : !sceneDescription || !octreeDescription
-                      ? `Missing required fields: ${[
-                          !sceneDescription && "Scene description",
-                          !octreeDescription && "Octree",
-                        ]
-                          .filter(Boolean)
-                          .join(", ")}`
-                      : userDisplayCredits !== null &&
-                          estimatedCredits !== null &&
-                          userDisplayCredits < estimatedCredits
-                        ? "Insufficient credits"
-                        : "Click to Submit your render job"
+                    : noResourcePacksAvailable
+                      ? "No resource packs are available"
+                      : texturepack.length === 0
+                        ? "Please select at least one resource pack"
+                        : !sceneDescription || !octreeDescription
+                          ? `Missing required fields: ${[
+                              !sceneDescription && "Scene description",
+                              !octreeDescription && "Octree",
+                            ]
+                              .filter(Boolean)
+                              .join(", ")}`
+                          : userDisplayCredits !== null &&
+                              estimatedCredits !== null &&
+                              userDisplayCredits < estimatedCredits
+                            ? "Insufficient credits"
+                            : "Click to Submit your render job"
                 }
               >
                 <button
-                  className={`btn btn-primary w-full ${
-                    showValidation && (!sceneDescription || !octreeDescription)
+                  className={`btn w-full ${
+                    showValidation &&
+                    (noResourcePacksAvailable || texturepack.length === 0)
                       ? "btn-error"
-                      : ""
+                      : "btn-primary"
                   }`}
                   onClick={HandlecreateJob}
                   disabled={
                     submitting ||
+                    noResourcePacksAvailable ||
+                    texturepack.length === 0 ||
                     (userDisplayCredits !== null &&
                       estimatedCredits !== null &&
                       userDisplayCredits < estimatedCredits)
