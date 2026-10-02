@@ -7,7 +7,7 @@ const Footer = () => {
   return (
     <footer className="footer sm:footer-horizontal bg-base-200 text-base-content p-10 relative">
       <aside>
-        <img src="/logo.png" alt="ChunkyCloud Logo" className="w-16 h-16" />
+        <img src="/logo.svg" alt="ChunkyCloud Logo" className="w-16 h-16" />
         <p className="font-bold">ChunkyCloud</p>
         <p className="text-sm text-gray-500">A Distributed Rendering Service</p>
       </aside>
