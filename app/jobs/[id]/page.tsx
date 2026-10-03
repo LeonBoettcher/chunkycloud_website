@@ -99,7 +99,7 @@ const JobPage = ({ params }: PageProps) => {
 
   useEffect(() => {
     if (job && job.status !== "completed" && job.status !== "aborted") {
-      const timeout = setTimeout(() => fetchJob(), 30_000);
+      const timeout = setTimeout(() => fetchJob(), 15_000);
       return () => clearTimeout(timeout);
     }
   }, [job]);
@@ -299,14 +299,18 @@ const JobPage = ({ params }: PageProps) => {
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <span className="font-semibold">Progress:</span>
                   <span className="font-mono text-sm">
-                    {(job.progress * 100).toFixed(2)}%
+                    {(job.progress * 100).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                    %
                   </span>
                 </div>
                 <progress
                   className="progress progress-primary w-full"
                   value={job.progress}
                   max={1}
-                  aria-label={`Job progress ${(job.progress * 100).toFixed(2)}%`}
+                  aria-label={`Job progress ${(job.progress * 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`}
                 ></progress>
               </div>
 
@@ -326,6 +330,14 @@ const JobPage = ({ params }: PageProps) => {
                     )}
                   </span>
                 </div>
+                {job.status === "running" && (
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                    <span className="font-semibold">Samples per second:</span>
+                    <span className="font-mono text-sm">
+                      {job.samplesPerSecond.toLocaleString()}
+                    </span>
+                  </div>
+                )}
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                   <span className="font-semibold">Created at:</span>
                   <span className="font-mono text-sm">
@@ -364,7 +376,7 @@ const JobPage = ({ params }: PageProps) => {
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                     <span>Resolution:</span>
                     <span className="font-mono">
-                      {job.width}x{job.height}
+                      {job.width}&times;{job.height}
                     </span>
                   </div>
                   {/*<div className="flex justify-between">

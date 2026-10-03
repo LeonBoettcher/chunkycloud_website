@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import React from "react";
-import HeroCards from "../components/Index/HeroCards";
+import HeroCard from "../components/Index/HeroCard";
 
 const MainPage = () => {
   return (
@@ -36,20 +36,20 @@ const MainPage = () => {
                 </Link>
               </p>
               <div className="pt-10 px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
-                <HeroCards
-                  Title="Create a new job"
-                  Description="Upload your scene and render it on a distributed server farm."
-                  Link="/new"
+                <HeroCard
+                  title="Create a new job"
+                  description="Upload your scene and render it on a distributed server farm."
+                  link="/new"
                 />
-                <HeroCards
-                  Title="Join the render farm"
-                  Description="Get the render node software and add contribute computing power."
-                  Link="/join"
+                <HeroCard
+                  title="Join the render farm"
+                  description="Get the render node software and add contribute computing power."
+                  link="/join"
                 />
-                <HeroCards
-                  Title="Statistics"
-                  Description="See how ChunkyCloud is doing and some numbers."
-                  Link="/stats"
+                <HeroCard
+                  title="Statistics"
+                  description="See how ChunkyCloud is doing and some numbers."
+                  link="/stats"
                 />
               </div>
             </div>

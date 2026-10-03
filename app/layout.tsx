@@ -7,9 +7,6 @@ import "./global.css";
 
 export const metadata: Metadata = {
   title: "ChunkyCloud",
-  icons: {
-    icon: "/favicon.ico",
-  },
 };
 
 export default async function RootLayout({

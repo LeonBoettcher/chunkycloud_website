@@ -1,23 +1,21 @@
 "use client";
-import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Head from "next/head";
-import Header from "../../components/Header";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { canvasSizeToDimensions } from "../new/utils";
 
 import { useSession } from "../../app/auth/components/SessionProvider";
+import type { ResourcePackResponse } from "../../lib/api-client";
 import {
   createJob,
   estimateJobCost,
-  startJob,
   getResourcePacks,
+  startJob,
 } from "../../lib/api-client";
-import type { ResourcePackResponse } from "../../lib/api-client";
 
+import Link from "next/link";
 import LogPanel, { LogPanelRef } from "../../components/LogPanel";
 import MultiSelect from "../../components/MultiSelect";
-import Link from "next/link";
 
 // TODO: Add a clear prompt/CTA for users who are not logged in.
 {
@@ -170,6 +168,17 @@ export default function CreateJob() {
     }
   }
 
+  useEffect(() => {
+    if (texturepack.length == 0 && resourcePacks.length > 0) {
+      const defaultResourcepack = resourcePacks.find(
+        (rp) => rp.name === "Minecraft 26.2",
+      );
+      if (defaultResourcepack) {
+        setTexturepack([defaultResourcepack]);
+      }
+    }
+  }, [texturepack, resourcePacks]);
+
   const handleSceneDescriptionFileChange = useCallback(
     async (file: File | undefined) => {
       if (file?.type === "application/json") {
@@ -228,8 +237,10 @@ export default function CreateJob() {
   const [estimatedWorkUnits, setEstimatedWorkUnits] = useState<number | null>(
     null,
   );
-  const [estimatedCredits, setEstimatedCredits] = useState<number | null>(null);
-  const estimateTimerRef = useRef<number | null>(null);
+  const estimatedCredits =
+    estimatedWorkUnits != null
+      ? Math.round(Number(estimatedWorkUnits) / 100000)
+      : null;
 
   // animated displayed values
   const animatedWorkUnits = useAnimatedNumber(estimatedWorkUnits, 500);
@@ -316,28 +327,6 @@ export default function CreateJob() {
     },
     [handleFiles],
   );
-
-  const HandleEstimateJobCost = useCallback(async () => {
-    if (!client) return;
-    try {
-      const res = await estimateJobCost({
-        client,
-        body: { width: canvasWidth, height: canvasHeight, spp: targetSpp },
-      });
-      const data = (res as any)?.data;
-      if (data) {
-        const wu = data.workUnits ? Number(data.workUnits) : null;
-        setEstimatedWorkUnits(wu);
-        setEstimatedCredits(
-          data.workUnits ? Math.round(Number(data.workUnits) * 0.000001) : null,
-        );
-      }
-    } catch (err: any) {
-      console.error("Estimate failed", err);
-      setEstimatedWorkUnits(null);
-      setEstimatedCredits(null);
-    }
-  }, [client, canvasWidth, canvasHeight, targetSpp]);
 
   useEffect(() => {
     if (!client) return;
@@ -534,22 +523,35 @@ export default function CreateJob() {
   ]);
 
   useEffect(() => {
-    // debounce:300ms
-    if (estimateTimerRef.current) window.clearTimeout(estimateTimerRef.current);
-    estimateTimerRef.current = window.setTimeout(() => {
-      HandleEstimateJobCost();
-    }, 300) as unknown as number;
-    return () => {
-      if (estimateTimerRef.current)
-        window.clearTimeout(estimateTimerRef.current);
-    };
-  }, [
-    canvasWidth,
-    canvasHeight,
-    targetSpp,
-    sceneDescription,
-    HandleEstimateJobCost,
-  ]);
+    const ac = new AbortController();
+    const debounce = setTimeout(async () => {
+      if (!client) return;
+      try {
+        const res = await estimateJobCost({
+          client,
+          body: { width: canvasWidth, height: canvasHeight, spp: targetSpp },
+        });
+        if (ac.signal.aborted) {
+          return;
+        }
+        const data = (res as any)?.data;
+        if (data) {
+          const wu = data.workUnits ? Number(data.workUnits) : null;
+          setEstimatedWorkUnits(wu);
+        }
+      } catch (err: any) {
+        if (ac.signal.aborted) {
+          return;
+        }
+        console.error("Estimate failed", err);
+        setEstimatedWorkUnits(null);
+      }
+    }, 300);
+    ac.signal.addEventListener("abort", () => {
+      clearTimeout(debounce);
+    });
+    return () => ac.abort();
+  }, [canvasWidth, canvasHeight, targetSpp, sceneDescription]);
 
   async function uploadFile(uploadUrl: string, file: File) {
     const response = await fetch(uploadUrl, {
@@ -724,20 +726,21 @@ export default function CreateJob() {
                   </span>
                 </label>
                 <select
-                  defaultValue="1920x1080"
                   className="select"
                   value={canvasSize}
                   onChange={(e) => {
                     setCanvasSize(e.target.value);
-                    const { width, height } = canvasSizeToDimensions(
-                      e.target.value,
-                    );
-                    setCanvasWidth(width);
-                    setCanvasHeight(height);
+                    if (e.target.value !== "Custom") {
+                      const { width, height } = canvasSizeToDimensions(
+                        e.target.value,
+                      );
+                      setCanvasWidth(width);
+                      setCanvasHeight(height);
+                    }
                   }}
                 >
                   <option>Custom</option>
-                  <option>{canvasSize}</option>
+                  {canvasSize !== "Custom" && <option>{canvasSize}</option>}
                   <option>400x400</option>
                   <option>960x540</option>
                   <option>1024x768</option>
@@ -746,14 +749,23 @@ export default function CreateJob() {
               </div>
 
               {canvasSize === "Custom" && (
-                <div className="ml-6 mt-3 bg-base-300 rounded-box p-4 border-l-4 border-primary shadow-sm">
-                  <div className="form-control w-full mb-6 menu-vertical">
+                <div className="ml-6 mt-3 bg-base-300 rounded-box p-4 border-l-4 border-primary shadow-sm mb-6">
+                  <div className="form-control w-full menu-vertical">
                     <label className="label" htmlFor="targetSpp">
                       <span className="label-text text-base font-bold">
                         Custom Canvas Size
                       </span>
                     </label>
                     <div className="form-control w-full mb-6 menu-horizontal">
+                      <input
+                        type="number"
+                        placeholder="Target width"
+                        className="input input-bordered input-md w-40 mb-3"
+                        value={customWidth}
+                        step={10}
+                        onChange={(e) => setCustomWidth(Number(e.target.value))}
+                      />
+                      <p className="text-xl m-3"> &times; </p>
                       <input
                         type="number"
                         placeholder="Target height"
@@ -763,15 +775,6 @@ export default function CreateJob() {
                         onChange={(e) =>
                           setCustomHeight(Number(e.target.value))
                         }
-                      />
-                      <p className="text-xl m-3"> X </p>
-                      <input
-                        type="number"
-                        placeholder="Target width"
-                        className="input input-bordered input-md w-40 mb-3"
-                        value={customWidth}
-                        step={10}
-                        onChange={(e) => setCustomWidth(Number(e.target.value))}
                       />
                     </div>
                     <button
