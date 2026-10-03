@@ -605,11 +605,16 @@ export default function CreateJob() {
   return (
     <>
       <div
-        className="bg-fixed bg-cover bg-center overflow-hidden"
+        className="relative min-h-screen bg-fixed bg-cover bg-center overflow-hidden"
         style={{
           backgroundImage: "url(/images/boscawinks-Basalt_Deltas_be_like.png)",
         }}
       >
+        <div className="absolute bottom-2 left-2 z-10 text-white/70">
+          <Link href="https://chunky-dev.github.io/gallery/">
+            "Basalt Deltas be like" by boscawinks
+          </Link>
+        </div>
         <div className="px-6 py-8 max-w-4xl mx-auto">
           <fieldset className="fieldset bg-base-200/95 border-base-300 rounded-box border p-8 shadow">
             <legend className="fieldset-legend text-3xl font-bold">

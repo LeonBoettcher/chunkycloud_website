@@ -80,6 +80,11 @@ export default function JobsPage() {
         backgroundImage: "url(/images/boscawinks-Give_that_back.png)",
       }}
     >
+      <div className="absolute bottom-2 left-2 z-10 text-white/90">
+        <Link href="https://chunky-dev.github.io/gallery/">
+          "Give that back" by boscawinks
+        </Link>
+      </div>
       <div className="mx-auto max-w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-baseline justify-between border-gray-700 bg-gray-800/70 rounded-2xl px-8 sm:px-8 pt-24 pb-6">
           <h1 className="text-4xl font-bold tracking-tight ">Jobs</h1>
