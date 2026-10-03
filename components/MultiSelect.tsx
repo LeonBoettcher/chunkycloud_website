@@ -92,16 +92,22 @@ export default function MultiSelect({
   error = false,
   errorMessage,
 }: MultiSelectProps) {
-  const [selected, setSelected] = useState<ResourcePackResponse[]>(value);
+  const [selected, setSelected] = useState<ResourcePackResponse[]>([]);
 
   const [open, setOpen] = useState(false);
 
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const hasUserInteracted = useRef(false);
 
-  // Keep local state synced with parent
+  // Keep local state synced with parent only after the user has made a choice.
   useEffect(() => {
-    setSelected(value);
+    if (!hasUserInteracted.current) {
+      setSelected([]);
+      return;
+    }
+
+    setSelected(Array.isArray(value) ? value : []);
   }, [value]);
 
   useEffect(() => {
@@ -121,6 +127,7 @@ export default function MultiSelect({
   }, [open]);
 
   function update(items: ResourcePackResponse[]) {
+    hasUserInteracted.current = true;
     setSelected(items);
     onChange(items);
   }
