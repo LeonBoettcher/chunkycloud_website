@@ -611,7 +611,7 @@ export default function CreateJob() {
         }}
       >
         <div className="absolute bottom-2 left-2 z-10 text-white/70">
-          <Link href="https://chunky-dev.github.io/gallery/">
+          <Link href="https://www.planetminecraft.com/member/boscawinks/">
             "Basalt Deltas be like" by boscawinks
           </Link>
         </div>
