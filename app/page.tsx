@@ -10,7 +10,7 @@ const MainPage = () => {
       <div
         className="hero min-h-screen relative"
         style={{
-          backgroundImage: "url(/images/Bluelix-swamp_and_mountain.png)",
+          backgroundImage: "url(/images/boscawinks-give_that_back.png)",
         }}
       >
         {/* TODO Add Hero image cycler + add the Creator Tag 
@@ -56,8 +56,8 @@ const MainPage = () => {
           </div>
         </div>
         <div className="absolute bottom-2 left-2 text-xs text-white/70">
-          <Link href="https://chunky-dev.github.io/gallery/">
-            "swamp and mountain" by Bluelix
+          <Link href="https://www.planetminecraft.com/member/boscawinks/">
+            "Give that back" by boscawinks
           </Link>
         </div>
       </div>
