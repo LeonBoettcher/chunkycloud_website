@@ -10,7 +10,7 @@ const DocsPage = () => {
     <div
       className="relative min-h-screen bg-fixed bg-cover bg-center overflow-hidden"
       style={{
-        backgroundImage: "url(/images/boscawinks-Give_that_back.png)",
+        backgroundImage: "url(/images/boscawinks-Give_that_back.webp)",
       }}
     >
       <div className="absolute bottom-2 left-2 z-10 text-white/90">

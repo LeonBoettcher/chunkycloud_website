@@ -77,7 +77,7 @@ export default function JobsPage() {
     <div
       className="hero min-h-screen relative"
       style={{
-        backgroundImage: "url(/images/boscawinks-Give_that_back.png)",
+        backgroundImage: "url(/images/boscawinks-Give_that_back.webp)",
       }}
     >
       <div className="absolute bottom-2 left-2 z-10 text-white/90">

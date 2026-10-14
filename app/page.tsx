@@ -10,7 +10,7 @@ const MainPage = () => {
       <div
         className="hero min-h-screen relative"
         style={{
-          backgroundImage: "url(/images/boscawinks-Give_that_back.png)",
+          backgroundImage: "url(/images/boscawinks-Give_that_back.webp)",
         }}
       >
         {/* TODO Add Hero image cycler + add the Creator Tag 

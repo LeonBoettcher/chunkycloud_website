@@ -607,7 +607,7 @@ export default function CreateJob() {
       <div
         className="relative min-h-screen bg-fixed bg-cover bg-center overflow-hidden"
         style={{
-          backgroundImage: "url(/images/boscawinks-Basalt_Deltas_be_like.png)",
+          backgroundImage: "url(/images/boscawinks-Basalt_Deltas_be_like.webp)",
         }}
       >
         <div className="absolute bottom-2 left-2 z-10 text-white/70">

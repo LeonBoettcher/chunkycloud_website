@@ -169,7 +169,7 @@ const JobCards = ({
       `}</style>
 
       {jobs.map((job) => {
-        const imageSrc = job.thumbnailUrl ?? "/images/blueprint.png";
+        const imageSrc = job.thumbnailUrl ?? "/images/blueprint.webp";
 
         return (
           <Link key={job.id} href={`/jobs/${job.id}`} className="block mb-4">
@@ -190,7 +190,7 @@ const JobCards = ({
                     className="h-full w-full object-cover"
                     onError={(event) => {
                       const target = event.currentTarget as HTMLImageElement;
-                      target.src = "/images/blueprint.png";
+                      target.src = "/images/blueprint.webp";
                     }}
                   />
                 </div>
