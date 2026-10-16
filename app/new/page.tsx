@@ -103,7 +103,7 @@ export default function CreateJob() {
 
   const [renderName, setRenderName] = useState<string>("");
   const [targetSpp, setTargetSpp] = useState(500);
-  const [renderDump, setRenderDump] = useState(false);
+  const [createDump, setCreateDump] = useState(false);
   const [texturepack, setTexturepack] = useState<ResourcePackResponse[]>([]);
 
   const [skymap, setSkymap] = useState<File>();
@@ -408,7 +408,7 @@ export default function CreateJob() {
           spp: targetSpp,
           width: canvasWidth,
           height: canvasHeight,
-          createDump: true,
+          createDump,
           resourcePacks: texturepack,
         },
       });
@@ -884,8 +884,8 @@ export default function CreateJob() {
                 <label className="toggle toggle-error m-2">
                   <input
                     type="checkbox"
-                    checked={renderDump}
-                    onChange={(e) => setRenderDump(e.target.checked)}
+                    checked={createDump}
+                    onChange={(e) => setCreateDump(e.target.checked)}
                   />
 
                   {/* OFF */}
