@@ -62,7 +62,11 @@ export default function JobsPage() {
             You need to sign in to view your render jobs.
           </p>
           <div className="mt-6 flex justify-center gap-3">
-            <Link href="/auth/init" prefetch={false} className="btn btn-primary">
+            <Link
+              href="/auth/init"
+              prefetch={false}
+              className="btn btn-primary"
+            >
               Login
             </Link>
             <Link href="/" className="btn btn-ghost">
@@ -186,7 +190,11 @@ export default function JobsPage() {
                   You need to create a render job first.
                 </p>
                 <div className="mt-6 flex justify-center gap-3">
-                  <Link href="/new" prefetch={false} className="btn btn-primary btn-sm">
+                  <Link
+                    href="/new"
+                    prefetch={false}
+                    className="btn btn-primary btn-sm"
+                  >
                     Create a Job
                   </Link>
                   <Link href="/" className="btn btn-ghost btn-sm">
