@@ -57,7 +57,7 @@ const MainPage = () => {
         </div>
         <div className="absolute bottom-2 left-2 text-xs text-white/70">
           <Link href="https://www.planetminecraft.com/member/boscawinks/">
-            "Give that back" by boscawinks
+            &ldquo;Give that back&rdquo; by boscawinks
           </Link>
         </div>
       </div>

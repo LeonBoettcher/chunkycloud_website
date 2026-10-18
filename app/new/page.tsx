@@ -372,7 +372,7 @@ export default function CreateJob() {
     return () => ac?.abort();
   }, [client]);
 
-  const handleCreateJob = async () => {
+  const handleCreateJob = useCallback(async () => {
     {
       /* Validate if required Inputs are filled out */
     }
@@ -575,7 +575,27 @@ export default function CreateJob() {
         logRef.current?.hide();
       }, 10_000); // 10 seconds
     }
-  };
+  }, [
+    canvasHeight,
+    canvasWidth,
+    client,
+    createDump,
+    emitterGrid,
+    emitterGridRequired,
+    estimatedCredits,
+    noResourcePacksAvailable,
+    octreeDescription,
+    removefromSceneDescription,
+    renderName,
+    router,
+    sceneDescription,
+    skyMode,
+    skyboxParts,
+    skymap,
+    targetSpp,
+    texturepack,
+    userDisplayCredits,
+  ]);
 
   useEffect(() => {
     const ac = new AbortController();
@@ -606,7 +626,7 @@ export default function CreateJob() {
       clearTimeout(debounce);
     });
     return () => ac.abort();
-  }, [canvasWidth, canvasHeight, targetSpp, sceneDescription]);
+  }, [canvasWidth, canvasHeight, targetSpp, sceneDescription, client]);
 
   async function uploadFile(uploadUrl: string, file: File) {
     const response = await fetch(uploadUrl, {
@@ -671,7 +691,7 @@ export default function CreateJob() {
       >
         <div className="absolute bottom-2 left-2 z-10 text-white/70">
           <Link href="https://www.planetminecraft.com/member/boscawinks/">
-            "Basalt Deltas be like" by boscawinks
+            &ldquo;Basalt Deltas be like&rdquo; by boscawinks
           </Link>
         </div>
         <div className="px-6 py-8 max-w-4xl mx-auto">

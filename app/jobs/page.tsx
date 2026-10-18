@@ -82,7 +82,7 @@ export default function JobsPage() {
     >
       <div className="absolute bottom-2 left-2 z-10 text-white/90">
         <Link href="https://www.planetminecraft.com/member/boscawinks/">
-          "Give that back" by boscawinks
+          &ldquo;Give that back&rdquo; by boscawinks
         </Link>
       </div>
       <div className="mx-auto max-w-full px-4 sm:px-6 lg:px-8">
