@@ -11,9 +11,13 @@ import {
   getJobTiles,
 } from "../../../lib/api-client";
 
+import { mdiFileDocument, mdiFolderOutline } from "@mdi/js";
+
 import DownloadModal from "../../../components/Job/DownloadModal";
 import getStatusTag from "../../../components/Job/getStatusTag";
 import { DurationCounter } from "./DurationCounter";
+import Link from "next/link";
+import Icon from "@mdi/react";
 
 interface PageProps {
   params: Promise<{
@@ -286,6 +290,28 @@ const JobPage = ({ params }: PageProps) => {
 
   return (
     <div className="flex flex-col space-y-4 p-4 sm:space-y-6 sm:p-6">
+      <div className="breadcrumbs text-sm">
+        <ul>
+          <li>
+            <a>
+              <Icon path={mdiFolderOutline} size={1} />
+              <Link href="/">Home</Link>
+            </a>
+          </li>
+          <li>
+            <a>
+              <Icon path={mdiFolderOutline} size={1} />
+              <Link href="/jobs">Jobs</Link>
+            </a>
+          </li>
+          <li>
+            <span className="inline-flex items-center gap-2">
+              <Icon path={mdiFileDocument} size={1} />
+              Job {job.id}
+            </span>
+          </li>
+        </ul>
+      </div>
       <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
         <div className="w-full lg:basis-1/3 lg:min-w-[280px]">
           <div className="card min-w-0 bg-gray-800 text-white shadow-lg">
