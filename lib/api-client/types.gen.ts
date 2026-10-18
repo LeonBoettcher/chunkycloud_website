@@ -65,7 +65,12 @@ export type UserJobItem = {
     spp: number;
     width: number;
     height: number;
+    /**
+     * Minimum available RAM in bytes required on nodes to run this job
+     */
+    minimumRam: number;
     hasEmitterGrid: boolean;
+    skyMode: 'skybox' | 'skymap';
     createDump: boolean;
     createdAt: string;
     startedAt?: string | null;
@@ -116,7 +121,12 @@ export type UserJob = {
     spp: number;
     width: number;
     height: number;
+    /**
+     * Minimum available RAM in bytes required on nodes to run this job
+     */
+    minimumRam: number;
     hasEmitterGrid: boolean;
+    skyMode: 'skybox' | 'skymap';
     createDump: boolean;
     createdAt: string;
     startedAt?: string | null;
@@ -169,6 +179,22 @@ export type EstimateJobCostResponse = {
     credits: string;
 };
 
+export type SkymapFileType = 'hdr' | 'png' | 'jpg' | 'exr';
+
+export type SkyAssetDto = {
+    type: SkymapFileType;
+};
+
+export type JobAssetsDto = {
+    skyboxTop?: SkyAssetDto;
+    skyboxBottom?: SkyAssetDto;
+    skyboxLeft?: SkyAssetDto;
+    skyboxRight?: SkyAssetDto;
+    skyboxFront?: SkyAssetDto;
+    skyboxBack?: SkyAssetDto;
+    skymap?: SkyAssetDto;
+};
+
 export type ResourcePackDto = {
     /**
      * Resource pack ID
@@ -180,7 +206,16 @@ export type CreateJobDto = {
     spp: number;
     width: number;
     height: number;
+    /**
+     * Minimum available RAM in bytes required on nodes to run this job. If not specified, the job will run on any node regardless of available RAM.
+     */
+    minimumRam?: number;
     createDump?: boolean;
+    skyMode?: 'skybox' | 'skymap';
+    /**
+     * Asset options by role. Scene, octree and emittergrid default to empty options. Sky assets selected by skyMode require a type.
+     */
+    assets?: JobAssetsDto;
     resourcePacks: Array<ResourcePackDto>;
 };
 
@@ -189,7 +224,14 @@ export type CreateJobResponse = {
     uploadUrls: {
         scene: string;
         octree: string;
-        emittergrid: string;
+        emittergrid?: string;
+        skymap?: string;
+        skyboxFront?: string;
+        skyboxBack?: string;
+        skyboxLeft?: string;
+        skyboxRight?: string;
+        skyboxTop?: string;
+        skyboxBottom?: string;
     };
 };
 
@@ -475,7 +517,7 @@ export type GetJobFileData = {
     body?: never;
     path: {
         id: number;
-        file: 'scene' | 'octree' | 'emittergrid';
+        file: 'scene' | 'octree' | 'emittergrid' | 'skymap' | 'skyboxFront' | 'skyboxBack' | 'skyboxLeft' | 'skyboxRight' | 'skyboxTop' | 'skyboxBottom';
     };
     query?: never;
     url: '/jobs/{id}/files/{file}';

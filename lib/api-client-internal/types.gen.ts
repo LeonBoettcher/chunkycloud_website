@@ -51,12 +51,43 @@ export type NextTaskResponse = {
     files: {
         scene: {
             url: string;
+            filename?: string;
         };
         octree: {
             url: string;
+            filename?: string;
         };
         emittergrid?: {
             url: string;
+            filename?: string;
+        };
+        skymap?: {
+            url: string;
+            filename: string;
+        };
+        skyboxFront?: {
+            url: string;
+            filename: string;
+        };
+        skyboxBack?: {
+            url: string;
+            filename: string;
+        };
+        skyboxLeft?: {
+            url: string;
+            filename: string;
+        };
+        skyboxRight?: {
+            url: string;
+            filename: string;
+        };
+        skyboxTop?: {
+            url: string;
+            filename: string;
+        };
+        skyboxBottom?: {
+            url: string;
+            filename: string;
         };
         resourcePacks: Array<{
             id: number;
@@ -231,7 +262,12 @@ export type GetCurrentNodeResponse = GetCurrentNodeResponses[keyof GetCurrentNod
 export type GetNextTaskData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Available RAM in bytes for a new task
+         */
+        availableRam?: number;
+    };
     url: '/nodes/me/tasks/next';
 };
 

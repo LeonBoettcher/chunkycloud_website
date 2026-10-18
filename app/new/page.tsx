@@ -5,7 +5,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { canvasSizeToDimensions } from "../new/utils";
 
 import { useSession } from "../../app/auth/components/SessionProvider";
-import type { ResourcePackResponse } from "../../lib/api-client";
+import type {
+  ResourcePackResponse,
+  SkymapFileType,
+} from "../../lib/api-client";
 import {
   createJob,
   estimateJobCost,
@@ -30,6 +33,15 @@ import MultiSelect from "../../components/MultiSelect";
 //TODO: Add A Job Name
 //TODO: Show Warning for too high SPP Values
 //TODO: Split this page into smaller reusable components (deferred cleanup)
+
+const skyboxFaces = [
+  "top",
+  "bottom",
+  "front",
+  "back",
+  "left",
+  "right",
+] as const;
 
 function createFileList(...files: File[]): FileList {
   const dataTransfer = new DataTransfer();
@@ -107,7 +119,17 @@ export default function CreateJob() {
   const [texturepack, setTexturepack] = useState<ResourcePackResponse[]>([]);
 
   const [skymap, setSkymap] = useState<File>();
-  const [skymapRequired, setSkymapRequired] = useState(false);
+  const [skyboxParts, setSkyboxParts] = useState<
+    Record<(typeof skyboxFaces)[number], File | null>
+  >({
+    top: null,
+    bottom: null,
+    front: null,
+    back: null,
+    left: null,
+    right: null,
+  });
+
   const [resourcePacks, setResourcePacks] = useState<ResourcePackResponse[]>(
     [],
   );
@@ -123,6 +145,8 @@ export default function CreateJob() {
   const octreeRef = useRef<HTMLInputElement>(null);
   const emitterGridRef = useRef<HTMLInputElement>(null);
   const skymapRef = useRef<HTMLInputElement>(null);
+
+  const [skyMode, setSkyMode] = useState<"skymap" | "skybox" | null>(null);
 
   useEffect(() => {
     fetchResourcePacks();
@@ -199,16 +223,17 @@ export default function CreateJob() {
           emitterGridRef.current.value = "";
         }
 
-        const newSkymapRequired =
-          json.sky?.mode === "SKYMAP_PANORAMIC" ||
-          json.sky?.mode === "SKYMAP_SPHERICAL";
-        setSkymapRequired(newSkymapRequired);
-        if (!newSkymapRequired && skymapRef.current) {
-          skymapRef.current.value = "";
-        }
+        const isSkymap = [
+          "SKYMAP_PANORAMIC",
+          "SKYMAP_SPHERICAL",
+          "SKYMAP_EQUIRECTANGULAR",
+          "SKYMAP_ANGULAR",
+        ].includes(json.sky?.mode);
+        const isSkybox = json.sky?.mode === "SKYBOX";
+        setSkyMode(isSkymap ? "skymap" : isSkybox ? "skybox" : null);
       } else {
         setEmitterGridRequired(false);
-        setSkymapRequired(false);
+        setSkyMode(null);
         if (emitterGridRef.current) emitterGridRef.current.value = "";
         if (skymapRef.current) skymapRef.current.value = "";
       }
@@ -347,7 +372,7 @@ export default function CreateJob() {
     return () => ac?.abort();
   }, [client]);
 
-  const HandlecreateJob = async () => {
+  const handleCreateJob = async () => {
     {
       /* Validate if required Inputs are filled out */
     }
@@ -361,6 +386,18 @@ export default function CreateJob() {
           renderName: renderName,
         },
       );
+      return;
+    }
+
+    if (skyMode === "skymap" && !skymap) {
+      setShowValidation(true);
+      return;
+    }
+    if (
+      skyMode === "skybox" &&
+      Object.values(skyboxParts).some((part) => !part)
+    ) {
+      setShowValidation(true);
       return;
     }
 
@@ -402,6 +439,15 @@ export default function CreateJob() {
 
     try {
       console.log("Creating job on backend");
+
+      const getExtension = (filename?: string) => {
+        if (filename) {
+          const type = filename?.split(".").at(-1);
+          return { type: type as SkymapFileType };
+        }
+        return undefined;
+      };
+
       const creation_res = await createJob({
         client,
         body: {
@@ -410,88 +456,109 @@ export default function CreateJob() {
           height: canvasHeight,
           createDump,
           resourcePacks: texturepack,
+          skyMode: skyMode ?? undefined,
+          assets:
+            skyMode === "skybox"
+              ? {
+                  skyboxTop: getExtension(skyboxParts.top?.name),
+                  skyboxBottom: getExtension(skyboxParts.bottom?.name),
+                  skyboxLeft: getExtension(skyboxParts.left?.name),
+                  skyboxRight: getExtension(skyboxParts.right?.name),
+                  skyboxFront: getExtension(skyboxParts.front?.name),
+                  skyboxBack: getExtension(skyboxParts.back?.name),
+                }
+              : skyMode === "skymap"
+                ? {
+                    skymap: getExtension(skymap?.name),
+                  }
+                : undefined,
         },
       });
-      const creation_data = (creation_res as any)?.data;
-      if (creation_data) {
-        console.log("Job created with ID:", creation_data.id);
-        logRef.current?.addLog(
-          "Job created with ID " + creation_data.id,
-          "success",
-        );
-        logRef.current?.addLog("Uploading files ", "info");
-        console.log("Scene upload URL:", creation_data.uploadUrls.scene);
-        console.log("Octree upload URL:", creation_data.uploadUrls.octree);
-        console.log(
-          "EmitterGrid upload URL:",
-          creation_data.uploadUrls.emittergrid,
-        );
+      const creation_data = creation_res?.data;
+      if (!creation_data) {
+        throw new Error("No data returned from job creation request");
+      }
+      console.log("Job created with ID:", creation_data.id);
+      logRef.current?.addLog(
+        "Job created with ID " + creation_data.id,
+        "success",
+      );
 
+      logRef.current?.addLog("Uploading scene", "info");
+      // Remove local paths from scene description
+      const json = JSON.parse(await sceneDescription.text());
+
+      removefromSceneDescription.forEach((path) => {
+        deleteByPath(json, path);
+      });
+
+      const cleanedSceneDescription = new File(
+        [JSON.stringify(json)],
+        sceneDescription.name,
         {
-          /* Clean scene Description from local Paths*/
+          type: "application/json",
+        },
+      );
+
+      await uploadFile(creation_data.uploadUrls.scene, cleanedSceneDescription);
+
+      logRef.current?.addLog("Uploading octree", "info");
+      await uploadFile(creation_data.uploadUrls.octree, octreeDescription);
+
+      if (emitterGridRequired && emitterGrid) {
+        logRef.current?.addLog("Uploading emitter grid", "info");
+        await uploadFile(creation_data.uploadUrls.emittergrid!, emitterGrid);
+      }
+
+      if (skymap && creation_data.uploadUrls.skymap) {
+        logRef.current?.addLog("Uploading skymap", "info");
+        await uploadFile(creation_data.uploadUrls.skymap, skymap);
+      }
+
+      for (const face of skyboxFaces) {
+        logRef.current?.addLog(`Uploading skybox (${face})`, "info");
+        const file = skyboxParts[face];
+        if (file) {
+          await uploadFile(
+            creation_data.uploadUrls[
+              `skybox${face[0].toUpperCase()}${face.substring(1)}`
+            ],
+            file,
+          );
         }
+      }
 
-        const json = JSON.parse(await sceneDescription.text());
+      // Start job after upload
+      try {
+        console.log("Starting job ", creation_data.id);
+        logRef.current?.addLog("Starting Job ", "info");
 
-        removefromSceneDescription.forEach((path) => {
-          deleteByPath(json, path);
+        const res = await startJob({
+          client,
+          path: {
+            id: creation_data.id,
+          },
         });
 
-        const cleanedSceneDescription = new File(
-          [JSON.stringify(json)],
-          sceneDescription.name,
-          {
-            type: "application/json",
-          },
-        );
+        console.log("Response:", res);
 
-        await uploadFile(
-          creation_data.uploadUrls.scene,
-          cleanedSceneDescription,
-        );
-        await uploadFile(creation_data.uploadUrls.octree, octreeDescription);
-
-        if (emitterGridRequired && emitterGrid) {
-          await uploadFile(creation_data.uploadUrls.emittergrid, emitterGrid);
+        if ((res as any)?.response?.status === 202) {
+          console.log("Job queued successfully");
+          logRef.current?.addLog("Job queued successfully", "success");
         }
+      } catch (err: any) {
+        console.error("Failed:", err);
+        logRef.current?.addLog("Starting Job failed", "error");
 
-        {
-          /* After Uploading Start Job */
+        if (err?.response?.status === 409) {
+          console.error("Job is not a draft or required files are missing");
+          logRef.current?.addLog(
+            "Job is not a draft or required files are missing",
+            "error",
+          );
         }
-
-        try {
-          console.log("Starting job ", creation_data.id);
-          logRef.current?.addLog("Starting Job ", "info");
-
-          const res = await startJob({
-            client,
-            path: {
-              id: creation_data.id,
-            },
-          });
-
-          console.log("Response:", res);
-
-          if ((res as any)?.response?.status === 202) {
-            console.log("Job queued successfully");
-            logRef.current?.addLog("Job queued successfully", "success");
-          }
-        } catch (err: any) {
-          console.error("Failed:", err);
-          logRef.current?.addLog("Starting Job failed", "error");
-
-          if (err?.response?.status === 409) {
-            console.error("Job is not a draft or required files are missing");
-            logRef.current?.addLog(
-              "Job is not a draft or required files are missing",
-              "error",
-            );
-          }
-        } finally {
-          shouldRedirectToJobs = true;
-        }
-      } else {
-        console.warn("No data returned from job creation response");
+      } finally {
+        shouldRedirectToJobs = true;
       }
     } catch (e) {
       console.error("Failed to create job", e);
@@ -578,7 +645,11 @@ export default function CreateJob() {
             You need to sign in before creating a render job.
           </p>
           <div className="mt-6 flex justify-center gap-3">
-            <Link href="/auth/init" prefetch={false} className="btn btn-primary">
+            <Link
+              href="/auth/init"
+              prefetch={false}
+              className="btn btn-primary"
+            >
               Login
             </Link>
             <Link href="/" className="btn btn-ghost">
@@ -683,22 +754,60 @@ export default function CreateJob() {
                 />
               </div>
 
-              <div className="form-control w-full mb-6">
-                <label className="label" htmlFor="skymap">
-                  <span className="label-text text-base font-bold">
-                    Skymap (.hdr, .exr)
+              {skyMode === "skymap" && (
+                <div className="form-control w-full mb-6">
+                  <label className="label" htmlFor="skymap">
+                    <span className="label-text text-base font-bold">
+                      Skymap (.hdr, .exr, .png, .jpg)
+                    </span>
+                  </label>
+                  <input
+                    type="file"
+                    className={`file-input file-input-bordered w-full ${
+                      showValidation && !skymap ? "file-input-error" : ""
+                    }`}
+                    id="skymap"
+                    accept=".hdr, .exr, .png, .jpg"
+                    onChange={(e) => setSkymap(e.target.files?.[0])}
+                    ref={skymapRef}
+                  />
+                </div>
+              )}
+              {skyMode === "skybox" && (
+                <>
+                  <span className="label label-text text-base font-bold">
+                    Skybox
                   </span>
-                </label>
-                <input
-                  type="file"
-                  className="file-input file-input-bordered w-full "
-                  id="skymap"
-                  accept=".hdr, .exr"
-                  onChange={(e) => setSkymap(e.target.files?.[0])}
-                  ref={skymapRef}
-                />
-              </div>
-              <div className="form-control w-full mb-6 menu-vertical">
+                  {skyboxFaces.map((face) => (
+                    <div key={face} className="form-control w-full mb-3 ml-6">
+                      <label className="label" htmlFor={`skybox-${face}`}>
+                        <span className="label-text text-base font-bold">
+                          {face[0].toUpperCase()}
+                          {face.substring(1)} image (.hdr, .exr, .png, .jpg)
+                        </span>
+                      </label>
+                      <input
+                        type="file"
+                        className={`file-input file-input-bordered w-full ${
+                          showValidation && !skyboxParts[face]
+                            ? "file-input-error"
+                            : ""
+                        }`}
+                        id={`skybox-${face}`}
+                        accept=".hdr, .exr, .png, .jpg"
+                        onChange={(e) =>
+                          setSkyboxParts((parts) => ({
+                            ...parts,
+                            [face]: e.target.files?.[0],
+                          }))
+                        }
+                        ref={skymapRef}
+                      />
+                    </div>
+                  ))}
+                </>
+              )}
+              <div className="form-control w-full mb-4 menu-vertical">
                 <label className="label" htmlFor="renderName">
                   <span className="block mb-2 label-text text-base font-bold">
                     Scene Name
@@ -707,7 +816,7 @@ export default function CreateJob() {
                 <input
                   type="string"
                   placeholder="Scene Name"
-                  className="input input-bordered input-md w-1/2 mb-3"
+                  className="input input-bordered input-md w-1/2"
                   value={renderName}
                   onChange={(e) => setRenderName(String(e.target.value))}
                 />
@@ -959,7 +1068,7 @@ export default function CreateJob() {
                       ? "btn-error"
                       : "btn-primary"
                   }`}
-                  onClick={HandlecreateJob}
+                  onClick={handleCreateJob}
                   disabled={
                     submitting ||
                     noResourcePacksAvailable ||

@@ -366,7 +366,11 @@ const AccountPage = () => {
             You need to sign in to manage your render node tokens.
           </p>
           <div className="mt-6 flex justify-center gap-3">
-            <Link href="/auth/init" prefetch={false} className="btn btn-primary">
+            <Link
+              href="/auth/init"
+              prefetch={false}
+              className="btn btn-primary"
+            >
               Login
             </Link>
             <Link href="/" className="btn btn-ghost">
