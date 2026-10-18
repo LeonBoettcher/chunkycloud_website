@@ -73,6 +73,7 @@ export type UserJobItem = {
     skyMode: 'skybox' | 'skymap';
     createDump: boolean;
     createdAt: string;
+    expiresAt: string | null;
     startedAt?: string | null;
     finishedAt?: string | null;
     abortedAt?: string | null;
@@ -129,6 +130,7 @@ export type UserJob = {
     skyMode: 'skybox' | 'skymap';
     createDump: boolean;
     createdAt: string;
+    expiresAt: string | null;
     startedAt?: string | null;
     finishedAt?: string | null;
     abortedAt?: string | null;
@@ -221,6 +223,7 @@ export type CreateJobDto = {
 
 export type CreateJobResponse = {
     id: number;
+    expiresAt: string | null;
     uploadUrls: {
         scene: string;
         octree: string;

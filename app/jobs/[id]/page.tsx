@@ -437,6 +437,15 @@ const JobPage = ({ params }: PageProps) => {
               )}
             </div>
           </div>
+          {job.expiresAt && (
+            <div className="mt-3 px-3 py-2 text-sm text-gray-400">
+              This job will be deleted after{" "}
+              <time dateTime={job.expiresAt}>
+                {new Date(job.expiresAt).toLocaleString()}
+              </time>
+              . Remember to download the results before that date.
+            </div>
+          )}
         </div>
 
         <div className="w-full lg:basis-2/3">
