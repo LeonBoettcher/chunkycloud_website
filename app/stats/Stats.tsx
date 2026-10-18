@@ -42,6 +42,7 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
       }
     }
 
+    loadStats();
     const interval = setInterval(loadStats, 30_000);
     return () => {
       stale = true;
@@ -65,6 +66,10 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
           value={stats.nodes?.connected ?? 0}
         />
         <Step Title="Rendering nodes" value={stats.nodes?.rendering ?? 0} />
+        <Step
+          Title="Total samples / second"
+          value={(stats.totalSamplesPerSeconds ?? 0).toLocaleString()}
+        />
         <Step Title="Queued jobs" value={stats.jobs?.queued ?? 0} />
         <Step Title="Running jobs" value={stats.jobs?.running ?? 0} />
       </div>
