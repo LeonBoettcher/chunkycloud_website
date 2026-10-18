@@ -17,6 +17,7 @@ type JobCardsProps = {
   page?: number;
   limit?: number;
   onPaginationInfo?: (totalPages: number) => void;
+  onEmptyState?: (empty: boolean) => void;
 };
 
 const JobCards = ({
@@ -26,6 +27,7 @@ const JobCards = ({
   page = 1,
   limit = 100,
   onPaginationInfo,
+  onEmptyState,
 }: JobCardsProps) => {
   const { client } = useSession();
 
@@ -98,6 +100,7 @@ const JobCards = ({
         if (isMounted) {
           setJobs(allJobs);
           onPaginationInfo?.(newTotalPages);
+          onEmptyState?.(allJobs.length === 0);
         }
       } catch (err) {
         if (isMounted) {
@@ -140,16 +143,10 @@ const JobCards = ({
 
   if (errorMsg) {
     return (
-      <div className="alert alert-error">
-        <span>{errorMsg}</span>
-      </div>
-    );
-  }
-
-  if (jobs.length === 0) {
-    return (
-      <div className="alert alert-info">
-        <span>No jobs found.</span>
+      <div className="flex w-full justify-start px-4 pt-4">
+        <div className="badge badge-error badge-soft border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-medium tracking-wide text-red-100">
+          {errorMsg}
+        </div>
       </div>
     );
   }

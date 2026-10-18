@@ -29,6 +29,7 @@ export default function JobsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(25);
   const [totalPages, setTotalPages] = useState(1);
+  const [jobsAreEmpty, setJobsAreEmpty] = useState(false);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -85,14 +86,16 @@ export default function JobsPage() {
           &ldquo;Give that back&rdquo; by boscawinks
         </Link>
       </div>
-      <div className="mx-auto max-w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex items-baseline justify-between border-gray-700 bg-gray-800/70 rounded-2xl px-8 sm:px-8 pt-24 pb-6">
-          <h1 className="text-4xl font-bold tracking-tight ">Jobs</h1>
+      <div className="mx-auto w-full max-w-full px-4 sm:px-6 lg:px-8">
+        <div className="sticky top-16 z-20 mt-0 flex items-center justify-between rounded-2xl border border-white/10 bg-slate-800/70 px-5 py-4 shadow-lg backdrop-blur-md sm:px-7">
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Jobs
+          </h1>
 
           <div className="group relative">
             <button
               type="button"
-              className="btn btn-ghost btn-sm text-gray-400 hover:text-white"
+              className="btn btn-ghost btn-sm text-gray-300 hover:text-white"
             >
               <Squares2X2Icon className="h-5 w-5" />
             </button>
@@ -175,19 +178,41 @@ export default function JobsPage() {
         </div>
 
         <section className="pt-6 pb-24">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-9 gap-4">
-            <Suspense fallback={<LoadingCards />}>
-              <JobCards
-                status={selectedStatus}
-                sort={selectedSort}
-                order={selectedOrder}
-                page={currentPage}
-                limit={pageLimit}
-                onPaginationInfo={setTotalPages}
-              />
-            </Suspense>
-          </div>
-          {totalPages > 1 ? (
+          {jobsAreEmpty && (
+            <div className="flex w-full justify-center px-4 pb-8">
+              <div className="mx-auto max-w-xl rounded-2xl border border-base-300/80 bg-base-100/90 p-8 text-center shadow-xl backdrop-blur-sm">
+                <h1 className="text-3xl font-bold text-white">Jobs</h1>
+                <p className="mt-4 text-gray-400">
+                  You need to create a render job first.
+                </p>
+                <div className="mt-6 flex justify-center gap-3">
+                  <Link href="/new" prefetch={false} className="btn btn-primary btn-sm">
+                    Create a Job
+                  </Link>
+                  <Link href="/" className="btn btn-ghost btn-sm">
+                    Back Home
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!jobsAreEmpty && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-9 gap-4">
+              <Suspense fallback={<LoadingCards />}>
+                <JobCards
+                  status={selectedStatus}
+                  sort={selectedSort}
+                  order={selectedOrder}
+                  page={currentPage}
+                  limit={pageLimit}
+                  onPaginationInfo={setTotalPages}
+                  onEmptyState={setJobsAreEmpty}
+                />
+              </Suspense>
+            </div>
+          )}
+          {totalPages > 1 && !jobsAreEmpty ? (
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2 rounded-xl border border-base-300/80 bg-base-100/85 px-4 py-3 text-sm text-base-content shadow-sm">
               <button
                 type="button"
