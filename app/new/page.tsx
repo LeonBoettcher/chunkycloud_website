@@ -347,7 +347,7 @@ export default function CreateJob() {
     return () => ac?.abort();
   }, [client]);
 
-  const HandlecreateJob = useCallback(async () => {
+  const HandlecreateJob = async () => {
     {
       /* Validate if required Inputs are filled out */
     }
@@ -508,19 +508,7 @@ export default function CreateJob() {
         logRef.current?.hide();
       }, 10_000); // 10 seconds
     }
-  }, [
-    client,
-    sceneDescription,
-    octreeDescription,
-    emitterGrid,
-    emitterGridRequired,
-    skymap,
-    targetSpp,
-    canvasWidth,
-    canvasHeight,
-    texturepack,
-    router,
-  ]);
+  };
 
   useEffect(() => {
     const ac = new AbortController();
