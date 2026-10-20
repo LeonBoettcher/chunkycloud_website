@@ -452,6 +452,8 @@ export default function CreateJob() {
       return;
     }
 
+    const emitterGridState = !!emitterGrid;
+
     if (noResourcePacksAvailable || texturepack.length === 0) {
       setShowValidation(true);
       logRef.current?.show();
@@ -509,8 +511,9 @@ export default function CreateJob() {
           createDump,
           resourcePacks: texturepack,
           skyMode: skyMode ?? undefined,
-          assets:
-            skyMode === "skybox"
+          assets: {
+            emitterGrid: emitterGridState,
+            ...(skyMode === "skybox"
               ? {
                   skyboxTop: getExtension(skyboxParts.top?.name),
                   skyboxBottom: getExtension(skyboxParts.bottom?.name),
@@ -523,7 +526,8 @@ export default function CreateJob() {
                 ? {
                     skymap: getExtension(skymap?.name),
                   }
-                : undefined,
+                : {}),
+          },
         },
       });
       const creation_data = creation_res?.data;

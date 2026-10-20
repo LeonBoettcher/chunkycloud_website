@@ -139,6 +139,10 @@ export type UserJob = {
      * Approximate samples per second this job is currently rendering at
      */
     samplesPerSecond: number;
+    /**
+     * Number of tasks of this job that is currently running
+     */
+    runningTasksCount: number;
 };
 
 export type UrlResponse = {
@@ -195,6 +199,7 @@ export type JobAssetsDto = {
     skyboxFront?: SkyAssetDto;
     skyboxBack?: SkyAssetDto;
     skymap?: SkyAssetDto;
+    emitterGrid?: boolean;
 };
 
 export type ResourcePackDto = {
@@ -215,7 +220,7 @@ export type CreateJobDto = {
     createDump?: boolean;
     skyMode?: 'skybox' | 'skymap';
     /**
-     * Asset options by role. Scene, octree and emittergrid default to empty options. Sky assets selected by skyMode require a type.
+     * Asset options.
      */
     assets?: JobAssetsDto;
     resourcePacks: Array<ResourcePackDto>;
