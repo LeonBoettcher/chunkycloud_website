@@ -40,6 +40,7 @@ export type NextTaskResponse = {
         id: number;
         width: number;
         height: number;
+        skyMode?: 'skybox' | 'skymap';
     };
     spp: number;
     tile: {
@@ -264,9 +265,9 @@ export type GetNextTaskData = {
     path?: never;
     query?: {
         /**
-         * Available RAM in bytes for a new task
+         * Memory limit, in megabytes, for a new task
          */
-        availableRam?: number;
+        memoryLimit?: number;
     };
     url: '/nodes/me/tasks/next';
 };
@@ -370,27 +371,27 @@ export type NotifyRenderNodeShutdownResponses = {
 
 export type NotifyRenderNodeShutdownResponse = NotifyRenderNodeShutdownResponses[keyof NotifyRenderNodeShutdownResponses];
 
-export type GetCurrentNode2Data = {
+export type GetCurrentWorkerNodeData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/worker-nodes/me';
 };
 
-export type GetCurrentNode2Responses = {
+export type GetCurrentWorkerNodeResponses = {
     200: WorkerNodeResponse;
 };
 
-export type GetCurrentNode2Response = GetCurrentNode2Responses[keyof GetCurrentNode2Responses];
+export type GetCurrentWorkerNodeResponse = GetCurrentWorkerNodeResponses[keyof GetCurrentWorkerNodeResponses];
 
-export type GetNextTask2Data = {
+export type GetNextWorkerTaskData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/worker-nodes/me/tasks/next';
 };
 
-export type GetNextTask2Responses = {
+export type GetNextWorkerTaskResponses = {
     /**
      * The task this worker node should perform next
      */
@@ -401,7 +402,7 @@ export type GetNextTask2Responses = {
     204: void;
 };
 
-export type GetNextTask2Response = GetNextTask2Responses[keyof GetNextTask2Responses];
+export type GetNextWorkerTaskResponse = GetNextWorkerTaskResponses[keyof GetNextWorkerTaskResponses];
 
 export type GetMergeTaskUploadUrlsData = {
     body?: never;

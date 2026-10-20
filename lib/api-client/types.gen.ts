@@ -209,7 +209,7 @@ export type CreateJobDto = {
     width: number;
     height: number;
     /**
-     * Minimum available RAM in bytes required on nodes to run this job. If not specified, the job will run on any node regardless of available RAM.
+     * Minimum (advertised) memory in megabytes required on nodes to run this job. If not specified, the job will run on any node.
      */
     minimumRam?: number;
     createDump?: boolean;
