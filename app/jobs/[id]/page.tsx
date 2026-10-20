@@ -360,12 +360,22 @@ const JobPage = ({ params }: PageProps) => {
                   </span>
                 </div>
                 {job.status === "running" && (
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                    <span className="font-semibold">Samples per second:</span>
-                    <span className="font-mono text-sm">
-                      {job.samplesPerSecond.toLocaleString()}
-                    </span>
-                  </div>
+                  <>
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                      <span className="font-semibold">Samples per second:</span>
+                      <span className="font-mono text-sm">
+                        {job.samplesPerSecond.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                      <span className="font-semibold">
+                        Nodes currently rendering this job:
+                      </span>
+                      <span className="font-mono text-sm">
+                        {job.runningTasksCount.toLocaleString()}
+                      </span>
+                    </div>
+                  </>
                 )}
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                   <span className="font-semibold">Created at:</span>
