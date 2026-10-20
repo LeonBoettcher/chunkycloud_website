@@ -250,6 +250,7 @@ export default function CreateJob() {
 
   const [submitting, setSubmitting] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
+  const [startJobError, setStartJobError] = useState<string | null>(null);
   const [userDisplayCredits, setUserDisplayCredits] = useState<number | null>(
     null,
   );
@@ -372,6 +373,56 @@ export default function CreateJob() {
     return () => ac?.abort();
   }, [client]);
 
+  const getErrorMessage = (error: unknown): string => {
+    if (!error) return "An unexpected error occurred.";
+
+    if (typeof error === "string") {
+      return error;
+    }
+
+    if (typeof error === "object") {
+      const maybeError = error as {
+        message?: string;
+        error?: string;
+        detail?: string;
+        title?: string;
+        response?: { status?: number; data?: unknown };
+        data?: unknown;
+      };
+
+      const nestedData = maybeError.response?.data ?? maybeError.data;
+      if (typeof nestedData === "string") {
+        return nestedData;
+      }
+
+      if (nestedData && typeof nestedData === "object") {
+        const nested = nestedData as {
+          message?: string;
+          error?: string;
+          detail?: string;
+          title?: string;
+        };
+        return (
+          nested.message ??
+          nested.error ??
+          nested.detail ??
+          nested.title ??
+          "An unexpected error occurred."
+        );
+      }
+
+      return (
+        maybeError.message ??
+        maybeError.error ??
+        maybeError.detail ??
+        maybeError.title ??
+        "An unexpected error occurred."
+      );
+    }
+
+    return "An unexpected error occurred.";
+  };
+
   const handleCreateJob = useCallback(async () => {
     {
       /* Validate if required Inputs are filled out */
@@ -432,6 +483,7 @@ export default function CreateJob() {
     console.log("Job Validation complete");
     logRef.current?.addLog("Job Validation complete", "success");
 
+    setStartJobError(null);
     setShowValidation(false);
     setSubmitting(true);
 
@@ -484,7 +536,23 @@ export default function CreateJob() {
         "success",
       );
 
-      logRef.current?.addLog("Uploading scene", "info");
+      const uploadStatus: Record<string, boolean> = {
+        scene: false,
+        octree: false,
+        emitterGrid: false,
+        skymap: false,
+      };
+
+      const requiredUploadNames = new Set<string>();
+
+      const addUploadTarget = (name: string, url?: string | null) => {
+        if (!url) {
+          throw new Error(`Missing upload URL for required asset: ${name}`);
+        }
+        requiredUploadNames.add(name);
+        return url;
+      };
+
       // Remove local paths from scene description
       const json = JSON.parse(await sceneDescription.text());
 
@@ -500,33 +568,114 @@ export default function CreateJob() {
         },
       );
 
-      await uploadFile(creation_data.uploadUrls.scene, cleanedSceneDescription);
+      const uploadWithDebug = async (
+        label: string,
+        uploadUrl: string | undefined,
+        file: File | undefined,
+      ) => {
+        console.debug(`[upload-debug] ${label} status check`, {
+          hasUploadUrl: !!uploadUrl,
+          hasFile: !!file,
+          fileName: file?.name,
+          fileSize: file?.size,
+          uploadUrl,
+        });
 
-      logRef.current?.addLog("Uploading octree", "info");
-      await uploadFile(creation_data.uploadUrls.octree, octreeDescription);
+        if (!uploadUrl) {
+          const message = `Missing upload URL for ${label}`;
+          logRef.current?.addLog(message, "error");
+          throw new Error(message);
+        }
+
+        if (!file) {
+          const message = `Missing file for ${label}`;
+          logRef.current?.addLog(message, "error");
+          throw new Error(message);
+        }
+
+        logRef.current?.addLog(`Uploading ${label}`, "info");
+
+        const response = await fetch(uploadUrl, {
+          method: "PUT",
+          body: file,
+          headers: {
+            "Content-Type": file.type || "application/octet-stream",
+          },
+        });
+
+        const uploadSucceeded = response.ok;
+        console.debug(`[upload-debug] ${label} upload result`, {
+          uploadSucceeded,
+          status: response.status,
+          statusText: response.statusText,
+          fileName: file.name,
+        });
+
+        if (!uploadSucceeded) {
+          const message = `Upload failed for ${label}: ${response.status} ${response.statusText}`;
+          logRef.current?.addLog(message, "error");
+          throw new Error(message);
+        }
+
+        uploadStatus[label] = true;
+        logRef.current?.addLog(`${label} uploaded successfully`, "success");
+      };
+
+      await uploadWithDebug(
+        "scene",
+        addUploadTarget("scene", creation_data.uploadUrls.scene),
+        cleanedSceneDescription,
+      );
+      await uploadWithDebug(
+        "octree",
+        addUploadTarget("octree", creation_data.uploadUrls.octree),
+        octreeDescription,
+      );
 
       if (emitterGridRequired && emitterGrid) {
-        logRef.current?.addLog("Uploading emitter grid", "info");
-        await uploadFile(creation_data.uploadUrls.emittergrid!, emitterGrid);
+        await uploadWithDebug(
+          "emitterGrid",
+          addUploadTarget("emitterGrid", creation_data.uploadUrls.emittergrid),
+          emitterGrid,
+        );
       }
 
       if (skymap && creation_data.uploadUrls.skymap) {
-        logRef.current?.addLog("Uploading skymap", "info");
-        await uploadFile(creation_data.uploadUrls.skymap, skymap);
+        await uploadWithDebug(
+          "skymap",
+          addUploadTarget("skymap", creation_data.uploadUrls.skymap),
+          skymap,
+        );
       }
 
       for (const face of skyboxFaces) {
-        logRef.current?.addLog(`Uploading skybox (${face})`, "info");
         const file = skyboxParts[face];
         if (file) {
-          await uploadFile(
-            creation_data.uploadUrls[
-              `skybox${face[0].toUpperCase()}${face.substring(1)}`
-            ],
+          await uploadWithDebug(
+            `skybox-${face}`,
+            addUploadTarget(
+              `skybox-${face}`,
+              creation_data.uploadUrls[
+                `skybox${face[0].toUpperCase()}${face.substring(1)}`
+              ],
+            ),
             file,
           );
         }
       }
+
+      console.debug(
+        "[upload-debug] Final upload summary",
+        Object.fromEntries(
+          Object.entries(uploadStatus).map(([name, uploaded]) => [name, uploaded]),
+        ),
+      );
+      logRef.current?.addLog(
+        `Uploads checked: ${Object.entries(uploadStatus)
+          .map(([name, uploaded]) => `${name}=${uploaded}`)
+          .join(", ")}`,
+        "info",
+      );
 
       // Start job after upload
       try {
@@ -545,24 +694,36 @@ export default function CreateJob() {
         if ((res as any)?.response?.status === 202) {
           console.log("Job queued successfully");
           logRef.current?.addLog("Job queued successfully", "success");
+          shouldRedirectToJobs = true;
         }
       } catch (err: any) {
         console.error("Failed:", err);
-        logRef.current?.addLog("Starting Job failed", "error");
+        const errorMessage = getErrorMessage(err);
+        const errorStatus = Number(
+          err?.status ?? err?.response?.status ?? 0,
+        );
 
-        if (err?.response?.status === 409) {
-          console.error("Job is not a draft or required files are missing");
-          logRef.current?.addLog(
-            "Job is not a draft or required files are missing",
-            "error",
-          );
-        }
-      } finally {
-        shouldRedirectToJobs = true;
+        setStartJobError(
+          errorStatus === 409
+            ? "The job is not a draft or required scene files are missing."
+            : errorMessage,
+        );
+
+        logRef.current?.addLog(
+          errorStatus === 409
+            ? "The job is not a draft or required scene files are missing."
+            : `Starting Job failed: ${errorMessage}`,
+          "error",
+        );
       }
     } catch (e) {
+      const message = getErrorMessage(e);
       console.error("Failed to create job", e);
-      logRef.current?.addLog("Failed creating Job", "error");
+      logRef.current?.addLog(
+        message ? `Failed creating Job: ${message}` : "Failed creating Job",
+        "error",
+      );
+      setStartJobError(message);
     } finally {
       setSubmitting(false);
 
@@ -1105,6 +1266,12 @@ export default function CreateJob() {
                   )}
                 </button>
               </div>
+
+              {startJobError && (
+                <div className="alert alert-error mt-4">
+                  <span>{startJobError}</span>
+                </div>
+              )}
             </div>
           </fieldset>
           <div>

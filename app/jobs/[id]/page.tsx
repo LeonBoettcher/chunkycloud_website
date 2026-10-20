@@ -183,7 +183,10 @@ const JobPage = ({ params }: PageProps) => {
     }
   };
 
-  const canAbort = job?.status === "queued" || job?.status === "running";
+  const canAbort =
+    job?.status === "queued" ||
+    job?.status === "running" ||
+    job?.status === "draft";
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const previewImageUrl =
