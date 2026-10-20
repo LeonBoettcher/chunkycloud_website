@@ -667,7 +667,10 @@ export default function CreateJob() {
       console.debug(
         "[upload-debug] Final upload summary",
         Object.fromEntries(
-          Object.entries(uploadStatus).map(([name, uploaded]) => [name, uploaded]),
+          Object.entries(uploadStatus).map(([name, uploaded]) => [
+            name,
+            uploaded,
+          ]),
         ),
       );
       logRef.current?.addLog(
@@ -699,9 +702,7 @@ export default function CreateJob() {
       } catch (err: any) {
         console.error("Failed:", err);
         const errorMessage = getErrorMessage(err);
-        const errorStatus = Number(
-          err?.status ?? err?.response?.status ?? 0,
-        );
+        const errorStatus = Number(err?.status ?? err?.response?.status ?? 0);
 
         setStartJobError(
           errorStatus === 409
