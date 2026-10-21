@@ -944,7 +944,7 @@ export default function CreateJob() {
                 <div className="form-control w-full mb-6">
                   <label className="label" htmlFor="skymap">
                     <span className="label-text text-base font-bold">
-                      Skymap (.hdr, .exr, .png, .jpg)
+                      Skymap (.hdr, .png, .jpg)
                     </span>
                   </label>
                   <input
@@ -953,7 +953,7 @@ export default function CreateJob() {
                       showValidation && !skymap ? "file-input-error" : ""
                     }`}
                     id="skymap"
-                    accept=".hdr, .exr, .png, .jpg"
+                    accept=".hdr, .png, .jpg"
                     onChange={(e) => setSkymap(e.target.files?.[0])}
                     ref={skymapRef}
                   />
@@ -969,7 +969,7 @@ export default function CreateJob() {
                       <label className="label" htmlFor={`skybox-${face}`}>
                         <span className="label-text text-base font-bold">
                           {face[0].toUpperCase()}
-                          {face.substring(1)} image (.hdr, .exr, .png, .jpg)
+                          {face.substring(1)} image (.hdr, .png, .jpg)
                         </span>
                       </label>
                       <input
@@ -980,7 +980,7 @@ export default function CreateJob() {
                             : ""
                         }`}
                         id={`skybox-${face}`}
-                        accept=".hdr, .exr, .png, .jpg"
+                        accept=".hdr, .png, .jpg"
                         onChange={(e) =>
                           setSkyboxParts((parts) => ({
                             ...parts,
