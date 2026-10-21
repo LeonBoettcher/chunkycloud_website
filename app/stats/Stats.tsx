@@ -35,7 +35,8 @@ const defaultStats: PublicStatsResponse = {
   totalSamplesPerSeconds: 0,
 };
 
-const formatNumber = (value: number) => new Intl.NumberFormat("en-US").format(value);
+const formatNumber = (value: number) =>
+  new Intl.NumberFormat("en-US").format(value);
 
 const getJobsValue = (stats: PublicStatsResponse): number | null => {
   const queued = stats.jobs?.queued;
@@ -54,12 +55,7 @@ const buildHistoryPoint = (stats: PublicStatsResponse): HistoryPoint | null => {
   const jobs = getJobsValue(stats);
   const sps = stats.totalSamplesPerSeconds ?? null;
 
-  if (
-    connected == null &&
-    rendering == null &&
-    jobs == null &&
-    sps == null
-  ) {
+  if (connected == null && rendering == null && jobs == null && sps == null) {
     return null;
   }
 
@@ -84,13 +80,19 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
   const lastSampleTimeRef = useRef<number | null>(null);
 
   const appendHistoryPoint = (nextPoint: HistoryPoint) => {
-    if (lastSampleTimeRef.current != null && nextPoint.timestamp <= lastSampleTimeRef.current) {
+    if (
+      lastSampleTimeRef.current != null &&
+      nextPoint.timestamp <= lastSampleTimeRef.current
+    ) {
       return;
     }
 
     lastSampleTimeRef.current = nextPoint.timestamp;
     setHistory((current) => {
-      if (current.length > 0 && current[current.length - 1].timestamp >= nextPoint.timestamp) {
+      if (
+        current.length > 0 &&
+        current[current.length - 1].timestamp >= nextPoint.timestamp
+      ) {
         return current;
       }
 
@@ -164,8 +166,10 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
       }
 
       const positiveValues = values.filter((value) => value > 0);
-      const minValue = positiveValues.length > 0 ? Math.min(...positiveValues) : 1;
-      const maxValue = positiveValues.length > 0 ? Math.max(...positiveValues) : 1;
+      const minValue =
+        positiveValues.length > 0 ? Math.min(...positiveValues) : 1;
+      const maxValue =
+        positiveValues.length > 0 ? Math.max(...positiveValues) : 1;
       const lowerBound = 1;
       const effectiveMin = Math.min(lowerBound, minValue || 1);
       const effectiveMax = Math.max(25, maxValue || 25);
@@ -178,14 +182,18 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
 
         const x =
           padding.left +
-          (history.length <= 1 ? 0 : (index / (history.length - 1)) * (width - padding.left - padding.right));
+          (history.length <= 1
+            ? 0
+            : (index / (history.length - 1)) *
+              (width - padding.left - padding.right));
 
         const safeValue = Math.max(rawValue, 0);
         const normalizedValue =
           safeValue <= 0
             ? 0
-            : ((Math.log10(safeValue + 1) - Math.log10(effectiveMin + 1)) /
-                (Math.log10(effectiveMax + 1) - Math.log10(effectiveMin + 1) || 1));
+            : (Math.log10(safeValue + 1) - Math.log10(effectiveMin + 1)) /
+              (Math.log10(effectiveMax + 1) - Math.log10(effectiveMin + 1) ||
+                1);
 
         const y =
           height -
@@ -197,7 +205,9 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
 
       return {
         ...series,
-        points: points.filter((point): point is { x: number; y: number } => point != null),
+        points: points.filter(
+          (point): point is { x: number; y: number } => point != null,
+        ),
       };
     });
   }, [history]);
@@ -205,7 +215,9 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
   const pathMarkup = useMemo(() => {
     return chartSeries.map((series) => {
       const d = series.points
-        .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
+        .map(
+          (point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`,
+        )
         .join(" ");
 
       return { ...series, d };
@@ -215,7 +227,7 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
   const hoveredPoint = hoverIndex != null ? history[hoverIndex] : null;
   const hoverMarkerX =
     hoveredPoint && hoverIndex != null && chartSeries.length > 0
-      ? chartSeries[0].points[hoverIndex]?.x ?? null
+      ? (chartSeries[0].points[hoverIndex]?.x ?? null)
       : null;
 
   const formatTimestamp = (value: number) =>
@@ -349,12 +361,17 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
                     left: `${tooltipX}px`,
                   }}
                 >
-                  <div className="font-medium text-white">{formatTimestamp(hoveredPoint.timestamp)}</div>
+                  <div className="font-medium text-white">
+                    {formatTimestamp(hoveredPoint.timestamp)}
+                  </div>
                   <div className="mt-1 space-y-0.5 text-slate-200">
                     {seriesConfig.map((series) => {
                       const value = hoveredPoint[series.key];
                       return value == null ? null : (
-                        <div key={series.key} className="flex items-center gap-2">
+                        <div
+                          key={series.key}
+                          className="flex items-center gap-2"
+                        >
                           <span
                             className="inline-block h-2.5 w-2.5 rounded-full"
                             style={{ backgroundColor: series.color }}
@@ -373,7 +390,10 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
 
             <div className="mt-4 flex flex-wrap gap-3">
               {seriesConfig.map((series) => (
-                <div key={series.key} className="flex items-center gap-2 text-xs text-gray-300">
+                <div
+                  key={series.key}
+                  className="flex items-center gap-2 text-xs text-gray-300"
+                >
                   <span
                     className="inline-block h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: series.color }}
