@@ -80,6 +80,7 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
   const [stats, setStats] = useState<PublicStatsResponse>(initialStats);
   const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [tooltipX, setTooltipX] = useState<number | null>(null);
   const lastSampleTimeRef = useRef<number | null>(null);
 
   const appendHistoryPoint = (nextPoint: HistoryPoint) => {
@@ -212,6 +213,10 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
   }, [chartSeries]);
 
   const hoveredPoint = hoverIndex != null ? history[hoverIndex] : null;
+  const hoverMarkerX =
+    hoveredPoint && hoverIndex != null && chartSeries.length > 0
+      ? chartSeries[0].points[hoverIndex]?.x ?? null
+      : null;
 
   const formatTimestamp = (value: number) =>
     new Date(value).toLocaleTimeString([], {
@@ -263,6 +268,7 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
             <div className="relative overflow-visible rounded-xl border border-base-300/80 bg-base-100/50 p-2">
               <svg
                 viewBox="0 0 640 260"
+                preserveAspectRatio="none"
                 className="h-64 w-full"
                 onMouseMove={(event) => {
                   const rect = event.currentTarget.getBoundingClientRect();
@@ -271,14 +277,19 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
                     rect.width,
                   );
                   const ratio = rect.width === 0 ? 0 : relativeX / rect.width;
-                  setHoverIndex(
-                    Math.min(
-                      history.length - 1,
-                      Math.max(0, Math.round(ratio * (history.length - 1))),
-                    ),
+
+                  const nextIndex = Math.min(
+                    history.length - 1,
+                    Math.max(0, Math.round(ratio * (history.length - 1))),
                   );
+
+                  setHoverIndex(nextIndex);
+                  setTooltipX(Math.min(Math.max(relativeX, 0), rect.width));
                 }}
-                onMouseLeave={() => setHoverIndex(null)}
+                onMouseLeave={() => {
+                  setHoverIndex(null);
+                  setTooltipX(null);
+                }}
               >
                 <g>
                   {[0, 1, 2, 3, 4].map((step) => {
@@ -319,16 +330,10 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
                   ),
                 )}
 
-                {hoveredPoint && hoverIndex != null && (
+                {hoverMarkerX != null && (
                   <line
-                    x1={
-                      30 +
-                      (hoverIndex / Math.max(1, history.length - 1)) * (640 - 30 - 16)
-                    }
-                    x2={
-                      30 +
-                      (hoverIndex / Math.max(1, history.length - 1)) * (640 - 30 - 16)
-                    }
+                    x1={hoverMarkerX}
+                    x2={hoverMarkerX}
                     y1={16}
                     y2={234}
                     stroke="rgba(255,255,255,0.2)"
@@ -337,14 +342,11 @@ export default function Stats({ initialStats = defaultStats }: StatsProps) {
                 )}
               </svg>
 
-              {hoveredPoint && hoverIndex != null && (
+              {hoveredPoint && hoverIndex != null && tooltipX != null && (
                 <div
                   className="pointer-events-none absolute top-3 z-10 -translate-x-1/2 rounded-lg border border-base-300/80 bg-slate-950/95 px-3 py-2 text-[11px] shadow-lg"
                   style={{
-                    left: `${Math.min(
-                      92,
-                      Math.max(8, (hoverIndex / Math.max(1, history.length - 1)) * 100),
-                    )}%`,
+                    left: `${tooltipX}px`,
                   }}
                 >
                   <div className="font-medium text-white">{formatTimestamp(hoveredPoint.timestamp)}</div>
