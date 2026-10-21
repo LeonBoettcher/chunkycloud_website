@@ -36,6 +36,7 @@ const JobPage = ({ params }: PageProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [showAbortConfirm, setShowAbortConfirm] = useState(false);
 
   const [tiles, setTiles] = useState<TileResponse[]>([]);
   const [resultImageUrl, setResultImageUrl] = useState<string | null>(null);
@@ -143,6 +144,14 @@ const JobPage = ({ params }: PageProps) => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const openAbortConfirmation = () => {
+    if (!job || isSubmitting) {
+      return;
+    }
+
+    setShowAbortConfirm(true);
   };
 
   const handleDelete = async () => {
@@ -422,7 +431,7 @@ const JobPage = ({ params }: PageProps) => {
                     <button
                       type="button"
                       className="btn btn-sm btn-outline btn-warning w-full min-h-11 sm:w-fit"
-                      onClick={handleAbort}
+                      onClick={openAbortConfirmation}
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? "Working..." : "Abort Job"}
@@ -466,6 +475,38 @@ const JobPage = ({ params }: PageProps) => {
               )}
             </div>
           </div>
+          {showAbortConfirm && (
+            <div className="modal modal-open">
+              <div className="modal-box bg-gray-800 text-white">
+                <h3 className="text-lg font-bold">Are you sure?</h3>
+                <p className="py-4">
+                  This will abort the current job. There is no way to undo this
+                  action.
+                </p>
+                <div className="modal-action">
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={() => setShowAbortConfirm(false)}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-error"
+                    onClick={async () => {
+                      setShowAbortConfirm(false);
+                      await handleAbort();
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    Abort Job
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {job.expiresAt && (
             <div className="mt-3 px-3 py-2 text-sm text-gray-400">
               This job will be deleted after{" "}
