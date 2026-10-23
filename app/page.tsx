@@ -31,7 +31,7 @@ const MainPage = () => {
               </h1>
               <p className="mb-5 text-lg sm:text-xl md:text-2xl">
                 A distributed rendering service for{" "}
-                <Link className="underline" href="https://chunky.lemaik.de/">
+                <Link className="underline" href="https://chunky-dev.github.io">
                   Chunky
                 </Link>
               </p>
