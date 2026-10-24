@@ -9,6 +9,7 @@ import {
   getCurrentUserTransactions,
 } from "../../lib/api-client";
 import { createNode, resetNodeToken } from "../../lib/api-client";
+import type { UserNodeResponse } from "../../lib/api-client";
 
 import Icon from "@mdi/react";
 import {
@@ -19,15 +20,13 @@ import {
   mdiServerNetwork,
 } from "@mdi/js";
 
-type NodeToken = {
-  id: number;
-  token: string;
-  name: string;
-};
-
 type UserSession = {
   displayName: string;
   credits?: string;
+};
+
+type AccountNode = UserNodeResponse & {
+  token?: string | null;
 };
 
 type Transaction = {
@@ -44,7 +43,7 @@ type Transaction = {
 const AccountPage = () => {
   const { isLoggedIn, logout, client } = useSession();
   const [session, setSession] = useState<UserSession | null>(null);
-  const [nodeTokens, setNodeTokens] = useState<NodeToken[]>([]);
+  const [nodeTokens, setNodeTokens] = useState<AccountNode[]>([]);
   const [nodeName, setNodeName] = useState("");
   const [loadingNodes, setLoadingNodes] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -69,10 +68,11 @@ const AccountPage = () => {
         const res = await getCurrentUserNodes({ client, signal });
         const nodes = (res as any)?.data ?? [];
         setNodeTokens(
-          nodes.map((node: any) => ({
-            id: node.id,
-            name: node.name ?? "",
-            token: "",
+          nodes.map((node: UserNodeResponse) => ({
+            ...node,
+            name: node.name,
+            status: node.status,
+            token: null,
           })),
         );
       } catch (error) {
@@ -328,13 +328,16 @@ const AccountPage = () => {
     try {
       const res = await createNode({ client, body: { name: nodeName } });
       const data = (res as any)?.data;
+
       if (data?.id) {
         setNodeTokens((prevTokens) => [
           ...prevTokens,
           {
             id: data.id,
-            token: data.token ?? "",
-            name: nodeName,
+            name: nodeName.trim(),
+            token: data.token ?? null,
+            status: "offline",
+            version: null,
           },
         ]);
         setNodeName("");
@@ -579,6 +582,8 @@ const AccountPage = () => {
                 <tr>
                   <th>ID</th>
                   <th>Name</th>
+                  <th>Version</th>
+                  <th>Status</th>
                   <th>Token</th>
                   <th>Actions</th>
                 </tr>
@@ -586,13 +591,13 @@ const AccountPage = () => {
               <tbody>
                 {loadingNodes ? (
                   <tr>
-                    <td colSpan={4} className="p-6 text-center">
+                    <td colSpan={6} className="p-6 text-center">
                       Loading nodes…
                     </td>
                   </tr>
                 ) : nodeTokens.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="p-6 text-center text-gray-400">
+                    <td colSpan={6} className="p-6 text-center text-gray-400">
                       No node tokens yet.
                     </td>
                   </tr>
@@ -601,12 +606,32 @@ const AccountPage = () => {
                     <tr key={token.id}>
                       <th>{token.id}</th>
                       <td>{token.name}</td>
+                      <td>{token.version}</td>
+                      <td className="align-top">
+                        <div className="flex flex-row gap-1">
+                          {token.status === "online" ? (
+                            <div className="badge badge-outline badge-success">
+                              Online
+                            </div>
+                          ) : token.status === "offline" ? (
+                            <div className="badge badge-outline badge-error">
+                              Offline
+                            </div>
+                          ) : null}
+                          {token.updateRequired &&
+                            token.status === "online" && (
+                              <div className="badge badge-outline badge-warning mb-2 block">
+                                Update required
+                              </div>
+                            )}
+                        </div>
+                      </td>
                       <td className="truncate max-w-xs">
                         {token.token ? (
                           <button
                             type="button"
                             className="btn btn-ghost btn-xs"
-                            onClick={() => handleCopyToken(token.token)}
+                            onClick={() => handleCopyToken(token.token ?? "")}
                           >
                             {token.token}
                           </button>
