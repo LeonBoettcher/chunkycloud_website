@@ -1197,7 +1197,7 @@ export default function CreateJob() {
                     placeholder="Target SPP"
                     className="input input-bordered input-md w-40 mb-3"
                     value={tipPerTask / 100000}
-                    step={1}
+                    step={0.00001}
                     min={0}
                     onChange={(e) =>
                       setTipPerTask(Math.round(Number(e.target.value) * 100000))
@@ -1216,7 +1216,7 @@ export default function CreateJob() {
                     style={{ cursor: "pointer" }}
                   >
                     {estimate != null
-                      ? `${Intl.NumberFormat().format(Number(estimate.recommendedTipPerTask) / 100000)} credits`
+                      ? `${(Number(estimate.recommendedTipPerTask) / 100000).toLocaleString(undefined, { maximumFractionDigits: 5 })} credits`
                       : ""}
                   </span>
                   <br />
@@ -1234,7 +1234,7 @@ export default function CreateJob() {
                     <div className="text-sm">Estimated cost</div>
                     <div className="text-lg font-bold">
                       {animatedEstimatedCost !== null
-                        ? `${Intl.NumberFormat().format(Math.round(animatedEstimatedCost))} credits`
+                        ? `${animatedEstimatedCost.toLocaleString(undefined, { maximumFractionDigits: 5 })} credits`
                         : "—"}
                     </div>
                     {estimate && (
