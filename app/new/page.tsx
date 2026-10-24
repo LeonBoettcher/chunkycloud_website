@@ -264,7 +264,7 @@ export default function CreateJob() {
   const [estimate, setEstimate] = useState<EstimateJobCostResponse>();
 
   // animated displayed values
-  const estimatedCost = tipPerTask * (estimate?.tasksCount ?? 0);
+  const estimatedCost = (tipPerTask * (estimate?.tasksCount ?? 0)) / 100000;
   const animatedEstimatedCost = useAnimatedNumber(estimatedCost, 500);
 
   const handleFiles = useCallback(
@@ -1196,10 +1196,12 @@ export default function CreateJob() {
                     type="number"
                     placeholder="Target SPP"
                     className="input input-bordered input-md w-40 mb-3"
-                    value={tipPerTask}
+                    value={tipPerTask / 100000}
                     step={1}
                     min={0}
-                    onChange={(e) => setTipPerTask(Number(e.target.value))}
+                    onChange={(e) =>
+                      setTipPerTask(Math.round(Number(e.target.value) * 100000))
+                    }
                   />
                 </div>
                 <div className="text-xs">
@@ -1214,7 +1216,7 @@ export default function CreateJob() {
                     style={{ cursor: "pointer" }}
                   >
                     {estimate != null
-                      ? `${Intl.NumberFormat().format(Math.round(Number(estimate.recommendedTipPerTask)))} credits`
+                      ? `${Intl.NumberFormat().format(Number(estimate.recommendedTipPerTask) / 100000)} credits`
                       : ""}
                   </span>
                   <br />
