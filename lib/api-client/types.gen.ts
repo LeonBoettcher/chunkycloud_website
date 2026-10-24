@@ -15,6 +15,11 @@ export type UserNodeResponse = {
     id: number;
     name?: string | null;
     lastSeenAt?: string | null;
+    /**
+     * The software version running on this node.
+     */
+    version?: string | null;
+    status: 'online' | 'offline';
 };
 
 export type Order = 'asc' | 'desc';
@@ -185,7 +190,7 @@ export type EstimateJobCostResponse = {
     credits: string;
 };
 
-export type SkymapFileType = 'hdr' | 'png' | 'jpg' | 'exr';
+export type SkymapFileType = 'hdr' | 'png' | 'jpg';
 
 export type SkyAssetDto = {
     type: SkymapFileType;

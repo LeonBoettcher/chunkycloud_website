@@ -208,6 +208,16 @@ export type RevokeAllRefreshTokensResponses = {
 
 export type RevokeAllRefreshTokensResponse = RevokeAllRefreshTokensResponses[keyof RevokeAllRefreshTokensResponses];
 
+export type LoginData = {
+    body?: never;
+    path?: never;
+    query?: {
+        state?: string;
+        returnTo?: 'website' | 'localhost';
+    };
+    url: '/auth';
+};
+
 export type DiscordLoginData = {
     body?: never;
     path?: never;
