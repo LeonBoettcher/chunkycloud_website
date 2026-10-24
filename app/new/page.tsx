@@ -12,6 +12,7 @@ import type {
 import {
   createJob,
   estimateJobCost,
+  EstimateJobCostResponse,
   getResourcePacks,
   startJob,
 } from "../../lib/api-client";
@@ -259,18 +260,12 @@ export default function CreateJob() {
   const resourcePackValidationError =
     showValidation && (noResourcePacksAvailable || texturepack.length === 0);
 
-  // Estimate state
-  const [estimatedWorkUnits, setEstimatedWorkUnits] = useState<number | null>(
-    null,
-  );
-  const estimatedCredits =
-    estimatedWorkUnits != null
-      ? Math.round(Number(estimatedWorkUnits) / 100000)
-      : null;
+  const [tipPerTask, setTipPerTask] = useState(0);
+  const [estimate, setEstimate] = useState<EstimateJobCostResponse>();
 
   // animated displayed values
-  const animatedWorkUnits = useAnimatedNumber(estimatedWorkUnits, 500);
-  const animatedCredits = useAnimatedNumber(estimatedCredits, 500);
+  const estimatedCost = tipPerTask * (estimate?.tasksCount ?? 0);
+  const animatedEstimatedCost = useAnimatedNumber(estimatedCost, 500);
 
   const handleFiles = useCallback(
     (files: File[]) => {
@@ -356,21 +351,21 @@ export default function CreateJob() {
 
   useEffect(() => {
     if (!client) return;
-    let ac: AbortController | null = new AbortController();
+    const ac: AbortController = new AbortController();
     import("../../lib/api-client").then(({ getCurrentUser }) => {
       getCurrentUser({ client, signal: ac!.signal })
         .then((user) => {
-          const data = (user as any).data;
+          const data = user.data;
           if (data?.credits != null) {
             setUserDisplayCredits(parseInt(data.credits) / 100000);
           }
         })
         .catch((err) => {
-          if (ac?.signal.aborted) return;
+          if (ac.signal.aborted) return;
           console.error("Failed to fetch current user for credits", err);
         });
     });
-    return () => ac?.abort();
+    return () => ac.abort();
   }, [client]);
 
   const getErrorMessage = (error: unknown): string => {
@@ -469,8 +464,8 @@ export default function CreateJob() {
     // prevent submission when insufficient credits
     if (
       userDisplayCredits !== null &&
-      estimatedCredits !== null &&
-      userDisplayCredits < estimatedCredits
+      estimatedCost !== null &&
+      userDisplayCredits < estimatedCost
     ) {
       setShowValidation(true);
       logRef.current?.show();
@@ -528,6 +523,7 @@ export default function CreateJob() {
                   }
                 : {}),
           },
+          tipPerTask,
         },
       });
       const creation_data = creation_res?.data;
@@ -698,7 +694,7 @@ export default function CreateJob() {
 
         console.log("Response:", res);
 
-        if ((res as any)?.response?.status === 202) {
+        if (res.response.status === 202) {
           console.log("Job queued successfully");
           logRef.current?.addLog("Job queued successfully", "success");
           shouldRedirectToJobs = true;
@@ -748,7 +744,7 @@ export default function CreateJob() {
     createDump,
     emitterGrid,
     emitterGridRequired,
-    estimatedCredits,
+    estimatedCost,
     noResourcePacksAvailable,
     octreeDescription,
     removefromSceneDescription,
@@ -760,6 +756,7 @@ export default function CreateJob() {
     skymap,
     targetSpp,
     texturepack,
+    tipPerTask,
     userDisplayCredits,
   ]);
 
@@ -770,45 +767,40 @@ export default function CreateJob() {
       try {
         const res = await estimateJobCost({
           client,
-          body: { width: canvasWidth, height: canvasHeight, spp: targetSpp },
+          body: {
+            width: canvasWidth,
+            height: canvasHeight,
+            spp: targetSpp,
+            createDump,
+          },
         });
         if (ac.signal.aborted) {
           return;
         }
-        const data = (res as any)?.data;
+        const data = res.data;
         if (data) {
-          const wu = data.workUnits ? Number(data.workUnits) : null;
-          setEstimatedWorkUnits(wu);
+          setEstimate(data);
         }
       } catch (err: any) {
         if (ac.signal.aborted) {
           return;
         }
         console.error("Estimate failed", err);
-        setEstimatedWorkUnits(null);
+        setEstimate(undefined);
       }
     }, 300);
     ac.signal.addEventListener("abort", () => {
       clearTimeout(debounce);
     });
     return () => ac.abort();
-  }, [canvasWidth, canvasHeight, targetSpp, sceneDescription, client]);
-
-  async function uploadFile(uploadUrl: string, file: File) {
-    const response = await fetch(uploadUrl, {
-      method: "PUT",
-      body: file,
-      headers: {
-        "Content-Type": file.type || "application/octet-stream",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `Upload failed: ${response.status} ${response.statusText}`,
-      );
-    }
-  }
+  }, [
+    canvasWidth,
+    canvasHeight,
+    targetSpp,
+    sceneDescription,
+    client,
+    createDump,
+  ]);
 
   /*
   TODO add Status after clicking Submit (Error codes, Loading Progress, 
@@ -1087,6 +1079,7 @@ export default function CreateJob() {
                     className="input input-bordered input-md w-40 mb-3"
                     value={targetSpp}
                     step={100}
+                    min={0}
                     onChange={(e) => setTargetSpp(Number(e.target.value))}
                   />
                   {targetSpp > 5000 && (
@@ -1124,36 +1117,6 @@ export default function CreateJob() {
                   <span>5000</span>
                   <span>7500</span>
                   <span>10000</span>
-                </div>
-                <div className="mt-4 p-3 bg-base-300 rounded-box">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm">Estimated Cost</div>
-                      <div className="text-lg font-bold">
-                        {animatedCredits !== null
-                          ? `${Intl.NumberFormat().format(Math.round(animatedCredits))} credits`
-                          : "—"}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {animatedWorkUnits !== null
-                          ? `${Intl.NumberFormat().format(Math.round(animatedWorkUnits))} work units`
-                          : ""}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      {userDisplayCredits !== null &&
-                        estimatedCredits !== null &&
-                        (userDisplayCredits < estimatedCredits ? (
-                          <div className="badge badge-error">
-                            Insufficient credits
-                          </div>
-                        ) : (
-                          <div className="badge badge-success">
-                            Sufficient credits
-                          </div>
-                        ))}
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -1222,6 +1185,80 @@ export default function CreateJob() {
                 />
               </div>
 
+              <div className="form-control w-full mb-6 menu-vertical">
+                <label className="label" htmlFor="targetSpp">
+                  <span className="label-text text-base font-bold">
+                    Tip (per task)
+                  </span>
+                </label>
+                <div className="w-full flex items-center">
+                  <input
+                    type="number"
+                    placeholder="Target SPP"
+                    className="input input-bordered input-md w-40 mb-3"
+                    value={tipPerTask}
+                    step={1}
+                    min={0}
+                    onChange={(e) => setTipPerTask(Number(e.target.value))}
+                  />
+                </div>
+                <div className="text-xs">
+                  Recommended tip per task:{" "}
+                  <span
+                    role="button"
+                    onClick={() =>
+                      setTipPerTask(
+                        Number(estimate?.recommendedTipPerTask ?? "0"),
+                      )
+                    }
+                    style={{ cursor: "pointer" }}
+                  >
+                    {estimate != null
+                      ? `${Intl.NumberFormat().format(Math.round(Number(estimate.recommendedTipPerTask)))} credits`
+                      : ""}
+                  </span>
+                  <br />
+                  <span className="text-gray-400">
+                    While all jobs are free, the queue is prioritized by tip per
+                    work unit. The recommended tip would place your job in the
+                    front 10 percent of the queue. Your own render nodes always
+                    prioritize your jobs.
+                  </span>
+                </div>
+              </div>
+              <div className="mb-6 p-3 bg-base-300 rounded-box">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm">Estimated cost</div>
+                    <div className="text-lg font-bold">
+                      {animatedEstimatedCost !== null
+                        ? `${Intl.NumberFormat().format(Math.round(animatedEstimatedCost))} credits`
+                        : "—"}
+                    </div>
+                    {estimate && (
+                      <div className="text-gray-400">
+                        {Number(estimate.tasksCount).toLocaleString()} tasks,{" "}
+                        {Number(estimate.workUnits).toLocaleString()} total work
+                        units
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    {userDisplayCredits !== null &&
+                      estimatedCost !== null &&
+                      (userDisplayCredits < estimatedCost ? (
+                        <div className="badge badge-error">
+                          Insufficient credits
+                        </div>
+                      ) : (
+                        <div className="badge badge-success">
+                          Sufficient credits
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+
               {/* Submit Button with Hover text of what is missing to being enabled */}
 
               <div
@@ -1241,8 +1278,8 @@ export default function CreateJob() {
                               .filter(Boolean)
                               .join(", ")}`
                           : userDisplayCredits !== null &&
-                              estimatedCredits !== null &&
-                              userDisplayCredits < estimatedCredits
+                              estimatedCost !== null &&
+                              userDisplayCredits < estimatedCost
                             ? "Insufficient credits"
                             : "Click to Submit your render job"
                 }
@@ -1260,8 +1297,8 @@ export default function CreateJob() {
                     noResourcePacksAvailable ||
                     texturepack.length === 0 ||
                     (userDisplayCredits !== null &&
-                      estimatedCredits !== null &&
-                      userDisplayCredits < estimatedCredits)
+                      estimatedCost !== null &&
+                      userDisplayCredits < estimatedCost)
                   }
                 >
                   {submitting ? (

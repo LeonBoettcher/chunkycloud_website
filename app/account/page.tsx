@@ -66,15 +66,7 @@ const AccountPage = () => {
 
       try {
         const res = await getCurrentUserNodes({ client, signal });
-        const nodes = (res as any)?.data ?? [];
-        setNodeTokens(
-          nodes.map((node: UserNodeResponse) => ({
-            ...node,
-            name: node.name,
-            status: node.status,
-            token: null,
-          })),
-        );
+        setNodeTokens(res.data);
       } catch (error) {
         if (signal?.aborted) return;
         console.error("Failed to load node tokens", error);
@@ -101,7 +93,7 @@ const AccountPage = () => {
             sort: "createdAt",
             order: "desc",
           },
-        } as any);
+        });
 
         const raw = res as any;
         // Debug log to inspect response shape in the browser console
@@ -195,17 +187,6 @@ const AccountPage = () => {
   };
 
   const TransactionTypeIcon = ({ type }: { type: string }) => {
-    const commonProps = {
-      className: "h-6 w-6 text-current",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      strokeWidth: 1.8,
-      strokeLinecap: "round" as const,
-      strokeLinejoin: "round" as const,
-      "aria-hidden": true,
-    };
-
     switch (type) {
       case "job_fee":
         return <Icon path={mdiFileDocument} size={1} />;
@@ -301,7 +282,7 @@ const AccountPage = () => {
     async (nodeId: number) => {
       try {
         const res = await resetNodeToken({ client, path: { id: nodeId } });
-        const newToken: string | undefined = (res as any)?.data?.token;
+        const newToken: string | undefined = res.data.token;
 
         if (newToken) {
           setNodeTokens((prevTokens) =>
@@ -327,7 +308,7 @@ const AccountPage = () => {
 
     try {
       const res = await createNode({ client, body: { name: nodeName } });
-      const data = (res as any)?.data;
+      const data = res.data;
 
       if (data?.id) {
         setNodeTokens((prevTokens) => [
@@ -338,6 +319,7 @@ const AccountPage = () => {
             token: data.token ?? null,
             status: "offline",
             version: null,
+            updateRequired: false,
           },
         ]);
         setNodeName("");
