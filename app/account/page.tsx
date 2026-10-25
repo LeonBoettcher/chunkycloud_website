@@ -43,9 +43,8 @@ type Transaction = {
 const AccountPage = () => {
   const { isLoggedIn, logout, client } = useSession();
   const [session, setSession] = useState<UserSession | null>(null);
-  const [nodeTokens, setNodeTokens] = useState<AccountNode[]>([]);
+  const [nodes, setNodes] = useState<AccountNode[]>([]);
   const [nodeName, setNodeName] = useState("");
-  const [loadingNodes, setLoadingNodes] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [transactionsPage, setTransactionsPage] = useState(1);
@@ -61,18 +60,15 @@ const AccountPage = () => {
 
   const loadNodeTokens = useCallback(
     async (signal?: AbortSignal) => {
-      setLoadingNodes(true);
       setErrorMessage(null);
 
       try {
         const res = await getCurrentUserNodes({ client, signal });
-        setNodeTokens(res.data);
+        setNodes(res.data);
       } catch (error) {
         if (signal?.aborted) return;
         console.error("Failed to load node tokens", error);
         setErrorMessage("Failed to load node tokens.");
-      } finally {
-        setLoadingNodes(false);
       }
     },
     [client],
@@ -285,7 +281,7 @@ const AccountPage = () => {
         const newToken: string | undefined = res.data.token;
 
         if (newToken) {
-          setNodeTokens((prevTokens) =>
+          setNodes((prevTokens) =>
             prevTokens.map((token) =>
               token.id === nodeId ? { ...token, token: newToken } : token,
             ),
@@ -311,7 +307,7 @@ const AccountPage = () => {
       const data = res.data;
 
       if (data?.id) {
-        setNodeTokens((prevTokens) => [
+        setNodes((prevTokens) => [
           ...prevTokens,
           {
             id: data.id,
@@ -571,20 +567,20 @@ const AccountPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {loadingNodes ? (
+                {!nodes ? (
                   <tr>
                     <td colSpan={6} className="p-6 text-center">
                       Loading nodes…
                     </td>
                   </tr>
-                ) : nodeTokens.length === 0 ? (
+                ) : nodes.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="p-6 text-center text-gray-400">
                       No node tokens yet.
                     </td>
                   </tr>
                 ) : (
-                  nodeTokens.map((token) => (
+                  nodes.map((token) => (
                     <tr key={token.id}>
                       <th>{token.id}</th>
                       <td>{token.name}</td>
