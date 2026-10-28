@@ -265,22 +265,22 @@ const JobPage = ({ params }: PageProps) => {
       <div className="breadcrumbs text-sm">
         <ul>
           <li>
-            <a>
+            <Link href="/">
               <Icon path={mdiFolderOutline} size={1} />
-              <Link href="/">Home</Link>
-            </a>
+              Home
+            </Link>
           </li>
           <li>
-            <a>
+            <Link href="/jobs">
               <Icon path={mdiFolderOutline} size={1} />
-              <Link href="/jobs">Jobs</Link>
-            </a>
+              Jobs
+            </Link>
           </li>
           <li>
-            <span className="inline-flex items-center gap-2">
+            <Link href={`/jobs/${id}`}>
               <Icon path={mdiFileDocument} size={1} />
               Job {job.id}
-            </span>
+            </Link>
           </li>
         </ul>
       </div>
