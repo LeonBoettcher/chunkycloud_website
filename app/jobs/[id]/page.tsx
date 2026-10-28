@@ -288,7 +288,20 @@ const JobPage = ({ params }: PageProps) => {
         <div className="w-full lg:basis-1/3 lg:min-w-[280px]">
           <div className="card min-w-0 bg-gray-800 text-white shadow-lg">
             <div className="card-body space-y-4">
-              <h2 className="card-title text-2xl">ID: {job.id}</h2>
+              <h2 className="card-title text-2xl mb-0">ID: {job.id}</h2>
+              <span>
+                <img
+                  style={{
+                    borderRadius: "50%",
+                    height: "1em",
+                    display: "inline",
+                    marginRight: 8,
+                  }}
+                  src={job.createdBy.avatarUrl}
+                  alt={`Avatar of ${job.createdBy.displayName}`}
+                />
+                {job.createdBy.displayName}
+              </span>
               <span className="font-mono">{getStatusTag(job)}</span>
 
               <div className="divider"></div>
