@@ -67,6 +67,21 @@ export type UserTransactionsResponse = {
 
 export type JobStatus = 'draft' | 'queued' | 'running' | 'merge_pending' | 'merge_running' | 'completed' | 'aborted';
 
+export type UserReference = {
+    /**
+     * ID of the user who created the job
+     */
+    id: number;
+    /**
+     * Display name of the user who created the job
+     */
+    displayName: string;
+    /**
+     * Avatar URL of the user who created the job
+     */
+    avatarUrl?: string | null;
+};
+
 export type UserJobItem = {
     id: number;
     status: JobStatus;
@@ -82,11 +97,16 @@ export type UserJobItem = {
     skyMode: 'skybox' | 'skymap';
     createDump: boolean;
     createdAt: string;
+    /**
+     * User who created this job; included in GET /jobs listings
+     */
+    createdBy: UserReference;
     expiresAt: string | null;
     startedAt?: string | null;
     finishedAt?: string | null;
     abortedAt?: string | null;
     thumbnailUrl?: string;
+    visibility: 'private' | 'public';
 };
 
 export type UserJobsResponse = {
@@ -139,11 +159,16 @@ export type UserJob = {
     skyMode: 'skybox' | 'skymap';
     createDump: boolean;
     createdAt: string;
+    /**
+     * User who created this job; included in GET /jobs listings
+     */
+    createdBy: UserReference;
     expiresAt: string | null;
     startedAt?: string | null;
     finishedAt?: string | null;
     abortedAt?: string | null;
     thumbnailUrl?: string;
+    visibility: 'private' | 'public';
     /**
      * Approximate samples per second this job is currently rendering at
      */
@@ -242,6 +267,7 @@ export type CreateJobDto = {
      * Tip per render task
      */
     tipPerTask?: number;
+    visibility?: 'private' | 'public';
 };
 
 export type CreateJobResponse = {
@@ -480,6 +506,67 @@ export type ResetNodeTokenResponses = {
 
 export type ResetNodeTokenResponse2 = ResetNodeTokenResponses[keyof ResetNodeTokenResponses];
 
+export type GetJobsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        status?: Array<JobStatus>;
+        sort?: 'createdAt' | 'startedAt' | 'finishedAt';
+        order?: Order;
+        page?: number;
+        limit?: number;
+        /**
+         * Filter by the ID of the user who created the job. Private jobs are returned only to their owner.
+         */
+        createdBy?: number;
+    };
+    url: '/jobs';
+};
+
+export type GetJobsResponses = {
+    200: UserJobsResponse;
+};
+
+export type GetJobsResponse = GetJobsResponses[keyof GetJobsResponses];
+
+export type CreateJobData = {
+    body: CreateJobDto;
+    path?: never;
+    query?: never;
+    url: '/jobs';
+};
+
+export type CreateJobResponses = {
+    /**
+     * The job was created and scene files can now be uploaded
+     */
+    201: CreateJobResponse;
+};
+
+export type CreateJobResponse2 = CreateJobResponses[keyof CreateJobResponses];
+
+export type GetJobData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/jobs/{id}';
+};
+
+export type GetJobErrors = {
+    /**
+     * The job does not exist or the user cannot access it
+     */
+    404: unknown;
+};
+
+export type GetJobResponses = {
+    200: UserJob;
+};
+
+export type GetJobResponse = GetJobResponses[keyof GetJobResponses];
+
 export type EstimateJobCostData = {
     body: EstimateJobCostDto;
     path?: never;
@@ -499,22 +586,6 @@ export type EstimateJobCostResponses = {
 };
 
 export type EstimateJobCostResponse2 = EstimateJobCostResponses[keyof EstimateJobCostResponses];
-
-export type CreateJobData = {
-    body: CreateJobDto;
-    path?: never;
-    query?: never;
-    url: '/jobs';
-};
-
-export type CreateJobResponses = {
-    /**
-     * The job was created and scene files can now be uploaded
-     */
-    201: CreateJobResponse;
-};
-
-export type CreateJobResponse2 = CreateJobResponses[keyof CreateJobResponses];
 
 export type StartJobData = {
     body?: never;
@@ -618,6 +689,39 @@ export type GetJobTilesResponses = {
 };
 
 export type GetJobTilesResponse = GetJobTilesResponses[keyof GetJobTilesResponses];
+
+export type GetJobResultFile2Data = {
+    body?: never;
+    path: {
+        id: number;
+        /**
+         * The dump is only available if the job was created with createDump set to true
+         */
+        file: 'image' | 'dump';
+    };
+    query?: never;
+    url: '/jobs/{id}/results/{file}';
+};
+
+export type GetJobResultFile2Errors = {
+    /**
+     *  The requested file is invalid or not available for this job
+     */
+    400: unknown;
+    /**
+     * The job does not exist or the user cannot access it
+     */
+    404: unknown;
+};
+
+export type GetJobResultFile2Responses = {
+    /**
+     * A download URL for the requested file, valid for at least 1 hour
+     */
+    200: UrlResponse;
+};
+
+export type GetJobResultFile2Response = GetJobResultFile2Responses[keyof GetJobResultFile2Responses];
 
 export type GetResourcePacksData = {
     body?: never;

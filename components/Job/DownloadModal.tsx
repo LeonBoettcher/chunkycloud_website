@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { useSession } from "../../app/auth/components/SessionProvider";
-import { getJobFile, getJobResultFile, UserJob } from "../../lib/api-client";
+import {
+  getJobFile,
+  getJobResultFile,
+  getJobResultFile2,
+  UserJob,
+} from "../../lib/api-client";
 
 type DownloadableFile = "image" | "dump" | "scene" | "octree" | "emittergrid";
 
@@ -16,6 +21,7 @@ const FILE_OPTIONS: {
   label: string;
   value: DownloadableFile;
   isAvailable?: (job: UserJob) => boolean;
+  private?: boolean;
 }[] = [
   {
     label: "Result image",
@@ -27,12 +33,13 @@ const FILE_OPTIONS: {
     value: "dump",
     isAvailable: (job) => job.status === "completed" && job.createDump,
   },
-  { label: "Scene", value: "scene" },
-  { label: "Octree", value: "octree" },
+  { label: "Scene", value: "scene", private: true },
+  { label: "Octree", value: "octree", private: true },
   {
     label: "Emitter Grid",
     value: "emittergrid",
     isAvailable: (job) => job.hasEmitterGrid,
+    private: true,
   },
 ];
 
@@ -55,7 +62,7 @@ export default function DownloadModal({
   job,
   onClose,
 }: DownloadModalProps) {
-  const { client } = useSession();
+  const { client, publicClient, userId } = useSession();
   const [downloadingFile, setDownloadingFile] =
     useState<DownloadableFile | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -79,8 +86,8 @@ export default function DownloadModal({
     try {
       const result =
         file === "image" || file === "dump"
-          ? await getJobResultFile({
-              client,
+          ? await getJobResultFile2({
+              client: publicClient,
               path: { id: job.id, file },
             })
           : await getJobFile({
@@ -126,7 +133,9 @@ export default function DownloadModal({
 
         <div className="mt-5 space-y-3">
           <p className="font-medium">Choose file to download:</p>
-          {FILE_OPTIONS.map((option) => {
+          {FILE_OPTIONS.filter(
+            (option) => !option.private || job.createdBy.id === userId,
+          ).map((option) => {
             const isCurrent = downloadingFile === option.value;
 
             return (

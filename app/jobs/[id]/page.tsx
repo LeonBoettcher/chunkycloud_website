@@ -1,23 +1,22 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { use, useEffect, useLayoutEffect, useState } from "react";
 import { useSession } from "../../../app/auth/components/SessionProvider";
 import type { TileResponse, UserJob } from "../../../lib/api-client";
 import {
   abortJob,
-  getCurrentUserJob,
-  getJobResultFile,
+  getJob,
+  getJobResultFile2,
   getJobTiles,
 } from "../../../lib/api-client";
 
 import { mdiFileDocument, mdiFolderOutline } from "@mdi/js";
 
+import Icon from "@mdi/react";
+import Link from "next/link";
 import DownloadModal from "../../../components/Job/DownloadModal";
 import getStatusTag from "../../../components/Job/getStatusTag";
 import { DurationCounter } from "./DurationCounter";
-import Link from "next/link";
-import Icon from "@mdi/react";
 
 interface PageProps {
   params: Promise<{
@@ -28,8 +27,7 @@ interface PageProps {
 // TODO: Split this page into smaller reusable components (deferred cleanup)
 const JobPage = ({ params }: PageProps) => {
   const { id } = use(params);
-  const { client } = useSession();
-  const router = useRouter();
+  const { client, publicClient, userId } = useSession();
 
   const [job, setJob] = useState<UserJob | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,8 +41,8 @@ const JobPage = ({ params }: PageProps) => {
 
   const fetchResultImage = async (jobId: number) => {
     try {
-      const result = await getJobResultFile({
-        client,
+      const result = await getJobResultFile2({
+        client: publicClient,
         path: { id: jobId, file: "image" },
         throwOnError: false,
       });
@@ -62,8 +60,8 @@ const JobPage = ({ params }: PageProps) => {
 
   const fetchJob = async () => {
     try {
-      const fetchedJob = await getCurrentUserJob({
-        client,
+      const fetchedJob = await getJob({
+        client: publicClient,
         path: { id },
       });
 
@@ -86,7 +84,7 @@ const JobPage = ({ params }: PageProps) => {
   const fetchTile = async () => {
     try {
       const result = await getJobTiles({
-        client,
+        client: publicClient,
         path: { id },
       });
 
@@ -152,44 +150,6 @@ const JobPage = ({ params }: PageProps) => {
     }
 
     setShowAbortConfirm(true);
-  };
-
-  const handleDelete = async () => {
-    if (!job || isSubmitting) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    setActionError(null);
-
-    try {
-      const result = await client.delete({
-        security: [{ key: "access-token", scheme: "bearer", type: "http" }],
-        url: "/users/me/jobs/{id}",
-        path: { id: job.id },
-        throwOnError: false,
-      });
-
-      if (result.error) {
-        const errorMessage =
-          typeof result.error === "object" &&
-          result.error !== null &&
-          "message" in result.error &&
-          typeof (result.error as { message?: unknown }).message === "string"
-            ? (result.error as { message: string }).message
-            : "Unable to delete the job.";
-        setActionError(errorMessage);
-        return;
-      }
-
-      router.push("/jobs");
-    } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Unable to delete the job.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const canAbort =
@@ -436,32 +396,33 @@ const JobPage = ({ params }: PageProps) => {
 
               <div className="divider"></div>
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                  {canAbort ? (
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline btn-warning w-full min-h-11 sm:w-fit"
-                      onClick={openAbortConfirmation}
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? "Working..." : "Abort Job"}
-                    </button>
-                  ) : (
-                    <div
-                      className="tooltip w-full sm:w-fit"
-                      data-tip="Only queued or running jobs can be aborted."
-                    >
+                {job.createdBy.id === userId && (
+                  <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    {canAbort ? (
                       <button
                         type="button"
-                        className="btn btn-sm btn-disabled btn-outline btn-warning w-full min-h-11 sm:w-fit"
-                        disabled
+                        className="btn btn-sm btn-outline btn-warning w-full min-h-11 sm:w-fit"
+                        onClick={openAbortConfirmation}
+                        disabled={isSubmitting}
                       >
-                        Abort Job
+                        {isSubmitting ? "Working..." : "Abort Job"}
                       </button>
-                    </div>
-                  )}
+                    ) : (
+                      <div
+                        className="tooltip w-full sm:w-fit"
+                        data-tip="Only queued or running jobs can be aborted."
+                      >
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-disabled btn-outline btn-warning w-full min-h-11 sm:w-fit"
+                          disabled
+                        >
+                          Abort Job
+                        </button>
+                      </div>
+                    )}
 
-                  {/*<button
+                    {/*<button
                     type="button"
                     className="btn btn-sm btn-outline btn-error w-full min-h-11 sm:w-fit"
                     onClick={handleDelete}
@@ -470,7 +431,8 @@ const JobPage = ({ params }: PageProps) => {
                     {isSubmitting ? "Working..." : "Delete Job"}
                   </button>
                   */}
-                </div>
+                  </div>
+                )}
 
                 <button
                   type="button"

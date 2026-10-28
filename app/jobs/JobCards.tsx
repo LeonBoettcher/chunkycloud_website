@@ -1,19 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import React, { useEffect, useState } from "react";
 import { useSession } from "../../app/auth/components/SessionProvider";
-import { getCurrentUserJobs, getJobResultFile } from "../../lib/api-client";
 import type { UserJob } from "../../lib/api-client";
+import { getJobs } from "../../lib/api-client";
 
-import LoadingCards from "./LoadingCards";
 import getStatusTag from "../../components/Job/getStatusTag";
 import type { JobStatus } from "../../lib/api-client";
+import LoadingCards from "./LoadingCards";
 
 type JobCardsProps = {
   status?: JobStatus[];
   sort?: "createdAt" | "startedAt" | "finishedAt";
   order?: "asc" | "desc";
+  createdBy?: number;
   page?: number;
   limit?: number;
   onPaginationInfo?: (totalPages: number) => void;
@@ -24,12 +25,13 @@ const JobCards = ({
   status = [],
   sort = "createdAt",
   order = "desc",
+  createdBy,
   page = 1,
   limit = 100,
   onPaginationInfo,
   onEmptyState,
 }: JobCardsProps) => {
-  const { client } = useSession();
+  const { publicClient } = useSession();
 
   const [jobs, setJobs] = useState<UserJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,14 +51,15 @@ const JobCards = ({
         setLoading(true);
         setErrorMsg("");
 
-        const result = await getCurrentUserJobs({
-          client,
+        const result = await getJobs({
+          client: publicClient,
           query: {
             status,
             sort,
             order,
             page,
             limit,
+            createdBy,
           },
         });
 
@@ -122,7 +125,17 @@ const JobCards = ({
       isMounted = false;
       window.clearTimeout(timeoutId);
     };
-  }, [client, status, sort, order, page, limit, onPaginationInfo]);
+  }, [
+    publicClient,
+    status,
+    sort,
+    order,
+    page,
+    limit,
+    onPaginationInfo,
+    createdBy,
+    onEmptyState,
+  ]);
 
   const getGlowColor = (status: string | null | undefined): string => {
     if (!status) return "rgba(59,130,246,0.12)"; // default blue
@@ -201,7 +214,7 @@ const JobCards = ({
                     max={1}
                   ></progress>
                   <p>{(job.progress * 100).toFixed(0)}%</p>
-                  <p>SPP: {job.spp}</p>
+                  <p>SPP: {job.spp.toLocaleString()}</p>
                 </div>
 
                 <div className="text=[8px] text-gray-500 space-y-1">
@@ -214,6 +227,19 @@ const JobCards = ({
                   {job.finishedAt && (
                     <p>Finished: {new Date(job.finishedAt).toLocaleString()}</p>
                   )}
+                  <p>
+                    <img
+                      style={{
+                        borderRadius: "50%",
+                        height: "1em",
+                        display: "inline",
+                        marginRight: 8,
+                      }}
+                      src={job.createdBy.avatarUrl}
+                      alt={`Avatar of ${job.createdBy.displayName}`}
+                    />
+                    {job.createdBy.displayName}
+                  </p>
                 </div>
               </div>
             </div>

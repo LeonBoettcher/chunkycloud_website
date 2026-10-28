@@ -15,9 +15,11 @@ import { apiUrl } from "../../../lib/config";
 
 interface SessionProviderContextValue {
   isLoggedIn: boolean;
+  userId?: number;
   getAccessToken: () => Promise<string>;
   logout: () => Promise<void>;
   client: Client;
+  publicClient: Client;
 }
 
 const SessionProviderContext = createContext<
@@ -44,6 +46,12 @@ export default function SessionProvider({
   if (accessToken !== lastAccessToken.current) {
     lastAccessToken.current = accessToken;
   }
+  const userId = useMemo(() => {
+    if (accessToken) {
+      return JSON.parse(atob(accessToken.split(".")[1])).sub;
+    }
+    return undefined;
+  }, [accessToken]);
 
   const refreshPromise = useRef<Promise<string> | null>(null);
 
@@ -90,20 +98,36 @@ export default function SessionProvider({
       token = await refreshToken();
     }
     return token;
-  }, []);
+  }, [refreshToken]);
+
+  const getOptionalAccessToken = useCallback(async () => {
+    if (!lastAccessToken.current) {
+      return undefined;
+    }
+    let token = validateJwt(lastAccessToken.current);
+    if (!token) {
+      token = await refreshToken().catch(() => null);
+    }
+    return token;
+  }, [refreshToken]);
 
   const isLoggedIn = !!accessToken;
   const context = useMemo(() => {
     return {
       isLoggedIn,
+      userId,
       getAccessToken,
       logout,
       client: createClient({
         auth: getAccessToken,
         baseUrl: apiUrl,
       }),
+      publicClient: createClient({
+        auth: getOptionalAccessToken,
+        baseUrl: apiUrl,
+      }),
     };
-  }, [isLoggedIn, getAccessToken]);
+  }, [isLoggedIn, userId, getAccessToken, getOptionalAccessToken, logout]);
 
   return (
     <SessionProviderContext value={context}>{children}</SessionProviderContext>
