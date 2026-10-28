@@ -196,7 +196,7 @@ const JobCards = ({
                 <div className="aspect-video overflow-hidden rounded-md">
                   <img
                     src={imageSrc}
-                    alt="Job Thumbnail"
+                    alt="Job thumbnail"
                     className="h-full w-full object-cover"
                     onError={(event) => {
                       const target = event.currentTarget as HTMLImageElement;
@@ -228,16 +228,18 @@ const JobCards = ({
                     <p>Finished: {new Date(job.finishedAt).toLocaleString()}</p>
                   )}
                   <p>
-                    <img
-                      style={{
-                        borderRadius: "50%",
-                        height: "1em",
-                        display: "inline",
-                        marginRight: 8,
-                      }}
-                      src={job.createdBy.avatarUrl}
-                      alt={`Avatar of ${job.createdBy.displayName}`}
-                    />
+                    {job.createdBy.avatarUrl && (
+                      <img
+                        style={{
+                          borderRadius: "50%",
+                          height: "1em",
+                          display: "inline",
+                          marginRight: 8,
+                        }}
+                        src={job.createdBy.avatarUrl}
+                        alt={`Avatar of ${job.createdBy.displayName}`}
+                      />
+                    )}
                     {job.createdBy.displayName}
                   </p>
                 </div>
