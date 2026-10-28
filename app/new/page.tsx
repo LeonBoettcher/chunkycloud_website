@@ -117,6 +117,7 @@ export default function CreateJob() {
   const [renderName, setRenderName] = useState<string>("");
   const [targetSpp, setTargetSpp] = useState(500);
   const [createDump, setCreateDump] = useState(false);
+  const [jobPublic, setJobPublic] = useState(true);
   const [texturepack, setTexturepack] = useState<ResourcePackResponse[]>([]);
 
   const [skymap, setSkymap] = useState<File>();
@@ -506,6 +507,7 @@ export default function CreateJob() {
           createDump,
           resourcePacks: texturepack,
           skyMode: skyMode ?? undefined,
+          visibility: jobPublic ? "public" : "private",
           assets: {
             emitterGrid: emitterGridState,
             ...(skyMode === "skybox"
@@ -745,6 +747,7 @@ export default function CreateJob() {
     emitterGrid,
     emitterGridRequired,
     estimatedCost,
+    jobPublic,
     noResourcePacksAvailable,
     octreeDescription,
     removefromSceneDescription,
@@ -1121,7 +1124,57 @@ export default function CreateJob() {
               </div>
 
               <div className="form-control w-full mb-4 menu-vertical">
-                <label className="label" htmlFor="Create Dump">
+                <label className="label" htmlFor="make-public">
+                  <span className="label-text text-base font-bold">
+                    Allow anyone to see this job
+                  </span>
+                </label>
+
+                <label className="toggle toggle-error m-2">
+                  <input
+                    id="make-public"
+                    type="checkbox"
+                    checked={jobPublic}
+                    onChange={(e) => setJobPublic(e.target.checked)}
+                  />
+
+                  {/* OFF */}
+                  <svg
+                    aria-label="off"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M18 6 6 18M6 6l12 12"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+
+                  {/* ON */}
+                  <svg
+                    aria-label="on"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M20 6 9 17l-5-5"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </label>
+                <div className="text-xs">
+                  Public jobs can be seen by all visitors of this website,
+                  including the result image and dump. The scene files are still
+                  only shared with render nodes.
+                </div>
+              </div>
+
+              <div className="form-control w-full mb-4 menu-vertical">
+                <label className="label" htmlFor="create-dump">
                   <span className="label-text text-base font-bold">
                     Create Dump
                   </span>
@@ -1129,6 +1182,7 @@ export default function CreateJob() {
 
                 <label className="toggle toggle-error m-2">
                   <input
+                    id="create-dump"
                     type="checkbox"
                     checked={createDump}
                     onChange={(e) => setCreateDump(e.target.checked)}
