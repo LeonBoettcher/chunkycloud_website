@@ -108,7 +108,7 @@ export default function SessionProvider({
     if (!token) {
       token = await refreshToken().catch(() => null);
     }
-    return token;
+    return token ?? undefined;
   }, [refreshToken]);
 
   const isLoggedIn = !!accessToken;
@@ -118,10 +118,12 @@ export default function SessionProvider({
       userId,
       getAccessToken,
       logout,
+      // eslint-disable-next-line react-hooks/refs
       client: createClient({
         auth: getAccessToken,
         baseUrl: apiUrl,
       }),
+      // eslint-disable-next-line react-hooks/refs
       publicClient: createClient({
         auth: getOptionalAccessToken,
         baseUrl: apiUrl,
