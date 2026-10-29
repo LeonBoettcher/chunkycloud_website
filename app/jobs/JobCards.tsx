@@ -150,11 +150,13 @@ const JobCards = ({
     return "rgba(59,130,246,0.12)"; // default blue
   };
 
-  if (loading) {
+  const isInitialLoading = loading && jobs.length === 0;
+
+  if (isInitialLoading) {
     return showLoadingFallback ? <LoadingCards /> : null;
   }
 
-  if (errorMsg) {
+  if (errorMsg && jobs.length === 0) {
     return (
       <div className="flex w-full justify-start px-4 pt-4">
         <div className="badge badge-error badge-soft border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-medium tracking-wide text-red-100">
@@ -166,6 +168,11 @@ const JobCards = ({
 
   return (
     <>
+      {loading && jobs.length > 0 && (
+        <div className="col-span-full flex justify-center pb-2">
+          <div className="badge badge-info badge-soft">Updating filters...</div>
+        </div>
+      )}
       <style>{`
         .job-card {
           transition: box-shadow 200ms ease;

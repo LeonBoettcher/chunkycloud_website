@@ -21,12 +21,17 @@ type SortOption = "createdAt" | "startedAt" | "finishedAt";
 type OrderOption = "asc" | "desc";
 
 export default function JobsPage() {
-  const { isLoggedIn, userId } = useSession();
+  const session = useSession();
+  const { isLoggedIn } = session;
+  const userId =
+    "userId" in session && typeof session.userId === "number"
+      ? session.userId
+      : undefined;
   const [selectedStatus, setSelectedStatus] =
     useState<JobStatus[]>(statusOptions);
   const [selectedSort, setSelectedSort] = useState<SortOption>("createdAt");
   const [selectedOrder, setSelectedOrder] = useState<OrderOption>("desc");
-  const [onlyMyJobs, setOnlyMyJobs] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(25);
   const [totalPages, setTotalPages] = useState(1);
@@ -34,11 +39,13 @@ export default function JobsPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedStatus, selectedSort, selectedOrder, pageLimit]);
+  }, [selectedStatus, selectedSort, selectedOrder, isPublic, pageLimit]);
 
-  if (currentPage > totalPages) {
-    setCurrentPage(totalPages);
-  }
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const toggleStatus = (status: JobStatus) => {
     setSelectedStatus((current) =>
@@ -48,9 +55,15 @@ export default function JobsPage() {
     );
   };
 
-  const resetStatuses = () => {
+  const resetFilters = () => {
     setSelectedStatus(statusOptions);
+    setSelectedSort("createdAt");
+    setSelectedOrder("desc");
+    setIsPublic(true);
+    setPageLimit(25);
   };
+
+  const createdByUserId = isLoggedIn && !isPublic ? userId : undefined;
 
   return (
     <div
@@ -129,7 +142,7 @@ export default function JobsPage() {
                             onClick={() => toggleStatus(status)}
                             className={`rounded-full border px-3 py-1.5 text-sm font-medium capitalize transition-all ${
                               isActive
-                                ? "border-gray-400 bg-gray-600/20 text-gray-100 shadow-[0_0_0_1px_rgba(34,211,238,0.2)]"
+                                ? "border-blue-400 bg-gray-600/20 text-gray-100 shadow-[0_0_0_1px_rgba(34,211,238,0.2)]"
                                 : "border-gray-600 bg-gray-800/70 text-gray-300 hover:border-gray-500 hover:text-white"
                             }`}
                           >
@@ -139,11 +152,26 @@ export default function JobsPage() {
                       })}
                     </div>
 
+                    <div className="flex flex-wrap items-center gap-2">
+                      <fieldset className="fieldset">
+                        <legend className="fieldset-legend">public</legend>
+                        <label className="label">
+                          <input
+                            type="checkbox"
+                            checked={isPublic}
+                            className="toggle toggle-success"
+                            onChange={() => setIsPublic(!isPublic)}
+                            value="public"
+                          />
+                        </label>
+                      </fieldset>
+                    </div>
+
                     <div className="flex flex-wrap items-center justify-between gap-3 md:justify-end">
                       <button
                         type="button"
                         className="btn btn-info btn-sm"
-                        onClick={resetStatuses}
+                        onClick={resetFilters}
                       >
                         Reset
                       </button>
@@ -186,7 +214,7 @@ export default function JobsPage() {
                   status={selectedStatus}
                   sort={selectedSort}
                   order={selectedOrder}
-                  createdBy={onlyMyJobs && isLoggedIn ? userId : undefined}
+                  createdBy={!isPublic && isLoggedIn ? userId : undefined}
                   page={currentPage}
                   limit={pageLimit}
                   onPaginationInfo={setTotalPages}
