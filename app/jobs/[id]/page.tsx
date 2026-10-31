@@ -6,7 +6,7 @@ import type { TileResponse, UserJob } from "../../../lib/api-client";
 import {
   abortJob,
   getJob,
-  getJobResultFile2,
+  getJobResultFile,
   getJobTiles,
 } from "../../../lib/api-client";
 
@@ -41,7 +41,7 @@ const JobPage = ({ params }: PageProps) => {
 
   const fetchResultImage = async (jobId: number) => {
     try {
-      const result = await getJobResultFile2({
+      const result = await getJobResultFile({
         client: publicClient,
         path: { id: jobId, file: "image" },
         throwOnError: false,

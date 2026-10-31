@@ -2,12 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "../../app/auth/components/SessionProvider";
-import {
-  getJobFile,
-  getJobResultFile,
-  getJobResultFile2,
-  UserJob,
-} from "../../lib/api-client";
+import { getJobFile, getJobResultFile, UserJob } from "../../lib/api-client";
 
 type DownloadableFile = "image" | "dump" | "scene" | "octree" | "emittergrid";
 
@@ -86,7 +81,7 @@ export default function DownloadModal({
     try {
       const result =
         file === "image" || file === "dump"
-          ? await getJobResultFile2({
+          ? await getJobResultFile({
               client: publicClient,
               path: { id: job.id, file },
             })

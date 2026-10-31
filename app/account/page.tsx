@@ -316,6 +316,7 @@ const AccountPage = () => {
             status: "offline",
             version: null,
             updateRequired: false,
+            currentSps: null,
           },
         ]);
         setNodeName("");

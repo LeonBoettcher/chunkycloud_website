@@ -19,6 +19,10 @@ export type UserNodeResponse = {
      * The software version running on this node.
      */
     version?: string | null;
+    /**
+     * Current samples per second, or null if no SPS was reported in the last 3 minutes.
+     */
+    currentSps: number | null;
     status: 'online' | 'offline';
     /**
      * Whether an update is required for this node to continue rendering.
@@ -63,6 +67,55 @@ export type PaginationInfo = {
 export type UserTransactionsResponse = {
     data: Array<UserTransaction>;
     extra: PaginationInfo;
+};
+
+export type RenderJobEventType = 'task_assigned' | 'task_started' | 'task_completed' | 'task_requeued' | 'task_failed' | 'job_queued' | 'job_completed' | 'job_cancelled';
+
+export type RenderJobEventVisibility = 'user' | 'admin';
+
+export type UserJobHistoryEvent = {
+    id: number;
+    type: RenderJobEventType;
+    visibility: RenderJobEventVisibility;
+    job?: {
+        id: number;
+    };
+    task?: {
+        id: number;
+    } | null;
+    node?: {
+        id: number;
+        type: 'renderer' | 'worker';
+    } | null;
+    reason?: {
+        code: string;
+        message?: string;
+    } | null;
+    createdAt: string;
+};
+
+export type UserJobHistoryResponse = {
+    data: Array<UserJobHistoryEvent>;
+    extra: PaginationInfo;
+};
+
+export type CreateNodeDto = {
+    name?: string;
+};
+
+export type CreateNodeResponse = {
+    id: number;
+    /**
+     * Render node token (can not be retrieved again later)
+     */
+    token: string;
+};
+
+export type ResetNodeTokenResponse = {
+    /**
+     * New render node token (can not be retrieved again later)
+     */
+    token: string;
 };
 
 export type JobStatus = 'draft' | 'queued' | 'running' | 'merge_pending' | 'merge_running' | 'completed' | 'aborted';
@@ -114,36 +167,6 @@ export type UserJobsResponse = {
     extra: PaginationInfo;
 };
 
-export type RenderJobEventType = 'task_assigned' | 'task_started' | 'task_completed' | 'task_requeued' | 'task_failed' | 'job_queued' | 'job_completed' | 'job_cancelled';
-
-export type RenderJobEventVisibility = 'user' | 'admin';
-
-export type UserJobHistoryEvent = {
-    id: number;
-    type: RenderJobEventType;
-    visibility: RenderJobEventVisibility;
-    job?: {
-        id: number;
-    };
-    task?: {
-        id: number;
-    } | null;
-    node?: {
-        id: number;
-        type: 'renderer' | 'worker';
-    } | null;
-    reason?: {
-        code: string;
-        message?: string;
-    } | null;
-    createdAt: string;
-};
-
-export type UserJobHistoryResponse = {
-    data: Array<UserJobHistoryEvent>;
-    extra: PaginationInfo;
-};
-
 export type UserJob = {
     id: number;
     status: JobStatus;
@@ -177,29 +200,6 @@ export type UserJob = {
      * Number of tasks of this job that is currently running
      */
     runningTasksCount: number;
-};
-
-export type UrlResponse = {
-    url: string;
-};
-
-export type CreateNodeDto = {
-    name?: string;
-};
-
-export type CreateNodeResponse = {
-    id: number;
-    /**
-     * Render node token (can not be retrieved again later)
-     */
-    token: string;
-};
-
-export type ResetNodeTokenResponse = {
-    /**
-     * New render node token (can not be retrieved again later)
-     */
-    token: string;
 };
 
 export type EstimateJobCostDto = {
@@ -285,6 +285,10 @@ export type CreateJobResponse = {
         skyboxTop?: string;
         skyboxBottom?: string;
     };
+};
+
+export type UrlResponse = {
+    url: string;
 };
 
 export type TileResponse = {
@@ -388,25 +392,6 @@ export type GetCurrentUserTransactionsResponses = {
 
 export type GetCurrentUserTransactionsResponse = GetCurrentUserTransactionsResponses[keyof GetCurrentUserTransactionsResponses];
 
-export type GetCurrentUserJobsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        status?: Array<JobStatus>;
-        sort?: 'createdAt' | 'startedAt' | 'finishedAt';
-        order?: Order;
-        page?: number;
-        limit?: number;
-    };
-    url: '/users/me/jobs';
-};
-
-export type GetCurrentUserJobsResponses = {
-    200: UserJobsResponse;
-};
-
-export type GetCurrentUserJobsResponse = GetCurrentUserJobsResponses[keyof GetCurrentUserJobsResponses];
-
 export type GetCurrentUserJobHistoryData = {
     body?: never;
     path: {
@@ -433,50 +418,6 @@ export type GetCurrentUserJobHistoryResponses = {
 };
 
 export type GetCurrentUserJobHistoryResponse = GetCurrentUserJobHistoryResponses[keyof GetCurrentUserJobHistoryResponses];
-
-export type GetCurrentUserJobData = {
-    body?: never;
-    path: {
-        id: number;
-    };
-    query?: never;
-    url: '/users/me/jobs/{id}';
-};
-
-export type GetCurrentUserJobResponses = {
-    200: UserJob;
-};
-
-export type GetCurrentUserJobResponse = GetCurrentUserJobResponses[keyof GetCurrentUserJobResponses];
-
-export type GetJobResultFileData = {
-    body?: never;
-    path: {
-        id: number;
-        /**
-         * The dump is only available if the job was created with createDump set to true
-         */
-        file: 'image' | 'dump';
-    };
-    query?: never;
-    url: '/users/me/jobs/{id}/results/{file}';
-};
-
-export type GetJobResultFileErrors = {
-    /**
-     *  The requested file is invalid or not available for this job
-     */
-    400: unknown;
-};
-
-export type GetJobResultFileResponses = {
-    /**
-     * A download URL for the requested file, valid for at least 1 hour
-     */
-    200: UrlResponse;
-};
-
-export type GetJobResultFileResponse = GetJobResultFileResponses[keyof GetJobResultFileResponses];
 
 export type CreateNodeData = {
     body: CreateNodeDto;
@@ -690,7 +631,7 @@ export type GetJobTilesResponses = {
 
 export type GetJobTilesResponse = GetJobTilesResponses[keyof GetJobTilesResponses];
 
-export type GetJobResultFile2Data = {
+export type GetJobResultFileData = {
     body?: never;
     path: {
         id: number;
@@ -703,7 +644,7 @@ export type GetJobResultFile2Data = {
     url: '/jobs/{id}/results/{file}';
 };
 
-export type GetJobResultFile2Errors = {
+export type GetJobResultFileErrors = {
     /**
      *  The requested file is invalid or not available for this job
      */
@@ -714,14 +655,14 @@ export type GetJobResultFile2Errors = {
     404: unknown;
 };
 
-export type GetJobResultFile2Responses = {
+export type GetJobResultFileResponses = {
     /**
      * A download URL for the requested file, valid for at least 1 hour
      */
     200: UrlResponse;
 };
 
-export type GetJobResultFile2Response = GetJobResultFile2Responses[keyof GetJobResultFile2Responses];
+export type GetJobResultFileResponse = GetJobResultFileResponses[keyof GetJobResultFileResponses];
 
 export type GetResourcePacksData = {
     body?: never;
