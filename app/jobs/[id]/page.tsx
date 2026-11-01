@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cache } from "react";
-import { getJob, getJobResultFile } from "../../../lib/api-client";
+import { getJob } from "../../../lib/api-client";
 import { publicApiClient } from "../../../lib/publicApiClient";
 import JobDetails from "./JobDetails";
 
@@ -18,13 +18,7 @@ const getPublicJob = cache(async (id: number) => {
     throwOnError: false,
   });
 
-  if (result.response?.status !== 200) {
-    return null;
-  }
-  if (!result.data) {
-    throw result.error ?? new Error("Failed to fetch public job.");
-  }
-  if (result.data.visibility !== "public") {
+  if (result.response?.status !== 200 || !result.data) {
     return null;
   }
 
@@ -41,7 +35,6 @@ export async function generateMetadata({
   }
 
   const { job } = publicJob;
-  const title = `Job ${job.id} | ChunkyCloud`;
   const description = `${job.width}×${job.height} render by ${job.createdBy.displayName} on ChunkyCloud, ${job.spp} samples per pixel.`;
   const imageUrl = job.thumbnailUrl;
   const images = imageUrl
@@ -49,28 +42,23 @@ export async function generateMetadata({
     : [];
 
   return {
-    title,
+    title: `Job ${job.id} | ChunkyCloud`,
     description,
     openGraph: {
       type: "website",
       siteName: "ChunkyCloud",
       url: `https://chunkycloud.net/jobs/${job.id}`,
-      title,
+      title: `Job ${job.id}`,
       description,
       images,
     },
     twitter: {
       card: imageUrl ? "summary_large_image" : "summary",
-      title,
+      title: `Job ${job.id} | ChunkyCloud`,
       description,
       images,
       creator: job.createdBy.displayName,
     },
-    authors: [
-      {
-        name: job.createdBy.displayName,
-      },
-    ],
   };
 }
 
