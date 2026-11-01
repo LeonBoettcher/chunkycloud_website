@@ -1,4 +1,4 @@
-import type { UserJob } from "../../lib/api-client";
+import type { JobStatus } from "../../lib/api-client";
 
 /**
  * Returns a JSX element representing the status of a job, based on its status string.
@@ -10,7 +10,7 @@ import type { UserJob } from "../../lib/api-client";
  * 'draft' | 'queued' | 'running' | 'completed' | 'aborted';
  */
 
-const getStatusTag = (job: UserJob) => {
+const getStatusTag = (job: { status: JobStatus }) => {
   const status = job.status;
 
   if (!job.status)

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useSession } from "../../app/auth/components/SessionProvider";
-import type { UserJob } from "../../lib/api-client";
+import type { UserJobItem } from "../../lib/api-client";
 import { getJobs } from "../../lib/api-client";
 
 import getStatusTag from "../../components/Job/getStatusTag";
@@ -33,18 +33,19 @@ const JobCards = ({
 }: JobCardsProps) => {
   const { publicClient } = useSession();
 
-  const [jobs, setJobs] = useState<UserJob[]>([]);
+  const [jobs, setJobs] = useState<UserJobItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [showLoadingFallback, setShowLoadingFallback] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
-    const timeoutId = window.setTimeout(() => {
-      if (isMounted) {
-        setShowLoadingFallback(true);
-      }
+    const ac = new AbortController();
+    const timeoutId = setTimeout(() => {
+      setShowLoadingFallback(true);
     }, 220);
+    ac.signal.addEventListener("abort", () => {
+      window.clearTimeout(timeoutId);
+    });
 
     const fetchJobs = async () => {
       try {
@@ -61,7 +62,9 @@ const JobCards = ({
             limit,
             createdBy,
           },
+          signal: ac.signal,
         });
+        ac.signal.throwIfAborted();
 
         const statusCode = result.response.status;
 
@@ -69,49 +72,20 @@ const JobCards = ({
           setErrorMsg("Error Code 400: Bad Request");
         }
 
-        let allJobs: UserJob[] = [];
-        let newTotalPages = 1;
-        const rdata: unknown = result.data;
+        const { totalCount } = result.data.extra;
+        const totalPages =
+          limit > 0 ? Math.max(1, Math.ceil(totalCount / limit)) : 1;
 
-        if (Array.isArray(rdata)) {
-          // shape: [{ data: UserJob[] }, ...]
-          allJobs = (rdata as any).flatMap((page: any) => page.data ?? []);
-          newTotalPages = 1;
-        } else if (
-          rdata &&
-          typeof rdata === "object" &&
-          Array.isArray((rdata as any).data)
-        ) {
-          const responseData = rdata as {
-            data: UserJob[];
-            extra?: {
-              page?: { page?: number; size?: number };
-              totalCount?: number;
-            };
-          };
-          allJobs = responseData.data ?? [];
-
-          const totalCount = responseData.extra?.totalCount ?? allJobs.length;
-          const pageSize = responseData.extra?.page?.size ?? limit;
-          newTotalPages =
-            pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
-        } else {
-          allJobs = [];
-          newTotalPages = 1;
-        }
-
-        if (isMounted) {
-          setJobs(allJobs);
-          onPaginationInfo?.(newTotalPages);
-          onEmptyState?.(allJobs.length === 0);
-        }
+        setJobs(result.data.data);
+        onPaginationInfo?.(totalPages);
+        onEmptyState?.(result.data.data.length === 0);
       } catch (err) {
-        if (isMounted) {
+        if (!ac.signal.aborted) {
           console.error(err);
           setErrorMsg(err instanceof Error ? err.message : String(err));
         }
       } finally {
-        if (isMounted) {
+        if (!ac.signal.aborted) {
           window.clearTimeout(timeoutId);
           setShowLoadingFallback(false);
           setLoading(false);
@@ -122,8 +96,7 @@ const JobCards = ({
     fetchJobs();
 
     return () => {
-      isMounted = false;
-      window.clearTimeout(timeoutId);
+      ac.abort();
     };
   }, [
     publicClient,
