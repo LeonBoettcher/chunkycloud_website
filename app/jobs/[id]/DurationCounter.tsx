@@ -9,15 +9,17 @@ type Duration = {
 
 type DurationCounterProps = {
   startDate: Date | string;
+  initialNow?: number;
   endDate?: Date | string | null;
 };
 
 function getDuration(
   startDate: Date | string,
   endDate?: Date | string | null,
+  now = Date.now(),
 ): Duration {
   const start = new Date(startDate).getTime();
-  const end = endDate ? new Date(endDate).getTime() : Date.now();
+  const end = endDate ? new Date(endDate).getTime() : now;
 
   const diff = Math.max(0, end - start);
 
@@ -31,9 +33,13 @@ function getDuration(
   };
 }
 
-export function DurationCounter({ startDate, endDate }: DurationCounterProps) {
+export function DurationCounter({
+  startDate,
+  endDate,
+  initialNow,
+}: DurationCounterProps) {
   const [duration, setDuration] = useState(() =>
-    getDuration(startDate, endDate),
+    getDuration(startDate, endDate, initialNow),
   );
 
   useEffect(() => {
