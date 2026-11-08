@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { canvasSizeToDimensions } from "../new/utils";
+import { canvasSizeToDimensions, cleanSceneDescription } from "../new/utils";
 
 import { useSession } from "../../app/auth/components/SessionProvider";
 import type {
@@ -88,19 +88,6 @@ export default function CreateJob() {
   const router = useRouter();
   const { client, isLoggedIn } = useSession();
 
-  {
-    /* Objects to Remove from SceneDescription */
-  }
-  const removefromSceneDescription: string[] = [
-    "world",
-    "actors.skin",
-    "skymap",
-  ];
-
-  {
-    /* Form Variables */
-  }
-
   const [sceneDescription, setSceneDescription] = useState<File>();
 
   const [octreeDescription, setOctree] = useState<File>();
@@ -139,10 +126,6 @@ export default function CreateJob() {
   const [folderDropSupported, setFolderDropSupported] = useState(true);
   const logRef = useRef<LogPanelRef>(null);
 
-  {
-    /* Idk what this if for */
-  }
-
   const sceneDescriptionRef = useRef<HTMLInputElement>(null);
   const octreeRef = useRef<HTMLInputElement>(null);
   const emitterGridRef = useRef<HTMLInputElement>(null);
@@ -176,22 +159,6 @@ export default function CreateJob() {
     setCanvasHeight(Number(customHeight));
     setCanvasWidth(Number(customWidth));
     setCanvasSize(`${customWidth}x${customHeight}`);
-  }
-
-  function deleteByPath(obj: any, path: string) {
-    const parts = path.split(".");
-    const last = parts.pop();
-
-    let current = obj;
-
-    for (const part of parts) {
-      if (!current || typeof current !== "object") return;
-      current = current[part];
-    }
-
-    if (current && last) {
-      delete current[last];
-    }
   }
 
   useEffect(() => {
@@ -557,10 +524,7 @@ export default function CreateJob() {
 
       // Remove local paths from scene description
       const json = JSON.parse(await sceneDescription.text());
-
-      removefromSceneDescription.forEach((path) => {
-        deleteByPath(json, path);
-      });
+      cleanSceneDescription(json);
 
       const cleanedSceneDescription = new File(
         [JSON.stringify(json)],
@@ -750,7 +714,6 @@ export default function CreateJob() {
     jobPublic,
     noResourcePacksAvailable,
     octreeDescription,
-    removefromSceneDescription,
     renderName,
     router,
     sceneDescription,
