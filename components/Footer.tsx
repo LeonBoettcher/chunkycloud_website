@@ -41,6 +41,14 @@ const Footer = () => {
       <nav>
         <h6 className="footer-title">Resources</h6>
         <Link
+          href="https://github.com/ChunkyCloud/ChunkyCloud/issues"
+          rel="noopener noreferrer"
+          target="_blank"
+          className="link link-hover"
+        >
+          Report an Issue
+        </Link>
+        <Link
           href="https://github.com/ChunkyCloud"
           rel="noopener noreferrer"
           target="_blank"
