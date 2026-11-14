@@ -62,12 +62,29 @@ export default function DownloadModal({
     useState<DownloadableFile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const triggerBrowserDownload = (downloadUrl: string, filename: string) => {
+  const triggerBrowserDownload = async (
+    downloadUrl: string,
+    filename: string,
+  ) => {
+    const response = await fetch(downloadUrl);
+    if (!response.ok) {
+      throw new Error(`Download failed (${response.status}). Please try again.`);
+    }
+
+    // Cross-origin URLs can ignore the download attribute. Blob URLs keep the
+    // download on this origin, including for files browsers can display inline.
+    const blobUrl = URL.createObjectURL(await response.blob());
     const anchor = document.createElement("a");
-    anchor.href = downloadUrl;
+    anchor.href = blobUrl;
     anchor.download = filename;
-    anchor.click();
-    anchor.remove();
+    document.body.appendChild(anchor);
+    try {
+      anchor.click();
+    } finally {
+      anchor.remove();
+      // Give the browser time to start the download before releasing the blob.
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    }
   };
 
   const handleDownload = async (file: DownloadableFile) => {
@@ -90,7 +107,7 @@ export default function DownloadModal({
               path: { id: job.id, file },
             });
 
-      triggerBrowserDownload(
+      await triggerBrowserDownload(
         result.data.url,
         getFallbackFilename(job.id, file),
       );
