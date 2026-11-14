@@ -535,12 +535,14 @@ const JobDetails = ({
               >
                 <img
                   src={previewImageUrl}
+                  width={job.width}
+                  height={job.height}
                   alt={`Render preview for job ${id}`}
                   style={{
                     maxWidth: "100%",
                     maxHeight: "100%",
-                    width: "auto",
-                    height: "auto",
+                    width: job.width,
+                    height: job.height,
                     objectFit: "contain",
                   }}
                   onError={(event) => {
