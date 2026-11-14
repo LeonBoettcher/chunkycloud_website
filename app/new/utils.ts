@@ -23,7 +23,8 @@ export function cleanSceneDescription(sceneDescription: unknown) {
   ]);
 
   // not needed for rendering, can be large
-  removePathFromObject(sceneDescription, "chunkList");
+  // actually, this is needed to calculate octree origin; remove once the octree origin is stored in the scene description
+  // removePathFromObject(sceneDescription, "chunkList");
 }
 
 function removePathFromObject(object: unknown, path: string) {
