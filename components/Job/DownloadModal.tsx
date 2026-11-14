@@ -65,10 +65,15 @@ export default function DownloadModal({
   const triggerBrowserDownload = async (
     downloadUrl: string,
     filename: string,
+    disableCache = false,
   ) => {
-    const response = await fetch(downloadUrl);
+    const response = await fetch(downloadUrl, {
+      cache: disableCache ? "no-store" : undefined,
+    });
     if (!response.ok) {
-      throw new Error(`Download failed (${response.status}). Please try again.`);
+      throw new Error(
+        `Download failed (${response.status}). Please try again.`,
+      );
     }
 
     // Cross-origin URLs can ignore the download attribute. Blob URLs keep the
@@ -110,6 +115,9 @@ export default function DownloadModal({
       await triggerBrowserDownload(
         result.data.url,
         getFallbackFilename(job.id, file),
+        // The preview may have cached this URL without CORS response headers.
+        // Always request a fresh response for the CORS-enabled download.
+        file === "image",
       );
       onClose();
     } catch (downloadError) {
